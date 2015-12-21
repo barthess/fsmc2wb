@@ -15,14 +15,14 @@ use IEEE.NUMERIC_STD.ALL;
 entity wb_stub is
   Generic (
     AW : positive; -- total FSMC address width
-    DW : positive  -- data witdth
+    DW : positive -- data witdth
   );
   Port (
     clk_i : in  std_logic;
     sel_i : in  std_logic;
     stb_i : in  std_logic;
     we_i  : in  std_logic;
-    mmu_o : out std_logic;
+    err_o : out std_logic;
     ack_o : out std_logic;
     adr_i : in  std_logic_vector(AW-1 downto 0);
     dat_o : out std_logic_vector(DW-1 downto 0);
@@ -43,10 +43,11 @@ begin
   process(clk_i) begin
     if rising_edge(clk_i) then
       if (stb_i = '1' and sel_i = '1') then
-        ack_o <= '1';
         if (we_i = '1') then
+          ack_o <= '1';
           dat_o <= dat_i;
         else
+          ack_o <= '0';
           dat_o <= x"DEAD";
         end if;
       end if;
@@ -57,9 +58,9 @@ begin
   process(clk_i) begin
     if rising_edge(clk_i) then
       if (sel_i = '1' and adr_i > 0) then
-        mmu_o <= '1';
+        err_o <= '1';
       else
-        mmu_o <= '0';
+        err_o <= '0';
       end if;
     end if;
   end process;

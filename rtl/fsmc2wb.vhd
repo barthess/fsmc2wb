@@ -40,7 +40,7 @@ entity fsmc2wb is
     AWSLAVE : positive -- wishbone slave address width 
   );
 	Port (
-    clk : in std_logic; -- high speed internal FPGA clock
+    clk_i : in std_logic; -- high speed internal FPGA clock
     mmu_int : out std_logic;
     ack_o : out std_logic;
     
@@ -56,7 +56,7 @@ entity fsmc2wb is
     sel_o : out std_logic_vector(2**AWSEL - 1           downto 0);
     stb_o : out std_logic_vector(2**AWSEL - 1           downto 0);
     we_o  : out std_logic_vector(2**AWSEL - 1           downto 0);
-    mmu_i : in  std_logic_vector(2**AWSEL - 1           downto 0);
+    err_i : in  std_logic_vector(2**AWSEL - 1           downto 0);
     ack_i : in  std_logic_vector(2**AWSEL - 1           downto 0);
     adr_o : out std_logic_vector(AWSLAVE * 2**AWSEL - 1 downto 0);
     dat_o : out std_logic_vector(DW * 2**AWSEL - 1      downto 0);
@@ -86,7 +86,7 @@ entity fsmc2wb is
   function get_sel(A : in std_logic_vector(AW-1 downto 0)) 
                      return std_logic_vector is
   begin
-    return A(AWSLAVE+AWSEL downto AWSLAVE);
+    return A(AWSLAVE+AWSEL - 1 downto AWSLAVE);
   end get_sel;
   
 end fsmc2wb;
@@ -106,7 +106,7 @@ type state_t is (IDLE, FLUSH);
   signal sel_wire_nce : STD_LOGIC;
   signal we_wire : std_logic;
   signal stb_wire : std_logic;
-  signal mmu_wire : std_logic;
+  signal err_wire : std_logic;
   -- outputs from data bus muxer
   signal fsmc_do_wire : std_logic_vector(DW-1 downto 0);
 begin
@@ -131,8 +131,8 @@ begin
   )
   port map (
     A     => sel_reg,
-    do(0) => mmu_wire,
-    di    => mmu_i
+    do(0) => err_wire,
+    di    => err_i
   );
 
   -- ACK muxer from multiple wishbone slaves
@@ -170,11 +170,11 @@ begin
   end generate;
   
   -- connect 3-state data bus
-  D <= dat_i when (NCE = '0' and NOE = '0') else (others => 'Z');
+  D <= fsmc_do_wire when (NCE = '0' and NOE = '0') else (others => 'Z');
   
   -- bus sampling process
-  process(clk) begin
-    if rising_edge(clk) then
+  process(clk_i) begin
+    if rising_edge(clk_i) then
       d_reg   <= D;
       a_reg   <= get_addr(A);
       sel_reg <= get_sel(A);
@@ -183,8 +183,8 @@ begin
   end process;
   
   -- BRAM WE logic. Will be activate 1 clock after WE goes down
-  process(clk) begin
-    if rising_edge(clk) then
+  process(clk_i) begin
+    if rising_edge(clk_i) then
       if (nwe_reg = "10") then
          we_wire  <= '1';
          stb_wire <= '1';
@@ -196,10 +196,10 @@ begin
   end process;
 
   -- MMU process
-  process(clk) begin
-    if rising_edge(clk) then
+  process(clk_i) begin
+    if rising_edge(clk_i) then
       if (NCE = '0') then
-        mmu_int <= mmu_check(A, NBL) or mmu_wire;
+        mmu_int <= mmu_check(A, NBL) or err_wire;
       end if;
     end if;
   end process;
