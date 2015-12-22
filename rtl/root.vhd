@@ -117,7 +117,7 @@ begin
   -- connect stubs
   wb_stub_gen : for n in 0 to WBSTUBS-1 generate 
   begin
-    we_stub : entity work.wb_stub
+    wb_stub : entity work.wb_stub
       generic map (
         AW => 16,
         DW => 16
