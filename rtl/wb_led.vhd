@@ -12,12 +12,14 @@ use IEEE.NUMERIC_STD.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity wb_stub is
+entity wb_led is
   Generic (
     AW : positive; -- address width
     DW : positive  -- data width
   );
   Port (
+    led   : out std_logic_vector(5 downto 0);
+
     clk_i : in  std_logic;
     sel_i : in  std_logic;
     stb_i : in  std_logic;
@@ -28,43 +30,59 @@ entity wb_stub is
     dat_o : out std_logic_vector(DW-1 downto 0);
     dat_i : in  std_logic_vector(DW-1 downto 0)
   );
-end wb_stub;
+end wb_led;
 
 
 
 -----------------------------------------------------------------------------
 
-architecture beh of wb_stub is
+architecture beh of wb_led is
 
-type state_t is (IDLE, FLUSH);
+  signal led_reg : std_logic_vector(5 downto 0);
+  signal err_dat : std_logic;
+  signal err_adr : std_logic;
+
 begin
 
-  -- bus sampling process
+  dat_o(DW-1 downto 6) <= (others => '0');
+  dat_o(5 downto 0) <= led_reg;
+  led <= led_reg;
+  err_o <= err_dat or err_adr;
+
+  -- dat_i to LED
   process(clk_i) begin
     if rising_edge(clk_i) then
       if (stb_i = '1' and sel_i = '1') then
         if (we_i = '1') then
+          led_reg <= dat_i(5 downto 0);
           ack_o <= '1';
-          dat_o <= dat_i;
-        else
-          ack_o <= '0';
-          dat_o <= x"DEAD";
         end if;
       end if;
     end if;
   end process;
   
-  -- MMU process
+  -- data check
   process(clk_i) begin
     if rising_edge(clk_i) then
-      if (sel_i = '1' and adr_i > 0) then
-        err_o <= '1';
+      if (sel_i = '1' and adr_i > 0 and we_i = '1' and dat_i(DW-1 downto 6) > 0) then
+        err_dat <= '1';
       else
-        err_o <= '0';
+        err_dat <= '0';
       end if;
     end if;
   end process;
 
+  -- MMU check
+  process(clk_i) begin
+    if rising_edge(clk_i) then
+      if (sel_i = '1' and adr_i > 0) then
+        err_adr <= '1';
+      else
+        err_adr <= '0';
+      end if;
+    end if;
+  end process;
+  
 end beh;
 
 

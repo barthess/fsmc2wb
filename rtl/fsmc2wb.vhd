@@ -199,7 +199,7 @@ begin
   process(clk_i) begin
     if rising_edge(clk_i) then
       if (NCE = '0') then
-        mmu_int <= mmu_check(A, NBL) or err_wire;
+        err_o <= mmu_check(A, NBL) or err_wire;
       end if;
     end if;
   end process;

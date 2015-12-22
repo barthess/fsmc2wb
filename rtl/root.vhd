@@ -39,7 +39,7 @@ entity root is
     FSMC_A_WIDTH : positive := 23;
     FSMC_D_WIDTH : positive := 16;
     AWSLAVE      : positive := 16;
-    WBSTUBS      : positive := 7
+    WBSTUBS      : positive := 6
   );
   port ( 
     CLK_IN_27MHZ : in std_logic;
@@ -58,7 +58,8 @@ entity root is
     STM_IO_ACK_INT : out std_logic;
     STM_IO_FPGA_READY : out std_logic;
     STM_IO_OLD_FSMC_CLK : in std_logic;
-    
+    LED_LINE : out std_logic_vector (5 downto 0);
+
     DEV_NULL_BANK1 : out std_logic; -- warning suppressor
     DEV_NULL_BANK0 : out std_logic -- warning suppressor
 	);
@@ -100,6 +101,15 @@ signal wb_stub_adr   : std_logic_vector(AWSLAVE*WBSTUBS - 1       downto 0);
 signal wb_stub_dat_i : std_logic_vector(FSMC_D_WIDTH*WBSTUBS - 1  downto 0);
 signal wb_stub_dat_o : std_logic_vector(FSMC_D_WIDTH*WBSTUBS - 1  downto 0);
 
+-- wires for wishbone led slave
+signal wb_led_sel   : std_logic;
+signal wb_led_stb   : std_logic;
+signal wb_led_we    : std_logic;
+signal wb_led_err   : std_logic;
+signal wb_led_ack   : std_logic;
+signal wb_led_adr   : std_logic_vector(AWSLAVE - 1 downto 0);
+signal wb_led_dat_i : std_logic_vector(FSMC_D_WIDTH - 1  downto 0);
+signal wb_led_dat_o : std_logic_vector(FSMC_D_WIDTH - 1  downto 0);
 
 begin
 
@@ -119,8 +129,8 @@ begin
   begin
     wb_stub : entity work.wb_stub
       generic map (
-        AW => 16,
-        DW => 16
+        AW => AWSLAVE,
+        DW => FSMC_D_WIDTH
       )
       port map (
         clk_i => clk_wb,
@@ -135,6 +145,28 @@ begin
       );
   end generate;
 
+
+  -- connect LED strip
+  wb_led : entity work.wb_led
+    generic map (
+      AW => AWSLAVE,
+      DW => FSMC_D_WIDTH
+    )
+    port map (
+      led   => LED_LINE,
+
+      clk_i => clk_wb,
+      sel_i => wb_led_sel,
+      stb_i => wb_led_stb,
+      we_i  => wb_led_we,
+      err_o => wb_led_err,
+      ack_o => wb_led_ack,
+      adr_i => wb_led_adr,
+      dat_o => wb_led_dat_o,
+      dat_i => wb_led_dat_i
+    );
+
+      
   -- FSMC to Wishbone adaptor
   fsmc2wb : entity work.fsmc2wb 
     generic map (
@@ -156,29 +188,37 @@ begin
       NWE => FSMC_NWE,
       NBL => FSMC_NBL,
 
-      sel_o(7 downto 1)                           => wb_stub_sel,
+      sel_o(7 downto 8-WBSTUBS)                   => wb_stub_sel,
+      sel_o(1)                                    => wb_led_sel,
       sel_o(0)                                    => wire_bram_ce,
       
-      stb_o(7 downto 1)                           => wb_stub_stb,
+      stb_o(7 downto 8-WBSTUBS)                   => wb_stub_stb,
+      stb_o(1)                                    => wb_led_stb,
       stb_o(0)                                    => DEV_NULL_BANK1,
       
-      we_o(7 downto 1)                            => wb_stub_we,
+      we_o(7 downto 8-WBSTUBS)                    => wb_stub_we,
+      we_o(1)                                     => wb_led_we,
       we_o(0)                                     => wire_bram_we(0),
       
-      adr_o(AWSLAVE*8-1 downto AWSLAVE)           => wb_stub_adr,
+      adr_o(AWSLAVE*8-1 downto AWSLAVE*2)         => wb_stub_adr,
+      adr_o(AWSLAVE*2-1 downto AWSLAVE)           => wb_led_adr,
       adr_o(AWSLAVE-1   downto 0)                 => wire_bram_a,
       
-      dat_o(FSMC_D_WIDTH*8-1 downto FSMC_D_WIDTH) => wb_stub_dat_i,
-      dat_o(FSMC_D_WIDTH-1   downto 0)            => wire_bram_di,
+      dat_o(FSMC_D_WIDTH*8-1 downto FSMC_D_WIDTH*2) => wb_stub_dat_i,
+      dat_o(FSMC_D_WIDTH*2-1 downto FSMC_D_WIDTH)   => wb_led_dat_i,
+      dat_o(FSMC_D_WIDTH-1   downto 0)              => wire_bram_di,
       
-      err_i(7 downto 1)                           => wb_stub_err,
-      err_i(0)                                    => '0',
+      err_i(7 downto 8-WBSTUBS)                     => wb_stub_err,
+      err_i(1)                                      => wb_led_err,
+      err_i(0)                                      => '0',
       
-      ack_i(7 downto 1)                           => wb_stub_ack,
-      ack_i(0)                                    => '0',
+      ack_i(7 downto 8-WBSTUBS)                     => wb_stub_ack,
+      ack_i(1)                                      => wb_led_ack,
+      ack_i(0)                                      => '0',
       
-      dat_i(FSMC_D_WIDTH*8-1 downto FSMC_D_WIDTH) => wb_stub_dat_o,
-      dat_i(FSMC_D_WIDTH-1   downto 0)            => wire_bram_do
+      dat_i(FSMC_D_WIDTH*8-1 downto FSMC_D_WIDTH*2) => wb_stub_dat_o,
+      dat_i(FSMC_D_WIDTH*2-1 downto FSMC_D_WIDTH)   => wb_led_dat_o,
+      dat_i(FSMC_D_WIDTH-1   downto 0)              => wire_bram_do
     );
 
 
@@ -202,7 +242,7 @@ begin
   );
 
 
-  bram_test : entity work.bram
+  bram_memtest : entity work.bram_memtest
     PORT MAP (
       -- port A connected to FSMC adapter
       addra => wire_bram_a,

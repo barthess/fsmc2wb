@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 14.7
-# Date: Fri Dec 18 13:09:15 2015
+# Date: Tue Dec 22 12:03:49 2015
 #
 ##############################################################
 #
@@ -48,7 +48,7 @@ CSET axi_type=AXI4_Full
 CSET byte_size=9
 CSET coe_file=no_coe_file_loaded
 CSET collision_warnings=ALL
-CSET component_name=bram
+CSET component_name=bram_memtest
 CSET disable_collision_warnings=false
 CSET disable_out_of_range_warnings=false
 CSET ecc=false
@@ -105,4 +105,4 @@ CSET write_width_b=16
 MISC pkg_timestamp=2012-11-19T16:22:25Z
 # END Extra information
 GENERATE
-# CRC: b6d96c4f
+# CRC: f0ed73b4
