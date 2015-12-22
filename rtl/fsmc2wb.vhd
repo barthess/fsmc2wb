@@ -109,6 +109,7 @@ type state_t is (IDLE, FLUSH);
   signal err_wire : std_logic;
   -- outputs from data bus muxer
   signal fsmc_do_wire : std_logic_vector(DW-1 downto 0);
+  signal fsmc_do_reg  : std_logic_vector(DW-1 downto 0);
 begin
 
   -- data muxer from multiple wishbone slaves to data bus
@@ -170,15 +171,16 @@ begin
   end generate;
   
   -- connect 3-state data bus
-  D <= fsmc_do_wire when (NCE = '0' and NOE = '0') else (others => 'Z');
+  D <= fsmc_do_reg when (NCE = '0' and NOE = '0') else (others => 'Z');
   
-  -- bus sampling process
+  -- bus registering
   process(clk_i) begin
     if rising_edge(clk_i) then
       d_reg   <= D;
       a_reg   <= get_addr(A);
       sel_reg <= get_sel(A);
       nwe_reg <= nwe_reg(0) & NWE;
+      fsmc_do_reg <= fsmc_do_wire;
     end if;
   end process;
   
