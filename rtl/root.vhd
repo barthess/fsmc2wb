@@ -55,6 +55,7 @@ entity root is
     STM_IO_MUL_RDY : out std_logic;
     STM_IO_MUL_DV  : in std_logic;
     STM_IO_MMU_INT : out std_logic;
+    STM_IO_ACK_INT : out std_logic;
     STM_IO_FPGA_READY : out std_logic;
     STM_IO_OLD_FSMC_CLK : in std_logic;
     
@@ -145,7 +146,8 @@ begin
     )
     port map (
       clk_i => clk_wb,
-      mmu_int => STM_IO_MMU_INT,
+      err_o => STM_IO_MMU_INT,
+      ack_o => STM_IO_ACK_INT,
       
       A   => FSMC_A,
       D   => FSMC_D,

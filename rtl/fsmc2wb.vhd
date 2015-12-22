@@ -41,7 +41,7 @@ entity fsmc2wb is
   );
 	Port (
     clk_i : in std_logic; -- high speed internal FPGA clock
-    mmu_int : out std_logic;
+    err_o : out std_logic;
     ack_o : out std_logic;
     
     -- FSMC interface
