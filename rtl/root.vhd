@@ -121,7 +121,7 @@ begin
 		CLK_OUT3 => clk_100mhz,
 		LOCKED   => clk_locked
 	);
-  clk_wb <= clk_170mhz;
+  clk_wb <= clk_150mhz;
 
 
   -- connect stubs
