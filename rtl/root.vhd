@@ -36,16 +36,16 @@ use ieee.std_logic_misc.all;
 
 entity root is
   generic (
-    FSMC_A_WIDTH : positive := 23;
-    FSMC_D_WIDTH : positive := 16;
-    AWSLAVE      : positive := 16;
-    WBSTUBS      : positive := 6
+    FSMC_AW : positive := 23;
+    FSMC_DW : positive := 16;
+    WB_AW   : positive := 16;
+    WBSTUBS : positive := 6
   );
   port ( 
     CLK_IN_27MHZ : in std_logic;
 
-    FSMC_A : in std_logic_vector ((FSMC_A_WIDTH - 1) downto 0);
-    FSMC_D : inout std_logic_vector ((FSMC_D_WIDTH - 1) downto 0);
+    FSMC_A : in std_logic_vector ((FSMC_AW - 1) downto 0);
+    FSMC_D : inout std_logic_vector ((FSMC_DW - 1) downto 0);
     FSMC_NBL : in std_logic_vector (1 downto 0);
     FSMC_NOE : in std_logic;
     FSMC_NWE : in std_logic;
@@ -68,17 +68,10 @@ end root;
 
 architecture Behavioral of root is
 
--- clock wires
-signal clk_170mhz : std_logic;
-signal clk_150mhz : std_logic;
-signal clk_100mhz : std_logic;
-signal clk_locked : std_logic;
-signal clk_wb     : std_logic; -- wishbone clock
-
 -- wires for memtest
-signal wire_bram_a   : std_logic_vector(15 downto 0); 
-signal wire_bram_di  : std_logic_vector(FSMC_D_WIDTH-1 downto 0); 
-signal wire_bram_do  : std_logic_vector(FSMC_D_WIDTH-1 downto 0); 
+signal wire_bram_a   : std_logic_vector(14 downto 0); 
+signal wire_bram_di  : std_logic_vector(FSMC_DW-1 downto 0); 
+signal wire_bram_do  : std_logic_vector(FSMC_DW-1 downto 0); 
 signal wire_bram_ce  : std_logic; 
 signal wire_bram_we  : std_logic_vector(0 downto 0);  
 signal wire_bram_clk : std_logic; 
@@ -87,27 +80,27 @@ signal wire_memtest_wb_stb : std_logic;
 signal wire_memtest_wb_we  : std_logic;
 signal wire_memtest_wb_err : std_logic;
 signal wire_memtest_wb_ack : std_logic;
-signal wire_memtest_wb_adr : std_logic_vector(AWSLAVE-1 downto 0);
-signal wire_memtest_wb_dat_o : std_logic_vector(FSMC_D_WIDTH-1 downto 0);
-signal wire_memtest_wb_dat_i : std_logic_vector(FSMC_D_WIDTH-1 downto 0);
+signal wire_memtest_wb_adr : std_logic_vector(WB_AW-1 downto 0);
+signal wire_memtest_wb_dat_o : std_logic_vector(FSMC_DW-1 downto 0);
+signal wire_memtest_wb_dat_i : std_logic_vector(FSMC_DW-1 downto 0);
       
 -- wires for memory assistant
-signal wire_memtest_bram_a   : std_logic_vector (AWSLAVE-1 downto 0); 
-signal wire_memtest_bram_di  : std_logic_vector (15 downto 0); 
-signal wire_memtest_bram_do  : std_logic_vector (15 downto 0); 
+signal wire_memtest_bram_a   : std_logic_vector (14 downto 0); 
+signal wire_memtest_bram_di  : std_logic_vector (FSMC_DW-1 downto 0); 
+signal wire_memtest_bram_do  : std_logic_vector (FSMC_DW-1 downto 0); 
 signal wire_memtest_bram_ce  : std_logic;
 signal wire_memtest_bram_we  : std_logic_vector (0 downto 0);  
 signal wire_memtest_bram_clk : std_logic;
 
 -- wires for wishbone stubs
-signal wb_stub_sel   : std_logic_vector(WBSTUBS - 1               downto 0);
-signal wb_stub_stb   : std_logic_vector(WBSTUBS - 1               downto 0);
-signal wb_stub_we    : std_logic_vector(WBSTUBS - 1               downto 0);
-signal wb_stub_err   : std_logic_vector(WBSTUBS - 1               downto 0);
-signal wb_stub_ack   : std_logic_vector(WBSTUBS - 1               downto 0);
-signal wb_stub_adr   : std_logic_vector(AWSLAVE*WBSTUBS - 1       downto 0);
-signal wb_stub_dat_i : std_logic_vector(FSMC_D_WIDTH*WBSTUBS - 1  downto 0);
-signal wb_stub_dat_o : std_logic_vector(FSMC_D_WIDTH*WBSTUBS - 1  downto 0);
+signal wb_stub_sel   : std_logic_vector(WBSTUBS - 1         downto 0);
+signal wb_stub_stb   : std_logic_vector(WBSTUBS - 1         downto 0);
+signal wb_stub_we    : std_logic_vector(WBSTUBS - 1         downto 0);
+signal wb_stub_err   : std_logic_vector(WBSTUBS - 1         downto 0);
+signal wb_stub_ack   : std_logic_vector(WBSTUBS - 1         downto 0);
+signal wb_stub_adr   : std_logic_vector(WB_AW*WBSTUBS - 1   downto 0);
+signal wb_stub_dat_i : std_logic_vector(FSMC_DW*WBSTUBS - 1 downto 0);
+signal wb_stub_dat_o : std_logic_vector(FSMC_DW*WBSTUBS - 1 downto 0);
 
 -- wires for wishbone led slave
 signal wb_led_sel   : std_logic;
@@ -115,9 +108,16 @@ signal wb_led_stb   : std_logic;
 signal wb_led_we    : std_logic;
 signal wb_led_err   : std_logic;
 signal wb_led_ack   : std_logic;
-signal wb_led_adr   : std_logic_vector(AWSLAVE - 1 downto 0);
-signal wb_led_dat_i : std_logic_vector(FSMC_D_WIDTH - 1  downto 0);
-signal wb_led_dat_o : std_logic_vector(FSMC_D_WIDTH - 1  downto 0);
+signal wb_led_adr   : std_logic_vector(WB_AW-1   downto 0);
+signal wb_led_dat_i : std_logic_vector(FSMC_DW-1 downto 0);
+signal wb_led_dat_o : std_logic_vector(FSMC_DW-1 downto 0);
+
+-- clock wires
+signal clk_180mhz : std_logic;
+signal clk_154mhz : std_logic;
+signal clk_100mhz : std_logic;
+signal clk_locked : std_logic;
+signal clk_wb     : std_logic; -- wishbone clock
 
 begin
 
@@ -126,12 +126,12 @@ begin
   --
 	clk_src : entity work.clk_src port map (
 		CLK_IN1  => CLK_IN_27MHZ,
-  	CLK_OUT1 => clk_170mhz,
-		CLK_OUT2 => clk_150mhz,
+  	CLK_OUT1 => clk_180mhz,
+		CLK_OUT2 => clk_154mhz,
 		CLK_OUT3 => clk_100mhz,
 		LOCKED   => clk_locked
 	);
-  clk_wb <= clk_150mhz;
+  clk_wb <= clk_180mhz;
 
   --
   -- connect stubs to unused wishbone slots
@@ -140,8 +140,8 @@ begin
   begin
     wb_stub : entity work.wb_stub
       generic map (
-        AW => AWSLAVE,
-        DW => FSMC_D_WIDTH
+        AW => WB_AW,
+        DW => FSMC_DW
       )
       port map (
         clk_i => clk_wb,
@@ -150,9 +150,9 @@ begin
         we_i  => wb_stub_we(n),
         err_o => wb_stub_err(n),
         ack_o => wb_stub_ack(n),
-        adr_i => wb_stub_adr  ((n+1)*AWSLAVE-1      downto n*AWSLAVE),
-        dat_o => wb_stub_dat_o((n+1)*FSMC_D_WIDTH-1 downto n*FSMC_D_WIDTH),
-        dat_i => wb_stub_dat_i((n+1)*FSMC_D_WIDTH-1 downto n*FSMC_D_WIDTH)
+        adr_i => wb_stub_adr  ((n+1)*WB_AW-1   downto n*WB_AW),
+        dat_o => wb_stub_dat_o((n+1)*FSMC_DW-1 downto n*FSMC_DW),
+        dat_i => wb_stub_dat_i((n+1)*FSMC_DW-1 downto n*FSMC_DW)
       );
   end generate;
 
@@ -161,8 +161,8 @@ begin
   --
   wb_led : entity work.wb_led
     generic map (
-      AW => AWSLAVE,
-      DW => FSMC_D_WIDTH
+      AW => WB_AW,
+      DW => FSMC_DW
     )
     port map (
       led   => LED_LINE,
@@ -183,10 +183,10 @@ begin
   --
   fsmc2wb : entity work.fsmc2wb 
     generic map (
-      AW => FSMC_A_WIDTH,
-      DW => FSMC_D_WIDTH,
+      AW => FSMC_AW,
+      DW => FSMC_DW,
       AWSEL => 3,
-      AWSLAVE => AWSLAVE,
+      AWSLAVE => WB_AW,
       USENBL => '0'
     )
     port map (
@@ -201,37 +201,37 @@ begin
       NWE => FSMC_NWE,
       NBL => FSMC_NBL,
 
-      sel_o(7 downto 8-WBSTUBS)                     => wb_stub_sel,
-      sel_o(1)                                      => wb_led_sel,
-      sel_o(0)                                      => wire_memtest_wb_sel,
+      sel_o(7 downto 8-WBSTUBS)           => wb_stub_sel,
+      sel_o(1)                            => wb_led_sel,
+      sel_o(0)                            => wire_memtest_wb_sel,
       
-      stb_o(7 downto 8-WBSTUBS)                     => wb_stub_stb,
-      stb_o(1)                                      => wb_led_stb,
-      stb_o(0)                                      => wire_memtest_wb_stb,
+      stb_o(7 downto 8-WBSTUBS)           => wb_stub_stb,
+      stb_o(1)                            => wb_led_stb,
+      stb_o(0)                            => wire_memtest_wb_stb,
       
-      we_o(7 downto 8-WBSTUBS)                      => wb_stub_we,
-      we_o(1)                                       => wb_led_we,
-      we_o(0)                                       => wire_memtest_wb_we,
+      we_o(7 downto 8-WBSTUBS)            => wb_stub_we,
+      we_o(1)                             => wb_led_we,
+      we_o(0)                             => wire_memtest_wb_we,
       
-      adr_o(AWSLAVE*8-1 downto AWSLAVE*2)           => wb_stub_adr,
-      adr_o(AWSLAVE*2-1 downto AWSLAVE)             => wb_led_adr,
-      adr_o(AWSLAVE-1   downto 0)                   => wire_memtest_wb_adr,
+      adr_o(WB_AW*8-1 downto WB_AW*2)     => wb_stub_adr,
+      adr_o(WB_AW*2-1 downto WB_AW)       => wb_led_adr,
+      adr_o(WB_AW-1   downto 0)           => wire_memtest_wb_adr,
       
-      dat_o(FSMC_D_WIDTH*8-1 downto FSMC_D_WIDTH*2) => wb_stub_dat_i,
-      dat_o(FSMC_D_WIDTH*2-1 downto FSMC_D_WIDTH)   => wb_led_dat_i,
-      dat_o(FSMC_D_WIDTH-1   downto 0)              => wire_memtest_wb_dat_i,
+      dat_o(FSMC_DW*8-1 downto FSMC_DW*2) => wb_stub_dat_i,
+      dat_o(FSMC_DW*2-1 downto FSMC_DW)   => wb_led_dat_i,
+      dat_o(FSMC_DW-1   downto 0)         => wire_memtest_wb_dat_i,
       
-      err_i(7 downto 8-WBSTUBS)                     => wb_stub_err,
-      err_i(1)                                      => wb_led_err,
-      err_i(0)                                      => wire_memtest_wb_err,
+      err_i(7 downto 8-WBSTUBS)           => wb_stub_err,
+      err_i(1)                            => wb_led_err,
+      err_i(0)                            => wire_memtest_wb_err,
       
-      ack_i(7 downto 8-WBSTUBS)                     => wb_stub_ack,
-      ack_i(1)                                      => wb_led_ack,
-      ack_i(0)                                      => wire_memtest_wb_ack,
+      ack_i(7 downto 8-WBSTUBS)           => wb_stub_ack,
+      ack_i(1)                            => wb_led_ack,
+      ack_i(0)                            => wire_memtest_wb_ack,
       
-      dat_i(FSMC_D_WIDTH*8-1 downto FSMC_D_WIDTH*2) => wb_stub_dat_o,
-      dat_i(FSMC_D_WIDTH*2-1 downto FSMC_D_WIDTH)   => wb_led_dat_o,
-      dat_i(FSMC_D_WIDTH-1   downto 0)              => wire_memtest_wb_dat_o
+      dat_i(FSMC_DW*8-1 downto FSMC_DW*2) => wb_stub_dat_o,
+      dat_i(FSMC_DW*2-1 downto FSMC_DW)   => wb_led_dat_o,
+      dat_i(FSMC_DW-1   downto 0)         => wire_memtest_wb_dat_o
     );
 
   --
@@ -239,7 +239,8 @@ begin
   --
   memtest_assist : entity work.memtest_assist
   generic map (
-    AW => AWSLAVE
+    AW => 15,
+    DW => FSMC_DW
   )
   port map (
     clk_i     => clk_100mhz,
@@ -283,9 +284,9 @@ begin
   --
   wb2bram : entity work.wb_bram
     generic map (
-      AW => AWSLAVE,
-      DW => FSMC_D_WIDTH,
-      AWBRAM => 16
+      AW => WB_AW,
+      DW => FSMC_DW,
+      AWBRAM => 15
     )
     port map (
       -- BRAM
