@@ -97,7 +97,6 @@ end fsmc2wb;
 
 architecture beh of fsmc2wb is
 
-type state_t is (IDLE, FLUSH);
   signal a_reg : STD_LOGIC_VECTOR (AWSLAVE-1 downto 0);
   signal sel_reg : STD_LOGIC_VECTOR (AWSEL-1 downto 0);
   signal d_reg : STD_LOGIC_VECTOR (DW-1 downto 0); 
@@ -110,6 +109,7 @@ type state_t is (IDLE, FLUSH);
   -- outputs from data bus muxer
   signal fsmc_do_wire : std_logic_vector(DW-1 downto 0);
   signal fsmc_do_reg  : std_logic_vector(DW-1 downto 0);
+
 begin
 
   -- data muxer from multiple wishbone slaves to data bus

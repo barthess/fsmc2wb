@@ -50,14 +50,14 @@ entity root is
     FSMC_NOE : in std_logic;
     FSMC_NWE : in std_logic;
     FSMC_NCE : in std_logic;
-    --FSMC_CLK : in std_logic;
-    
-    STM_IO_MUL_RDY : out std_logic;
-    STM_IO_MUL_DV  : in std_logic;
-    STM_IO_MMU_INT : out std_logic;
-    STM_IO_ACK_INT : out std_logic;
-    STM_IO_FPGA_READY : out std_logic;
-    STM_IO_OLD_FSMC_CLK : in std_logic;
+
+    STM_IO_MUL_RDY_OUT : out std_logic;
+    STM_IO_WB_ERR_OUT : out std_logic;
+    STM_IO_WB_ACK_OUT : out std_logic;
+    STM_IO_BRAM_AUTO_FILL : in std_logic;
+    STM_IO_BRAM_DBG_OUT : out std_logic;
+    STM_IO_FPGA_RDY : out std_logic;
+
     LED_LINE : out std_logic_vector (5 downto 0);
 
     DEV_NULL_BANK1 : out std_logic; -- warning suppressor
@@ -191,8 +191,8 @@ begin
     )
     port map (
       clk_i => clk_wb,
-      err_o => STM_IO_MMU_INT,
-      ack_o => STM_IO_ACK_INT,
+      err_o => STM_IO_WB_ERR_OUT,
+      ack_o => STM_IO_WB_ACK_OUT,
       
       A   => FSMC_A,
       D   => FSMC_D,
@@ -245,8 +245,8 @@ begin
   port map (
     clk_i     => clk_100mhz,
 
-    BRAM_FILL => STM_IO_MUL_DV,
-    BRAM_DBG  => STM_IO_MUL_RDY,
+    BRAM_FILL => STM_IO_BRAM_AUTO_FILL,
+    BRAM_DBG  => STM_IO_BRAM_DBG_OUT,
     
     BRAM_CLK => wire_memtest_bram_clk, -- memory clock
     BRAM_A   => wire_memtest_bram_a,   -- memory address
@@ -280,7 +280,7 @@ begin
   wire_bram_clk <= clk_wb;  
 
   --
-  -- Wishbone to BRAM adaptor
+  -- Connect memtest BRAM to wishbone adaptor
   --
   wb2bram : entity work.wb_bram
     generic map (
@@ -311,12 +311,12 @@ begin
   --
 	-- raize ready flag for STM32
   --
-	STM_IO_FPGA_READY <= not clk_locked;
+	STM_IO_FPGA_RDY <= not clk_locked;
 
   --
   -- warning suppressors and other trash
   --
-  DEV_NULL_BANK0 <= STM_IO_OLD_FSMC_CLK;
+  DEV_NULL_BANK0 <= '1';
   DEV_NULL_BANK1 <= '1';
 
 end Behavioral;
