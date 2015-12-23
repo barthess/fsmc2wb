@@ -39,7 +39,6 @@ entity wb_bram is
 end wb_bram;
 
 
-
 -----------------------------------------------------------------------------
 
 architecture beh of wb_bram is
@@ -52,19 +51,10 @@ begin
   dat_o       <= bram_dat_i;
   bram_we_o   <= we_i and stb_i;
   bram_en_o   <= sel_i;
-  ack_o       <= '1';
-
-  -- MMU process
-  process(clk_i) begin
-    if rising_edge(clk_i) then
-      if (sel_i = '1' and adr_i(AW-1 downto AWBRAM) > 0) then
-        err_o <= '1';
-      else
-        err_o <= '0';
-      end if;
-    end if;
-  end process;
-
+  ack_o       <= we_i and stb_i;
+  
+  err_o <= '1' when (AW > AWBRAM and sel_i = '1' and adr_i(AW-1 downto AWBRAM) > 0) else '0';
+  
 end beh;
 
 

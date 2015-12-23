@@ -68,28 +68,36 @@ end root;
 
 architecture Behavioral of root is
 
+-- clock wires
 signal clk_170mhz : std_logic;
 signal clk_150mhz : std_logic;
 signal clk_100mhz : std_logic;
 signal clk_locked : std_logic;
-signal clk_wb : std_logic;
+signal clk_wb     : std_logic; -- wishbone clock
 
--- wires for memspace to fsmc
-signal wire_bram_a   : std_logic_vector (AWSLAVE-1      downto 0); 
-signal wire_bram_di  : std_logic_vector (FSMC_D_WIDTH-1 downto 0); 
-signal wire_bram_do  : std_logic_vector (FSMC_D_WIDTH-1 downto 0); 
+-- wires for memtest
+signal wire_bram_a   : std_logic_vector(15 downto 0); 
+signal wire_bram_di  : std_logic_vector(FSMC_D_WIDTH-1 downto 0); 
+signal wire_bram_do  : std_logic_vector(FSMC_D_WIDTH-1 downto 0); 
 signal wire_bram_ce  : std_logic; 
-signal wire_bram_we  : std_logic_vector (0 downto 0);  
+signal wire_bram_we  : std_logic_vector(0 downto 0);  
 signal wire_bram_clk : std_logic; 
-signal wire_bram_asample : std_logic; 
-
--- wires for memory filler
-signal wire_memtest_a    : std_logic_vector (AWSLAVE-1 downto 0); 
-signal wire_memtest_di   : std_logic_vector (15 downto 0); 
-signal wire_memtest_do   : std_logic_vector (15 downto 0); 
-signal wire_memtest_ce   : std_logic;
-signal wire_memtest_we   : std_logic_vector (0 downto 0);  
-signal wire_memtest_clk  : std_logic;
+signal wire_memtest_wb_sel : std_logic;
+signal wire_memtest_wb_stb : std_logic;
+signal wire_memtest_wb_we  : std_logic;
+signal wire_memtest_wb_err : std_logic;
+signal wire_memtest_wb_ack : std_logic;
+signal wire_memtest_wb_adr : std_logic_vector(AWSLAVE-1 downto 0);
+signal wire_memtest_wb_dat_o : std_logic_vector(FSMC_D_WIDTH-1 downto 0);
+signal wire_memtest_wb_dat_i : std_logic_vector(FSMC_D_WIDTH-1 downto 0);
+      
+-- wires for memory assistant
+signal wire_memtest_bram_a   : std_logic_vector (AWSLAVE-1 downto 0); 
+signal wire_memtest_bram_di  : std_logic_vector (15 downto 0); 
+signal wire_memtest_bram_do  : std_logic_vector (15 downto 0); 
+signal wire_memtest_bram_ce  : std_logic;
+signal wire_memtest_bram_we  : std_logic_vector (0 downto 0);  
+signal wire_memtest_bram_clk : std_logic;
 
 -- wires for wishbone stubs
 signal wb_stub_sel   : std_logic_vector(WBSTUBS - 1               downto 0);
@@ -113,7 +121,9 @@ signal wb_led_dat_o : std_logic_vector(FSMC_D_WIDTH - 1  downto 0);
 
 begin
 
+  --
   -- clock sources
+  --
 	clk_src : entity work.clk_src port map (
 		CLK_IN1  => CLK_IN_27MHZ,
   	CLK_OUT1 => clk_170mhz,
@@ -123,8 +133,9 @@ begin
 	);
   clk_wb <= clk_150mhz;
 
-
-  -- connect stubs
+  --
+  -- connect stubs to unused wishbone slots
+  --
   wb_stub_gen : for n in 0 to WBSTUBS-1 generate 
   begin
     wb_stub : entity work.wb_stub
@@ -145,8 +156,9 @@ begin
       );
   end generate;
 
-
-  -- connect LED strip
+  --
+  -- connect wishbone based LED strip
+  --
   wb_led : entity work.wb_led
     generic map (
       AW => AWSLAVE,
@@ -166,8 +178,9 @@ begin
       dat_i => wb_led_dat_i
     );
 
-      
+  --  
   -- FSMC to Wishbone adaptor
+  --
   fsmc2wb : entity work.fsmc2wb 
     generic map (
       AW => FSMC_A_WIDTH,
@@ -188,41 +201,42 @@ begin
       NWE => FSMC_NWE,
       NBL => FSMC_NBL,
 
-      sel_o(7 downto 8-WBSTUBS)                   => wb_stub_sel,
-      sel_o(1)                                    => wb_led_sel,
-      sel_o(0)                                    => wire_bram_ce,
+      sel_o(7 downto 8-WBSTUBS)                     => wb_stub_sel,
+      sel_o(1)                                      => wb_led_sel,
+      sel_o(0)                                      => wire_memtest_wb_sel,
       
-      stb_o(7 downto 8-WBSTUBS)                   => wb_stub_stb,
-      stb_o(1)                                    => wb_led_stb,
-      stb_o(0)                                    => DEV_NULL_BANK1,
+      stb_o(7 downto 8-WBSTUBS)                     => wb_stub_stb,
+      stb_o(1)                                      => wb_led_stb,
+      stb_o(0)                                      => wire_memtest_wb_stb,
       
-      we_o(7 downto 8-WBSTUBS)                    => wb_stub_we,
-      we_o(1)                                     => wb_led_we,
-      we_o(0)                                     => wire_bram_we(0),
+      we_o(7 downto 8-WBSTUBS)                      => wb_stub_we,
+      we_o(1)                                       => wb_led_we,
+      we_o(0)                                       => wire_memtest_wb_we,
       
-      adr_o(AWSLAVE*8-1 downto AWSLAVE*2)         => wb_stub_adr,
-      adr_o(AWSLAVE*2-1 downto AWSLAVE)           => wb_led_adr,
-      adr_o(AWSLAVE-1   downto 0)                 => wire_bram_a,
+      adr_o(AWSLAVE*8-1 downto AWSLAVE*2)           => wb_stub_adr,
+      adr_o(AWSLAVE*2-1 downto AWSLAVE)             => wb_led_adr,
+      adr_o(AWSLAVE-1   downto 0)                   => wire_memtest_wb_adr,
       
       dat_o(FSMC_D_WIDTH*8-1 downto FSMC_D_WIDTH*2) => wb_stub_dat_i,
       dat_o(FSMC_D_WIDTH*2-1 downto FSMC_D_WIDTH)   => wb_led_dat_i,
-      dat_o(FSMC_D_WIDTH-1   downto 0)              => wire_bram_di,
+      dat_o(FSMC_D_WIDTH-1   downto 0)              => wire_memtest_wb_dat_i,
       
       err_i(7 downto 8-WBSTUBS)                     => wb_stub_err,
       err_i(1)                                      => wb_led_err,
-      err_i(0)                                      => '0',
+      err_i(0)                                      => wire_memtest_wb_err,
       
       ack_i(7 downto 8-WBSTUBS)                     => wb_stub_ack,
       ack_i(1)                                      => wb_led_ack,
-      ack_i(0)                                      => '0',
+      ack_i(0)                                      => wire_memtest_wb_ack,
       
       dat_i(FSMC_D_WIDTH*8-1 downto FSMC_D_WIDTH*2) => wb_stub_dat_o,
       dat_i(FSMC_D_WIDTH*2-1 downto FSMC_D_WIDTH)   => wb_led_dat_o,
-      dat_i(FSMC_D_WIDTH-1   downto 0)              => wire_bram_do
+      dat_i(FSMC_D_WIDTH-1   downto 0)              => wire_memtest_wb_dat_o
     );
 
-
-
+  --
+  -- Memtest assistant
+  --
   memtest_assist : entity work.memtest_assist
   generic map (
     AW => AWSLAVE
@@ -233,18 +247,20 @@ begin
     BRAM_FILL => STM_IO_MUL_DV,
     BRAM_DBG  => STM_IO_MUL_RDY,
     
-    BRAM_CLK => wire_memtest_clk, -- memory clock
-    BRAM_A   => wire_memtest_a,   -- memory address
-    BRAM_DI  => wire_memtest_di,  -- memory data in
-    BRAM_DO  => wire_memtest_do,  -- memory data out
-    BRAM_EN  => wire_memtest_ce,  -- memory enable
-    BRAM_WE  => wire_memtest_we   -- memory write enable
+    BRAM_CLK => wire_memtest_bram_clk, -- memory clock
+    BRAM_A   => wire_memtest_bram_a,   -- memory address
+    BRAM_DI  => wire_memtest_bram_di,  -- memory data in
+    BRAM_DO  => wire_memtest_bram_do,  -- memory data out
+    BRAM_EN  => wire_memtest_bram_ce,  -- memory enable
+    BRAM_WE  => wire_memtest_bram_we   -- memory write enable
   );
 
-
+  --
+  -- BRAM chunk for memtest purpose
+  --
   bram_memtest : entity work.bram_memtest
     PORT MAP (
-      -- port A connected to FSMC adapter
+      -- port A connected to Wishbone wrapper
       addra => wire_bram_a,
       dina  => wire_bram_di,
       douta => wire_bram_do,
@@ -253,22 +269,54 @@ begin
       clka  => wire_bram_clk,
 
       -- port B connected to memtest assistant
-      addrb => wire_memtest_a,
-      dinb  => wire_memtest_do,
-      doutb => wire_memtest_di,
-      enb   => wire_memtest_ce,
-      web   => wire_memtest_we,
-      clkb  => wire_memtest_clk
+      addrb => wire_memtest_bram_a,
+      dinb  => wire_memtest_bram_do,
+      doutb => wire_memtest_bram_di,
+      enb   => wire_memtest_bram_ce,
+      web   => wire_memtest_bram_we,
+      clkb  => wire_memtest_bram_clk
     );
   wire_bram_clk <= clk_wb;  
 
+  --
+  -- Wishbone to BRAM adaptor
+  --
+  wb2bram : entity work.wb_bram
+    generic map (
+      AW => AWSLAVE,
+      DW => FSMC_D_WIDTH,
+      AWBRAM => 16
+    )
+    port map (
+      -- BRAM
+      bram_clk_o => wire_bram_clk,
+      bram_adr_o => wire_bram_a,
+      bram_dat_i => wire_bram_do,
+      bram_dat_o => wire_bram_di,
+      bram_we_o  => wire_bram_we(0),
+      bram_en_o  => wire_bram_ce,
+      -- WB
+      clk_i => clk_wb,
+      sel_i => wire_memtest_wb_sel,
+      stb_i => wire_memtest_wb_stb,
+      we_i  => wire_memtest_wb_we,
+      err_o => wire_memtest_wb_err,
+      ack_o => wire_memtest_wb_ack,
+      adr_i => wire_memtest_wb_adr,
+      dat_o => wire_memtest_wb_dat_o,
+      dat_i => wire_memtest_wb_dat_i
+    );
 
-  
-  DEV_NULL_BANK0 <= STM_IO_OLD_FSMC_CLK;
-  --DEV_NULL_BANK1 <= '1';
-
-	-- raize ready flag
+  --
+	-- raize ready flag for STM32
+  --
 	STM_IO_FPGA_READY <= not clk_locked;
+
+  --
+  -- warning suppressors and other trash
+  --
+  DEV_NULL_BANK0 <= STM_IO_OLD_FSMC_CLK;
+  DEV_NULL_BANK1 <= '1';
 
 end Behavioral;
 
