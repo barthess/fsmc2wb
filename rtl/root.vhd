@@ -36,10 +36,10 @@ use ieee.std_logic_misc.all;
 
 entity root is
   generic (
-    FSMC_AW : positive := 23;
-    FSMC_DW : positive := 16;
-    WB_AW   : positive := 16;
-    WBSTUBS : positive := 6
+    FSMC_AW   : positive := 23;
+    FSMC_DW   : positive := 16;
+    WB_AW     : positive := 16;
+    WBSTUBS   : positive := 2
   );
   port ( 
     CLK_IN_27MHZ : in std_logic;
@@ -75,22 +75,30 @@ signal wire_bram_do  : std_logic_vector(FSMC_DW-1 downto 0);
 signal wire_bram_ce  : std_logic; 
 signal wire_bram_we  : std_logic_vector(0 downto 0);  
 signal wire_bram_clk : std_logic; 
-signal wire_memtest_wb_sel : std_logic;
-signal wire_memtest_wb_stb : std_logic;
-signal wire_memtest_wb_we  : std_logic;
-signal wire_memtest_wb_err : std_logic;
-signal wire_memtest_wb_ack : std_logic;
-signal wire_memtest_wb_adr : std_logic_vector(WB_AW-1 downto 0);
-signal wire_memtest_wb_dat_o : std_logic_vector(FSMC_DW-1 downto 0);
-signal wire_memtest_wb_dat_i : std_logic_vector(FSMC_DW-1 downto 0);
-      
--- wires for memory assistant
-signal wire_memtest_bram_a   : std_logic_vector (14 downto 0); 
-signal wire_memtest_bram_di  : std_logic_vector (FSMC_DW-1 downto 0); 
-signal wire_memtest_bram_do  : std_logic_vector (FSMC_DW-1 downto 0); 
-signal wire_memtest_bram_ce  : std_logic;
-signal wire_memtest_bram_we  : std_logic_vector (0 downto 0);  
-signal wire_memtest_bram_clk : std_logic;
+signal wire_memtest_wb_sel    : std_logic;
+signal wire_memtest_wb_stb    : std_logic;
+signal wire_memtest_wb_we     : std_logic;
+signal wire_memtest_wb_err    : std_logic;
+signal wire_memtest_wb_ack    : std_logic;
+signal wire_memtest_wb_adr    : std_logic_vector(WB_AW-1 downto 0);
+signal wire_memtest_wb_dat_o  : std_logic_vector(FSMC_DW-1 downto 0);
+signal wire_memtest_wb_dat_i  : std_logic_vector(FSMC_DW-1 downto 0);
+signal wire_memtest_bram_a    : std_logic_vector(14 downto 0); 
+signal wire_memtest_bram_di   : std_logic_vector(FSMC_DW-1 downto 0); 
+signal wire_memtest_bram_do   : std_logic_vector(FSMC_DW-1 downto 0); 
+signal wire_memtest_bram_ce   : std_logic;
+signal wire_memtest_bram_we   : std_logic_vector(0 downto 0);  
+signal wire_memtest_bram_clk  : std_logic;
+
+-- wires for multiplier combined with BRAMs
+signal wire_mul2wb_sel    : std_logic_vector(4-1 downto 0);
+signal wire_mul2wb_stb    : std_logic_vector(4-1 downto 0);
+signal wire_mul2wb_we     : std_logic_vector(4-1 downto 0);
+signal wire_mul2wb_err    : std_logic_vector(4-1 downto 0);
+signal wire_mul2wb_ack    : std_logic_vector(4-1 downto 0);
+signal wire_mul2wb_adr    : std_logic_vector(4*WB_AW-1   downto 0);
+signal wire_mul2wb_dat_o  : std_logic_vector(4*FSMC_DW-1 downto 0);
+signal wire_mul2wb_dat_i  : std_logic_vector(4*FSMC_DW-1 downto 0);
 
 -- wires for wishbone stubs
 signal wb_stub_sel   : std_logic_vector(WBSTUBS - 1         downto 0);
@@ -113,11 +121,12 @@ signal wb_led_dat_i : std_logic_vector(FSMC_DW-1 downto 0);
 signal wb_led_dat_o : std_logic_vector(FSMC_DW-1 downto 0);
 
 -- clock wires
-signal clk_180mhz : std_logic;
-signal clk_154mhz : std_logic;
+signal clk_333mhz : std_logic;
+signal clk_166mhz : std_logic;
 signal clk_100mhz : std_logic;
 signal clk_locked : std_logic;
-signal clk_wb     : std_logic; -- wishbone clock
+signal clk_wb     : std_logic;
+signal clk_mul    : std_logic;
 
 begin
 
@@ -126,12 +135,13 @@ begin
   --
 	clk_src : entity work.clk_src port map (
 		CLK_IN1  => CLK_IN_27MHZ,
-  	CLK_OUT1 => clk_180mhz,
-		CLK_OUT2 => clk_154mhz,
+  	CLK_OUT1 => clk_333mhz,
+		CLK_OUT2 => clk_166mhz,
 		CLK_OUT3 => clk_100mhz,
 		LOCKED   => clk_locked
 	);
-  clk_wb <= clk_180mhz;
+  clk_wb  <= clk_166mhz;
+  clk_mul <= clk_333mhz;
 
   --
   -- connect stubs to unused wishbone slots
@@ -202,34 +212,42 @@ begin
       NBL => FSMC_NBL,
 
       sel_o(7 downto 8-WBSTUBS)           => wb_stub_sel,
+      sel_o(5 downto 2)                   => wire_mul2wb_sel,
       sel_o(1)                            => wb_led_sel,
       sel_o(0)                            => wire_memtest_wb_sel,
       
       stb_o(7 downto 8-WBSTUBS)           => wb_stub_stb,
+      stb_o(5 downto 2)                   => wire_mul2wb_stb,
       stb_o(1)                            => wb_led_stb,
       stb_o(0)                            => wire_memtest_wb_stb,
       
       we_o(7 downto 8-WBSTUBS)            => wb_stub_we,
+      we_o(5 downto 2)                    => wire_mul2wb_we,
       we_o(1)                             => wb_led_we,
       we_o(0)                             => wire_memtest_wb_we,
       
-      adr_o(WB_AW*8-1 downto WB_AW*2)     => wb_stub_adr,
+      adr_o(WB_AW*8-1 downto WB_AW*6)     => wb_stub_adr,
+      adr_o(WB_AW*6-1 downto WB_AW*2)     => wire_mul2wb_adr,
       adr_o(WB_AW*2-1 downto WB_AW)       => wb_led_adr,
       adr_o(WB_AW-1   downto 0)           => wire_memtest_wb_adr,
       
-      dat_o(FSMC_DW*8-1 downto FSMC_DW*2) => wb_stub_dat_i,
+      dat_o(FSMC_DW*8-1 downto FSMC_DW*6) => wb_stub_dat_i,
+      dat_o(FSMC_DW*6-1 downto FSMC_DW*2) => wire_mul2wb_dat_i,
       dat_o(FSMC_DW*2-1 downto FSMC_DW)   => wb_led_dat_i,
       dat_o(FSMC_DW-1   downto 0)         => wire_memtest_wb_dat_i,
       
       err_i(7 downto 8-WBSTUBS)           => wb_stub_err,
+      err_i(5 downto 2)                   => wire_mul2wb_err,
       err_i(1)                            => wb_led_err,
       err_i(0)                            => wire_memtest_wb_err,
       
       ack_i(7 downto 8-WBSTUBS)           => wb_stub_ack,
+      ack_i(5 downto 2)                   => wire_mul2wb_ack,
       ack_i(1)                            => wb_led_ack,
       ack_i(0)                            => wire_memtest_wb_ack,
       
-      dat_i(FSMC_DW*8-1 downto FSMC_DW*2) => wb_stub_dat_o,
+      dat_i(FSMC_DW*8-1 downto FSMC_DW*6) => wb_stub_dat_o,
+      dat_i(FSMC_DW*6-1 downto FSMC_DW*2) => wire_mul2wb_dat_o,
       dat_i(FSMC_DW*2-1 downto FSMC_DW)   => wb_led_dat_o,
       dat_i(FSMC_DW-1   downto 0)         => wire_memtest_wb_dat_o
     );
@@ -284,9 +302,9 @@ begin
   --
   wb2bram : entity work.wb_bram
     generic map (
-      AW => WB_AW,
-      DW => FSMC_DW,
-      AWBRAM => 15
+      WB_AW   => WB_AW,
+      DW      => FSMC_DW,
+      BRAM_AW => 15
     )
     port map (
       -- BRAM
@@ -306,6 +324,31 @@ begin
       adr_i => wire_memtest_wb_adr,
       dat_o => wire_memtest_wb_dat_o,
       dat_i => wire_memtest_wb_dat_i
+    );
+
+
+  --
+  -- multiplicator with integrated BRAMs
+  --
+  wb_mul_bram : entity work.wb_mul_bram
+    generic map (
+      WB_AW => WB_AW,
+      WB_DW => FSMC_DW
+    )
+    port map (
+      dat_rdy_o => STM_IO_MUL_RDY_OUT,
+      
+      clk_wb_i  => (others => clk_wb),
+      clk_mul_i => clk_wb,
+      
+      sel_i => wire_mul2wb_sel,
+      stb_i => wire_mul2wb_stb,
+      we_i  => wire_mul2wb_we,
+      err_o => wire_mul2wb_err,
+      ack_o => wire_mul2wb_ack,
+      adr_i => wire_mul2wb_adr,
+      dat_o => wire_mul2wb_dat_o,
+      dat_i => wire_mul2wb_dat_i
     );
 
   --

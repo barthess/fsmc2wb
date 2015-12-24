@@ -14,13 +14,13 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity wb_bram is
   Generic (
-    AW      : positive; -- wishbone address width
-    AWBRAM  : positive; -- BRAM address width
+    WB_AW   : positive; -- wishbone address width
+    BRAM_AW : positive; -- BRAM address width
     DW      : positive  -- data width
   );
   Port (
     bram_clk_o  : out std_logic;
-    bram_adr_o  : out std_logic_vector(AWBRAM-1 downto 0);
+    bram_adr_o  : out std_logic_vector(BRAM_AW-1 downto 0);
     bram_dat_i  : in  std_logic_vector(DW-1 downto 0);
     bram_dat_o  : out std_logic_vector(DW-1 downto 0);
     bram_we_o   : out std_logic;
@@ -32,7 +32,7 @@ entity wb_bram is
     we_i  : in  std_logic;
     err_o : out std_logic;
     ack_o : out std_logic;
-    adr_i : in  std_logic_vector(AW-1 downto 0);
+    adr_i : in  std_logic_vector(WB_AW-1 downto 0);
     dat_o : out std_logic_vector(DW-1 downto 0);
     dat_i : in  std_logic_vector(DW-1 downto 0)
   );
@@ -46,14 +46,14 @@ architecture beh of wb_bram is
 begin
   
   bram_clk_o  <= clk_i;
-  bram_adr_o  <= adr_i(AWBRAM-1 downto 0);
+  bram_adr_o  <= adr_i(BRAM_AW-1 downto 0);
   bram_dat_o  <= dat_i;
   dat_o       <= bram_dat_i;
   bram_we_o   <= we_i and stb_i;
   bram_en_o   <= sel_i;
   ack_o       <= we_i and stb_i;
   
-  err_o <= '1' when (AW > AWBRAM and sel_i = '1' and adr_i(AW-1 downto AWBRAM) > 0) else '0';
+  err_o <= '1' when (WB_AW > BRAM_AW and sel_i = '1' and adr_i(WB_AW-1 downto BRAM_AW) > 0) else '0';
   
 end beh;
 
