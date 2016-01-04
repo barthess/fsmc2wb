@@ -141,7 +141,7 @@ begin
 		LOCKED   => clk_locked
 	);
   clk_wb  <= clk_166mhz;
-  clk_mul <= clk_333mhz;
+  clk_mul <= clk_166mhz;
 
   --
   -- connect stubs to unused wishbone slots
@@ -326,7 +326,6 @@ begin
       dat_i => wire_memtest_wb_dat_i
     );
 
-
   --
   -- multiplicator with integrated BRAMs
   --
@@ -339,7 +338,7 @@ begin
       dat_rdy_o => STM_IO_MUL_RDY_OUT,
       
       clk_wb_i  => (others => clk_wb),
-      clk_mul_i => clk_wb,
+      clk_mul_i => clk_mul,
       
       sel_i => wire_mul2wb_sel,
       stb_i => wire_mul2wb_stb,
