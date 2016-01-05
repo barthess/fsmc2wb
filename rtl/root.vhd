@@ -353,7 +353,7 @@ begin
   --
 	-- raize ready flag for STM32
   --
-	STM_IO_FPGA_RDY <= not clk_locked;
+	STM_IO_FPGA_RDY <= clk_locked;
 
   --
   -- warning suppressors and other trash
