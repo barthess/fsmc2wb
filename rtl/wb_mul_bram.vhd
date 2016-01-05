@@ -19,7 +19,7 @@ entity wb_mul_bram is
     MUL_DW  : positive := 64;
     MUL_AW  : positive := 10;
     BRAM_AW : positive := 12; 
-    SLAVES  : positive := 4   -- total wishbone slaves count (BRAMs + control)
+    SLAVES  : positive := 4   -- total wishbone slaves count (3 BRAMs + 1 control)
   );
   Port (
     dat_rdy_o : out std_logic; -- data ready interrupt
@@ -74,7 +74,7 @@ begin
   port map (
     dat_rdy_o => dat_rdy_o,
     
-    -- WB interface
+    -- mul to WB interface
     clk_i => clk_mul_i,
     sel_i => sel_i(BRAMs),
     stb_i => stb_i(BRAMs),
