@@ -46,7 +46,7 @@ end demuxer;
 
 
 architecture Behavioral of demuxer is
-  signal addr : integer range 0 to 2**AW;
+  signal addr : integer range 0 to 2**AW-1;
 begin
   
   addr <= conv_integer(A);
