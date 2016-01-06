@@ -211,7 +211,16 @@ begin
       NOE => FSMC_NOE,
       NWE => FSMC_NWE,
       NBL => FSMC_NBL,
-
+      
+--      sel_o => wb_stub_sel,
+--      stb_o => wb_stub_stb,
+--      we_o  => wb_stub_we,
+--      adr_o => wb_stub_adr,
+--      dat_o => wb_stub_dat_i,
+--      err_i => wb_stub_err,
+--      ack_i => wb_stub_ack,
+--      dat_i => wb_stub_dat_o
+      
       sel_o(7 downto 8-WBSTUBS)           => wb_stub_sel,
       sel_o(5 downto 2)                   => wire_mul2wb_sel,
       sel_o(1)                            => wb_led_sel,
