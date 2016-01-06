@@ -15,7 +15,8 @@ use IEEE.NUMERIC_STD.ALL;
 entity wb_stub is
   Generic (
     AW : positive; -- address width
-    DW : positive  -- data width
+    DW : positive; -- data width
+    ID : integer   -- 8 bit ID
   );
   Port (
     clk_i : in  std_logic;
@@ -36,19 +37,21 @@ end wb_stub;
 
 architecture beh of wb_stub is
 
-type state_t is (IDLE, FLUSH);
+  signal dat_o_reg : std_logic_vector (DW-1 downto 0) := (others => '0');
+  
 begin
-
+  
+  dat_o <= x"DE00" or std_logic_vector(to_unsigned(ID, 8)); --dat_o_reg;
+  
   -- bus sampling process
-  process(clk_i) begin
+  process(clk_i) 
+    variable pattern : std_logic_vector (DW-1 downto 0) := x"DEAD";
+  begin
     if rising_edge(clk_i) then
       if (stb_i = '1' and sel_i = '1') then
+        dat_o_reg <= pattern + adr_i;
         if (we_i = '1') then
-          ack_o <= '1';
-          dat_o <= dat_i;
-        else
-          ack_o <= '0';
-          dat_o <= x"DEAD";
+          pattern := dat_i;
         end if;
       end if;
     end if;
@@ -59,8 +62,10 @@ begin
     if rising_edge(clk_i) then
       if (sel_i = '1' and adr_i > 0) then
         err_o <= '1';
+        ack_o <= '0';
       else
         err_o <= '0';
+        ack_o <= '1';
       end if;
     end if;
   end process;

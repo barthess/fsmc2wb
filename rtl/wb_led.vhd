@@ -53,7 +53,7 @@ begin
   process(clk_i) begin
     if rising_edge(clk_i) then
       if (stb_i = '1' and sel_i = '1') then
-        if (we_i = '1') then
+        if (we_i = '1') and (adr_i = 0) then
           led_reg <= dat_i(5 downto 0);
           ack_o <= '1';
         end if;

@@ -21,7 +21,7 @@ entity mul is
   );
   Port (
     -- external interrupt pin
-    dat_rdy_o   : out std_logic;
+    dat_rdy_o : out std_logic;
     
     -- control WB interface
     clk_i : in  std_logic;
@@ -56,8 +56,7 @@ architecture beh of mul is
   signal mul_ce  : std_logic := '0';
   signal mul_rdy_reg : std_logic_vector(1 downto 0) := "00";
   signal mul_rdy : std_logic;
-  signal total_ops : std_logic_vector(BRAM_AW-1 downto 0) := (others => '0');
-
+  
   type state_t is (IDLE, PREFETCH, ACTIVE);
   signal state : state_t := IDLE;
 
@@ -96,17 +95,6 @@ begin
     end if;
   end process;
   
-  -- write address increment
-  process(clk_i) begin
-    if rising_edge(clk_i) then
-      if (mul_rdy = '1') then
-        res_adr <= res_adr + 1;
-      else
-        res_adr <= (others => '0');
-      end if;
-    end if;
-  end process;
-  
   -- read address increment
   process(clk_i) begin
     if rising_edge(clk_i) then
@@ -119,21 +107,48 @@ begin
       end if;
     end if;
   end process;
-
+  
+  -- write address increment
+  process(clk_i) begin
+    if rising_edge(clk_i) then
+      if (state = ACTIVE) then
+        if (mul_rdy = '1') then
+          res_adr <= res_adr + 1;
+        end if;
+      else
+        res_adr <= (others => '0');
+      end if;
+    end if;
+  end process;
+  
   -- Main state machine
   process(clk_i)
     variable i : std_logic_vector(BRAM_AW-1 downto 0);
     variable op_cnt : std_logic_vector(BRAM_AW-1 downto 0);
   begin
+--    dat_o(WB_AW-1 downto BRAM_AW) <= (others => '0');
+--    dat_o(BRAM_AW-1 downto 0) <= i;  -- warning suppressor
+    dat_o <= x"BEEF";
+    
     if rising_edge(clk_i) then
       case state is
       when IDLE =>
-        if (total_ops > 0) then
-          op_cnt := total_ops;
-          i := (others => '0');
-          state <= PREFETCH;
+        if (stb_i = '1' and sel_i = '1' and we_i = '1') then
+          if (adr_i > 0 or dat_i > 2**BRAM_AW) then
+            op_cnt := (others => '0');
+            err_o <= '1';
+          else
+            state <= PREFETCH;
+            i := (others => '0');
+            op_cnt := dat_i(BRAM_AW-1 downto 0);
+            err_o <= '0';
+            ack_o <= '1';
+          end if;
+        else
+          err_o <= '0';
+          op_cnt := (others => '0');
         end if;
-
+      
       when PREFETCH =>
         mul_nd <= '1';
         mul_ce <= '1';
@@ -141,44 +156,21 @@ begin
         state <= ACTIVE;
 
       when ACTIVE =>
-        i := i+1;
-        if (i = op_cnt) then
+        if (i < op_cnt) then
+          i := i+1;
+        else
           mul_nd <= '0';
         end if;
+
         if (mul_rdy_reg = "10") then
           state <= IDLE;
-          mul_ce <= '0';
+          mul_ce  <= '0';
         end if;
 
       end case;
     end if;
   end process;
 
-  -- Command receiving process
-  process(clk_i)
-  begin
-    if rising_edge(clk_i) then
-      dat_o <= dat_i; -- warning suppressor
-      if (IDLE = state) then
-        if (stb_i = '1' and sel_i = '1' and we_i = '1') then
-          if (adr_i > 0 or dat_i > 2**BRAM_AW) then
-            total_ops <= (others => '0');
-            err_o <= '1';
-          else
-            total_ops <= dat_i(BRAM_AW-1 downto 0);
-            err_o <= '0';
-            ack_o <= '1';
-          end if;
-        else
-          err_o <= '0';
-          total_ops <= (others => '0');
-        end if;
-      end if;
-    end if;
-  end process;
-
-
-  
 end beh;
 
 

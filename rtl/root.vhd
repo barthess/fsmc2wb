@@ -151,7 +151,8 @@ begin
     wb_stub : entity work.wb_stub
       generic map (
         AW => WB_AW,
-        DW => FSMC_DW
+        DW => FSMC_DW,
+        ID => n
       )
       port map (
         clk_i => clk_wb,

@@ -82,7 +82,7 @@ entity fsmc2wb is
     return A(AWSLAVE-1 downto 0);
   end get_addr;
   
-  -- 
+  -- return wb slave select bits
   function get_sel(A : in std_logic_vector(AW-1 downto 0)) 
                      return std_logic_vector is
   begin
@@ -97,12 +97,11 @@ end fsmc2wb;
 
 architecture beh of fsmc2wb is
 
-  signal a_reg : STD_LOGIC_VECTOR (AWSLAVE-1 downto 0);
-  signal sel_reg : STD_LOGIC_VECTOR (AWSEL-1 downto 0);
-  signal d_reg : STD_LOGIC_VECTOR (DW-1 downto 0); 
-  signal nwe_reg : STD_LOGIC_VECTOR (1 downto 0) := "11";
+  signal a_reg    : STD_LOGIC_VECTOR (AWSLAVE-1 downto 0);
+  signal sel_reg  : STD_LOGIC_VECTOR (AWSEL-1 downto 0);
+  signal d_reg    : STD_LOGIC_VECTOR (DW-1 downto 0); 
+  signal nwe_reg  : STD_LOGIC_VECTOR (1 downto 0) := "11";
   -- control signals for WB slave
-  signal sel_wire_nce : STD_LOGIC;
   signal we_wire : std_logic;
   signal stb_wire : std_logic;
   signal err_wire : std_logic;
@@ -156,7 +155,7 @@ begin
       default => '0'
     )
     port map (
-      di(0) => sel_wire_nce,
+      di(0) => not NCE,
       a     => sel_reg,
       do    => sel_o
     );
@@ -205,12 +204,6 @@ begin
       end if;
     end if;
   end process;
-
-  -- NCE process
-  sel_wire_nce <= not NCE;
   
 end beh;
-
-
-
 
