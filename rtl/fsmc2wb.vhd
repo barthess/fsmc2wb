@@ -150,7 +150,7 @@ begin
   -- demuxer for chip select line
   sel_demux : entity work.demuxer
     generic map (
-      AW => 3,
+      AW => AWSEL,
       DW => 1,
       default => '0'
     )
