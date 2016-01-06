@@ -41,15 +41,15 @@ architecture beh of wb_stub is
   
 begin
   
-  dat_o <= x"DE00" or std_logic_vector(to_unsigned(ID, 8)); --dat_o_reg;
+  --dat_o <= x"DE00" or std_logic_vector(to_unsigned(ID, 8)); --dat_o_reg;
   
   -- bus sampling process
   process(clk_i) 
-    variable pattern : std_logic_vector (DW-1 downto 0) := x"DEAD";
+    variable pattern : std_logic_vector (DW-1 downto 0);
   begin
     if rising_edge(clk_i) then
       if (stb_i = '1' and sel_i = '1') then
-        dat_o_reg <= pattern + adr_i;
+        dat_o <= pattern + adr_i;
         if (we_i = '1') then
           pattern := dat_i;
         end if;
