@@ -126,24 +126,20 @@ begin
     variable i : std_logic_vector(BRAM_AW-1 downto 0);
     variable op_cnt : std_logic_vector(BRAM_AW-1 downto 0);
   begin
---    dat_o(WB_AW-1 downto BRAM_AW) <= (others => '0');
---    dat_o(BRAM_AW-1 downto 0) <= i;  -- warning suppressor
-    dat_o <= x"BEEF";
+    dat_o(WB_AW-1 downto BRAM_AW) <= (others => '0');
+    dat_o(BRAM_AW-1 downto 0) <= i;  -- warning suppressor
     
     if rising_edge(clk_i) then
       case state is
       when IDLE =>
+        mul_nd <= '0';
+        mul_ce <= '0';
         if (stb_i = '1' and sel_i = '1' and we_i = '1') then
-          if (adr_i > 0 or dat_i > 2**BRAM_AW) then
-            op_cnt := (others => '0');
-            err_o <= '1';
-          else
-            state <= PREFETCH;
-            i := (others => '0');
-            op_cnt := dat_i(BRAM_AW-1 downto 0);
-            err_o <= '0';
-            ack_o <= '1';
-          end if;
+          state <= PREFETCH;
+          i := (others => '0');
+          op_cnt := dat_i(BRAM_AW-1 downto 0);
+          err_o <= '0';
+          ack_o <= '1';
         else
           err_o <= '0';
           op_cnt := (others => '0');
@@ -163,7 +159,7 @@ begin
         end if;
 
         if (mul_rdy_reg = "10") then
-          state <= IDLE;
+          state   <= IDLE;
           mul_ce  <= '0';
         end if;
 
