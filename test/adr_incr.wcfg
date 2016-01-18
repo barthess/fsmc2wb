@@ -15,15 +15,7 @@
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="14" />
-   <wvobject fp_name="/adr_incr_tb/mul_rdy_i" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">mul_rdy_i</obj_property>
-      <obj_property name="ObjectShortName">mul_rdy_i</obj_property>
-   </wvobject>
-   <wvobject fp_name="/adr_incr_tb/sum_rdy_i" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">sum_rdy_i</obj_property>
-      <obj_property name="ObjectShortName">sum_rdy_i</obj_property>
-   </wvobject>
+   <WVObjectSize size="12" />
    <wvobject fp_name="/adr_incr_tb/clk_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">clk_i</obj_property>
       <obj_property name="ObjectShortName">clk_i</obj_property>
@@ -36,21 +28,29 @@
       <obj_property name="ElementShortName">m_i[4:0]</obj_property>
       <obj_property name="ObjectShortName">m_i[4:0]</obj_property>
    </wvobject>
+   <wvobject fp_name="/adr_incr_tb/p_i" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">p_i[4:0]</obj_property>
+      <obj_property name="ObjectShortName">p_i[4:0]</obj_property>
+   </wvobject>
    <wvobject fp_name="/adr_incr_tb/n_i" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">n_i[4:0]</obj_property>
       <obj_property name="ObjectShortName">n_i[4:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/adr_incr_tb/p_i" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">p_i[4:0]</obj_property>
-      <obj_property name="ObjectShortName">p_i[4:0]</obj_property>
+   <wvobject fp_name="/adr_incr_tb/a_tran_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">a_tran_i</obj_property>
+      <obj_property name="ObjectShortName">a_tran_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/adr_incr_tb/b_tran_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">b_tran_i</obj_property>
+      <obj_property name="ObjectShortName">b_tran_i</obj_property>
    </wvobject>
    <wvobject fp_name="/adr_incr_tb/row_rdy_o" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">row_rdy_o</obj_property>
       <obj_property name="ObjectShortName">row_rdy_o</obj_property>
    </wvobject>
-   <wvobject fp_name="/adr_incr_tb/eoc_o" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">eoc_o</obj_property>
-      <obj_property name="ObjectShortName">eoc_o</obj_property>
+   <wvobject fp_name="/adr_incr_tb/all_rdy_o" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">all_rdy_o</obj_property>
+      <obj_property name="ObjectShortName">all_rdy_o</obj_property>
    </wvobject>
    <wvobject fp_name="/adr_incr_tb/a_adr_o" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">a_adr_o[9:0]</obj_property>
@@ -60,15 +60,6 @@
    <wvobject fp_name="/adr_incr_tb/b_adr_o" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">b_adr_o[9:0]</obj_property>
       <obj_property name="ObjectShortName">b_adr_o[9:0]</obj_property>
-      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
-   </wvobject>
-   <wvobject fp_name="/adr_incr_tb/c_adr_o" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">c_adr_o[9:0]</obj_property>
-      <obj_property name="ObjectShortName">c_adr_o[9:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/adr_incr_tb/sum_adr_o" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">sum_adr_o[4:0]</obj_property>
-      <obj_property name="ObjectShortName">sum_adr_o[4:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/adr_incr_tb/clk_i_period" type="other" db_ref_id="1">

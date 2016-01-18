@@ -49,15 +49,21 @@ end mul;
 
 architecture beh of mul is
   
-  signal op1_adr : std_logic_vector(BRAM_AW-1 downto 0) := (others => '0');
-  signal op2_adr : std_logic_vector(BRAM_AW-1 downto 0) := (others => '0');
-  signal res_adr : std_logic_vector(BRAM_AW-1 downto 0) := (others => '0');
+  signal A_adr : std_logic_vector(BRAM_AW-1 downto 0) := (others => '0');
+  signal B_adr : std_logic_vector(BRAM_AW-1 downto 0) := (others => '0');
+  signal C_adr : std_logic_vector(BRAM_AW-1 downto 0) := (others => '0');
   signal mul_nd  : std_logic := '0';
   signal mul_ce  : std_logic := '0';
   signal mul_rdy_reg : std_logic_vector(1 downto 0) := "00";
   signal mul_rdy : std_logic;
+  signal input_iterated : std_logic;
+
+  signal mtrx_m : std_logic_vector (4 downto 0) := (others => '0');
+  signal mtrx_p : std_logic_vector (4 downto 0) := (others => '0');
+  signal mtrx_n : std_logic_vector (4 downto 0) := (others => '0');
+  signal adr_incr_rst : std_logic := '1';
   
-  type state_t is (IDLE, PREFETCH, ACTIVE);
+  type state_t is (IDLE, PRELOAD, ACTIVE, FLUSH1, FLUSH2);
   signal state : state_t := IDLE;
 
 begin
@@ -65,9 +71,9 @@ begin
   -- warning suppressor
   bram_dat_o(2*BRAM_DW-1 downto 0) <= bram_dat_i(3*BRAM_DW-1 downto 2*BRAM_DW) & bram_dat_i(3*BRAM_DW-1 downto 2*BRAM_DW);
   
-  bram_adr_o(3*BRAM_AW-1 downto 2*BRAM_AW) <= res_adr;
-  bram_adr_o(2*BRAM_AW-1 downto 1*BRAM_AW) <= op2_adr;
-  bram_adr_o(1*BRAM_AW-1 downto 0*BRAM_AW) <= op1_adr;
+  bram_adr_o(3*BRAM_AW-1 downto 2*BRAM_AW) <= C_adr;
+  bram_adr_o(2*BRAM_AW-1 downto 1*BRAM_AW) <= B_adr;
+  bram_adr_o(1*BRAM_AW-1 downto 0*BRAM_AW) <= A_adr;
   bram_clk_o <= (others => clk_i);
   bram_en_o  <= (others => '1');
   bram_we_o(0) <= '0';
@@ -76,6 +82,8 @@ begin
 
   dat_rdy_o  <= '1' when (state = IDLE) else '0';
 
+
+  -- multiplicator
   mul : entity work.double_mul
     port map (
       a             => bram_dat_i(1*BRAM_DW-1 downto 0*BRAM_DW),
@@ -87,6 +95,30 @@ begin
       rdy           => mul_rdy
     );
 
+
+  -- addres incrementer
+  adr_calc : entity work.adr_incr
+    generic map (
+      WIDTH => 5
+    )
+    port map (
+      clk_i => clk_i,
+      rst_i => adr_incr_rst,
+      
+      row_rdy_o => open,
+      all_rdy_o => input_iterated,
+      
+      m_i => mtrx_m,
+      p_i => mtrx_p,
+      n_i => mtrx_n,
+      
+      a_adr_o  => A_adr,
+      b_adr_o  => B_adr,
+      a_tran_i => '0',
+      b_tran_i => '0'
+    );
+  
+  
   -- ready pin scanning
   process(clk_i) 
   begin
@@ -95,74 +127,65 @@ begin
     end if;
   end process;
   
-  -- read address increment
-  process(clk_i) begin
+  
+  -- result address increment
+  process(clk_i) 
+  begin
     if rising_edge(clk_i) then
-      if (state = IDLE) then
-        op1_adr <= (others => '0');
-        op2_adr <= (others => '0');
+      if state /= IDLE then
+        if (mul_rdy = '1') then
+          C_adr <= C_adr + 1;
+        end if;
       else
-        op1_adr <= op1_adr + 1;
-        op2_adr <= op2_adr + 1;
+        C_adr <= (others => '0');
       end if;
     end if;
   end process;
   
-  -- write address increment
-  process(clk_i) begin
-    if rising_edge(clk_i) then
-      if (state = ACTIVE) then
-        if (mul_rdy = '1') then
-          res_adr <= res_adr + 1;
-        end if;
-      else
-        res_adr <= (others => '0');
-      end if;
-    end if;
-  end process;
   
   -- Main state machine
   process(clk_i)
-    variable i : std_logic_vector(BRAM_AW-1 downto 0);
-    variable op_cnt : std_logic_vector(BRAM_AW-1 downto 0);
   begin
     dat_o(WB_AW-1 downto BRAM_AW) <= (others => '0');
-    dat_o(BRAM_AW-1 downto 0) <= i;  -- warning suppressor
     
     if rising_edge(clk_i) then
       case state is
       when IDLE =>
-        mul_nd <= '0';
-        mul_ce <= '0';
+        adr_incr_rst <= '1';
         if (stb_i = '1' and sel_i = '1' and we_i = '1') then
-          state <= PREFETCH;
-          i := (others => '0');
-          op_cnt := dat_i(BRAM_AW-1 downto 0);
+          state <= PRELOAD;
+          mtrx_m <= dat_i(4 downto 0);
+          mtrx_p <= dat_i(9 downto 5);
+          mtrx_n <= dat_i(14 downto 10);
+          adr_incr_rst <= '0';
           err_o <= '0';
           ack_o <= '1';
         else
-          err_o <= '0';
-          op_cnt := (others => '0');
+          err_o <= '1';
+          ack_o <= '0';
         end if;
-      
-      when PREFETCH =>
+        
+      when PRELOAD =>
+        state <= ACTIVE;
+        
+      when ACTIVE =>
         mul_nd <= '1';
         mul_ce <= '1';
-        i := i+1;
-        state <= ACTIVE;
-
-      when ACTIVE =>
-        if (i < op_cnt) then
-          i := i+1;
-        else
-          mul_nd <= '0';
+        if (input_iterated = '1') then
+          adr_incr_rst <= '1';
+          state <= FLUSH1;
         end if;
 
+      when FLUSH1 =>
+        mul_nd <= '0';
+        state <= FLUSH2;
+        
+      when FLUSH2 =>
         if (mul_rdy_reg = "10") then
-          state   <= IDLE;
-          mul_ce  <= '0';
+          mul_ce <= '0';
+          state <= IDLE;
         end if;
-
+        
       end case;
     end if;
   end process;
