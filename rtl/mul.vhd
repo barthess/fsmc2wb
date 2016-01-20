@@ -96,35 +96,6 @@ begin
     );
 
 
-
-  -- uber adder
-  great_pyramid : entity work.sum_pyramid
-    port map (
-      clk_i => clk_i,
-      dat_i => bram_dat_o,
-      dat_o : out STD_LOGIC_VECTOR (63 downto 0);
-      adr_i : in  STD_LOGIC_VECTOR (WIDTH-1 downto 0);
-      rst_i : in  STD_LOGIC;
-      ce_i  : in  STD_LOGIC;
-      rdy_o : out STD_LOGIC;
-      nd_i  => mul_rdy,
-    
-      a             => bram_dat_i(1*BRAM_DW-1 downto 0*BRAM_DW),
-      b             => bram_dat_i(2*BRAM_DW-1 downto 1*BRAM_DW),
-      result        => bram_dat_o(3*BRAM_DW-1 downto 2*BRAM_DW),
-      clk           => clk_i,
-      ce            => mul_ce,
-      operation_nd  => mul_nd,
-      rdy           => mul_rdy
-    );
-    
-    
-    
-    
-    
-    
-    
-
   -- addres incrementer
   adr_calc : entity work.adr_incr
     generic map (

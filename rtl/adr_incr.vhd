@@ -1,7 +1,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
-use IEEE.std_logic_misc.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -34,8 +33,8 @@ entity adr_incr is
     n_i : in std_logic_vector(WIDTH-1 downto 0);
     
     -- address outputs
-    a_adr_o   : out std_logic_vector(WIDTH*2-1 downto 0);
-    b_adr_o   : out std_logic_vector(WIDTH*2-1 downto 0);
+    a_adr_o : out std_logic_vector(WIDTH*2-1 downto 0);
+    b_adr_o : out std_logic_vector(WIDTH*2-1 downto 0);
     
     -- transposition flags. 1 means true
     a_tran_i : in  std_logic;

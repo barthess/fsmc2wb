@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="/home/barthess/projects/xilinx/fsmc2wb/acc_link_tb_isim_beh.wdb" id="1" type="auto">
+         <top_modules>
+            <top_module name="acc_link_tb" />
+            <top_module name="numeric_std" />
+            <top_module name="std_logic_1164" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="14" />
+   <wvobject fp_name="/acc_link_tb/clk_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_i</obj_property>
+      <obj_property name="ObjectShortName">clk_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/acc_link_tb/ce_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ce_i</obj_property>
+      <obj_property name="ObjectShortName">ce_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/acc_link_tb/dat_i" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">dat_i[15:0]</obj_property>
+      <obj_property name="ObjectShortName">dat_i[15:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/acc_link_tb/len_i" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">len_i[4:0]</obj_property>
+      <obj_property name="ObjectShortName">len_i[4:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/acc_link_tb/rst_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">rst_i</obj_property>
+      <obj_property name="ObjectShortName">rst_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/acc_link_tb/nd_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">nd_i</obj_property>
+      <obj_property name="ObjectShortName">nd_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/acc_link_tb/dat_o" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">dat_o[15:0]</obj_property>
+      <obj_property name="ObjectShortName">dat_o[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/acc_link_tb/rdy_o" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">rdy_o</obj_property>
+      <obj_property name="ObjectShortName">rdy_o</obj_property>
+   </wvobject>
+   <wvobject fp_name="/acc_link_tb/clk_i_period" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_i_period</obj_property>
+      <obj_property name="ObjectShortName">clk_i_period</obj_property>
+   </wvobject>
+   <wvobject fp_name="/acc_link_tb/uut/state" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">state</obj_property>
+      <obj_property name="ObjectShortName">state</obj_property>
+   </wvobject>
+   <wvobject fp_name="/acc_link_tb/uut/cnt" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">cnt[4:0]</obj_property>
+      <obj_property name="ObjectShortName">cnt[4:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/acc_link_tb/uut/sum_nd" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">sum_nd</obj_property>
+      <obj_property name="ObjectShortName">sum_nd</obj_property>
+   </wvobject>
+   <wvobject fp_name="/acc_link_tb/uut/a_buf" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">a_buf[15:0]</obj_property>
+      <obj_property name="ObjectShortName">a_buf[15:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/acc_link_tb/uut/b_buf" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">b_buf[15:0]</obj_property>
+      <obj_property name="ObjectShortName">b_buf[15:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+</wave_config>
