@@ -64,7 +64,7 @@ begin
   --
   -- Connect multiplier to BRAMs and and to WB
   --
-  mul : entity work.mul
+  mtrx_mul : entity work.mtrx_mul
   generic map (
     WB_AW   => WB_AW,
     WB_DW   => WB_DW,

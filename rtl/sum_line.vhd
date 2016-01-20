@@ -51,7 +51,7 @@ begin
   
   sum_loop : for n in 0 to 2**WIDTH-1 generate
   begin
-    sum : entity work.sum
+    dadd : entity work.dadd
     port map (
       clk     => clk_i,
       ce      => ce_i,

@@ -12,7 +12,7 @@ use IEEE.NUMERIC_STD.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity mul is
+entity mtrx_mul is
   Generic (
     WB_AW   : positive;
     WB_DW   : positive;
@@ -42,12 +42,12 @@ entity mul is
     bram_we_o   : out std_logic_vector(3-1          downto 0);
     bram_en_o   : out std_logic_vector(3-1          downto 0)
   );
-end mul;
+end mtrx_mul;
 
 
 -----------------------------------------------------------------------------
 
-architecture beh of mul is
+architecture beh of mtrx_mul is
   
   signal A_adr : std_logic_vector(BRAM_AW-1 downto 0) := (others => '0');
   signal B_adr : std_logic_vector(BRAM_AW-1 downto 0) := (others => '0');
@@ -84,7 +84,7 @@ begin
 
 
   -- multiplicator
-  mul : entity work.double_mul
+  dmul : entity work.dmul
     port map (
       a             => bram_dat_i(1*BRAM_DW-1 downto 0*BRAM_DW),
       b             => bram_dat_i(2*BRAM_DW-1 downto 1*BRAM_DW),

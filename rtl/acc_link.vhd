@@ -32,21 +32,21 @@ use IEEE.NUMERIC_STD.ALL;
 entity acc_link is
   Port (
     clk_i : in  STD_LOGIC;
-    ce_i  : in  STD_LOGIC;
-    dat_i : in  STD_LOGIC_VECTOR (15 downto 0);
-    dat_o : out STD_LOGIC_VECTOR (15 downto 0);
-    len_i : in  STD_LOGIC_VECTOR (4  downto 0);
-    rdy_o : out STD_LOGIC;
     rst_i : in  STD_LOGIC;
-    nd_i  : in  STD_LOGIC
+    ce_i  : in  STD_LOGIC;
+    nd_i  : in  STD_LOGIC;
+    len_i : in  STD_LOGIC_VECTOR (4  downto 0); -- number of input arguments - 1
+    dat_i : in  STD_LOGIC_VECTOR (63 downto 0);
+    dat_o : out STD_LOGIC_VECTOR (63 downto 0);
+    rdy_o : out STD_LOGIC
   );
 end acc_link;
 
 
 architecture Behavioral of acc_link is
   signal cnt   : std_logic_vector(4  downto 0) := (others => '0');
-  signal a_buf : std_logic_vector(15 downto 0) := (others => '0');
-  signal b_buf : std_logic_vector(15 downto 0) := (others => '0');
+  signal a_buf : std_logic_vector(63 downto 0) := (others => '0');
+  signal b_buf : std_logic_vector(63 downto 0) := (others => '0');
   signal sum_nd : std_logic := '0';
   
   signal   state  : std_logic := '0';
@@ -55,18 +55,15 @@ architecture Behavioral of acc_link is
 begin
   
   
-  sum_u16 : entity work.u16add
-    generic map (
-      latency => 5
-    )
+  add : entity work.dadd
     port map (
-      clk => clk_i,
-      ce  => ce_i,
-      a   => a_buf,
-      b   => b_buf,
-      res => dat_o,
-      rdy => rdy_o,
-      nd  => sum_nd
+      clk     => clk_i,
+      ce      => ce_i,
+      a       => a_buf,
+      b       => b_buf,
+      result  => dat_o,
+      rdy     => rdy_o,
+      operation_nd => sum_nd
     );
 
 
