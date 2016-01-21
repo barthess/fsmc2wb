@@ -30,12 +30,17 @@ use IEEE.NUMERIC_STD.ALL;
 --use UNISIM.VComponents.all;
 
 entity acc_link is
+  Generic (
+    WIDTH : positive := 5
+  );
   Port (
     clk_i : in  STD_LOGIC;
     rst_i : in  STD_LOGIC;
     ce_i  : in  STD_LOGIC;
     nd_i  : in  STD_LOGIC;
-    len_i : in  STD_LOGIC_VECTOR (4  downto 0); -- number of input arguments - 1
+    -- number of input values for state tracking
+    -- NOTE: 0 denotes 1 input value
+    cnt_i : in  STD_LOGIC_VECTOR (WIDTH-1 downto 0);
     dat_i : in  STD_LOGIC_VECTOR (63 downto 0);
     dat_o : out STD_LOGIC_VECTOR (63 downto 0);
     rdy_o : out STD_LOGIC
@@ -44,7 +49,8 @@ end acc_link;
 
 
 architecture Behavioral of acc_link is
-  signal cnt   : std_logic_vector(4  downto 0) := (others => '0');
+  constant CNT_ZERO : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
+  signal cnt   : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
   signal a_buf : std_logic_vector(63 downto 0) := (others => '0');
   signal b_buf : std_logic_vector(63 downto 0) := (others => '0');
   signal sum_nd : std_logic := '0';
@@ -73,11 +79,11 @@ begin
     if rising_edge(clk_i) then
       if rst_i = '1' then
         state <= LOAD_A;
-        cnt   <= len_i;
+        cnt   <= cnt_i;
       else
         if (ce_i = '1') and (nd_i = '1') then
-          if (cnt = "00000") then
-            cnt   <= len_i;
+          if (cnt = CNT_ZERO) then
+            cnt   <= cnt_i;
             state <= LOAD_A;
           else
             cnt   <= std_logic_vector(unsigned(cnt) - 1);
@@ -97,7 +103,7 @@ begin
         sum_nd <= '0';
       else
         if (ce_i = '1') then
-          if nd_i = '1' and (cnt = "00000" or state = LOAD_B) then
+          if nd_i = '1' and (cnt = CNT_ZERO or state = LOAD_B) then
             sum_nd <= '1';
           else
             sum_nd <= '0';
