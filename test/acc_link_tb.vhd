@@ -32,14 +32,14 @@ USE ieee.std_logic_1164.ALL;
 -- arithmetic functions with Signed or Unsigned values
 --USE ieee.numeric_std.ALL;
  
-ENTITY acc_link_tb IS
-END acc_link_tb;
+ENTITY dadd_link_tb IS
+END dadd_link_tb;
  
-ARCHITECTURE behavior OF acc_link_tb IS 
+ARCHITECTURE behavior OF dadd_link_tb IS 
  
     -- Component Declaration for the Unit Under Test (UUT)
  
-    COMPONENT acc_link
+    COMPONENT dadd_link
     PORT(
          clk_i : IN  std_logic;
          ce_i : IN  std_logic;

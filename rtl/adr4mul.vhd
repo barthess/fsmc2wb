@@ -16,7 +16,7 @@ use IEEE.NUMERIC_STD.ALL;
 -- Note: only A and B needs sophisticated addressing. C always uses 
 -- simple sequential increment.
 --
-entity adr_incr is
+entity adr4mul is
   Generic (
     WIDTH : positive := 5 -- number of bits needed for addressing matrix
   );
@@ -40,12 +40,12 @@ entity adr_incr is
     a_tran_i : in  std_logic;
     b_tran_i : in  std_logic
   );
-end adr_incr;
+end adr4mul;
 
 
 -----------------------------------------------------------------------------
 
-architecture beh of adr_incr is
+architecture beh of adr4mul is
 --  signal m : std_logic_vector(WIDTH-1 downto 0);
 --  signal n : std_logic_vector(WIDTH-1 downto 0);
 --  signal p : std_logic_vector(WIDTH-1 downto 0);

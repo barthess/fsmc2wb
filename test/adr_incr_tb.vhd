@@ -32,14 +32,14 @@ USE ieee.std_logic_1164.ALL;
 -- arithmetic functions with Signed or Unsigned values
 --USE ieee.numeric_std.ALL;
  
-ENTITY adr_incr_tb IS
-END adr_incr_tb;
+ENTITY adr4mul_tb IS
+END adr4mul_tb;
  
-ARCHITECTURE behavior OF adr_incr_tb IS 
+ARCHITECTURE behavior OF adr4mul_tb IS 
  
     -- Component Declaration for the Unit Under Test (UUT)
  
-    COMPONENT adr_incr
+    COMPONENT adr4mul
     PORT(
          clk_i : IN  std_logic;
          rst_i : IN  std_logic;
@@ -77,7 +77,7 @@ ARCHITECTURE behavior OF adr_incr_tb IS
 BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
-   uut: adr_incr PORT MAP (
+   uut: adr4mul PORT MAP (
           clk_i => clk_i,
           rst_i => rst_i,
           row_rdy_o => row_rdy_o,

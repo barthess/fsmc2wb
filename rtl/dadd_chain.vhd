@@ -29,7 +29,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity acc_chain is
+entity dadd_chain is
   Generic (
     -- bypass input directly to output for testing of previouse levels
     --bypass : std_logic := 0;
@@ -46,9 +46,9 @@ entity acc_chain is
     dat_o : out STD_LOGIC_VECTOR (63 downto 0);
     rdy_o : out STD_LOGIC
   );
-end acc_chain;
+end dadd_chain;
 
-architecture Behavioral of acc_chain is
+architecture Behavioral of dadd_chain is
   
   -- Link counter regitsters
   type link_cnt_t is array(LEN-1 downto 0) of std_logic_vector(LEN-1 downto 0);
@@ -82,9 +82,9 @@ begin
   link_dat(0) <= dat_i;
   dat_o <= link_dat(LEN);
   
-  acc_chain : for n in 0 to LEN-1 generate 
+  dadd_chain : for n in 0 to LEN-1 generate 
   begin
-    acc_link : entity work.acc_link
+    dadd_link : entity work.dadd_link
       generic map (
         WIDTH => LEN
       )

@@ -97,7 +97,7 @@ begin
 
 
   -- addres incrementer
-  adr_calc : entity work.adr_incr
+  adr_calc : entity work.adr4mul
     generic map (
       WIDTH => 5
     )

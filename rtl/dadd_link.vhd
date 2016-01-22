@@ -29,7 +29,7 @@ use IEEE.NUMERIC_STD.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity acc_link is
+entity dadd_link is
   Generic (
     WIDTH : positive := 5
   );
@@ -45,10 +45,10 @@ entity acc_link is
     dat_o : out STD_LOGIC_VECTOR (63 downto 0);
     rdy_o : out STD_LOGIC
   );
-end acc_link;
+end dadd_link;
 
 
-architecture Behavioral of acc_link is
+architecture Behavioral of dadd_link is
   constant CNT_ZERO : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
   signal cnt   : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
   signal a_buf : std_logic_vector(63 downto 0) := (others => '0');
@@ -60,8 +60,7 @@ architecture Behavioral of acc_link is
   constant LOAD_B : std_logic := '1';
 begin
   
-  
-  add : entity work.dadd
+  dadd : entity work.dadd
     port map (
       clk     => clk_i,
       ce      => ce_i,
@@ -71,7 +70,6 @@ begin
       rdy     => rdy_o,
       operation_nd => sum_nd
     );
-
 
 
   state_switcher : process(clk_i)
@@ -95,7 +93,6 @@ begin
   end process;
 
 
-
   nd_tracker : process(clk_i)
   begin
     if rising_edge(clk_i) then
@@ -112,7 +109,6 @@ begin
       end if;
     end if;
   end process;
-
 
   
   dat2buf : process(clk_i)
@@ -132,11 +128,5 @@ begin
   end process;
 
 
-
-
 end Behavioral;
-
-
-
-
 
