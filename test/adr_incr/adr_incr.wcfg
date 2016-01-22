@@ -3,66 +3,64 @@
    <wave_state>
    </wave_state>
    <db_ref_list>
-      <db_ref path="/home/barthess/projects/xilinx/fsmc2wb/adr_incr_tb_isim_beh.wdb" id="1" type="auto">
+      <db_ref path="/home/barthess/projects/xilinx/fsmc2wb/adr4mul_tb_isim_beh.wdb" id="1" type="auto">
          <top_modules>
-            <top_module name="adr_incr_tb" />
-            <top_module name="attributes" />
+            <top_module name="adr4mul_tb" />
             <top_module name="numeric_std" />
             <top_module name="std_logic_1164" />
             <top_module name="std_logic_arith" />
-            <top_module name="std_logic_misc" />
             <top_module name="std_logic_unsigned" />
          </top_modules>
       </db_ref>
    </db_ref_list>
    <WVObjectSize size="12" />
-   <wvobject fp_name="/adr_incr_tb/clk_i" type="logic" db_ref_id="1">
+   <wvobject fp_name="/adr4mul_tb/clk_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">clk_i</obj_property>
       <obj_property name="ObjectShortName">clk_i</obj_property>
    </wvobject>
-   <wvobject fp_name="/adr_incr_tb/rst_i" type="logic" db_ref_id="1">
+   <wvobject fp_name="/adr4mul_tb/rst_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">rst_i</obj_property>
       <obj_property name="ObjectShortName">rst_i</obj_property>
    </wvobject>
-   <wvobject fp_name="/adr_incr_tb/m_i" type="array" db_ref_id="1">
+   <wvobject fp_name="/adr4mul_tb/m_i" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">m_i[4:0]</obj_property>
       <obj_property name="ObjectShortName">m_i[4:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/adr_incr_tb/p_i" type="array" db_ref_id="1">
+   <wvobject fp_name="/adr4mul_tb/p_i" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">p_i[4:0]</obj_property>
       <obj_property name="ObjectShortName">p_i[4:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/adr_incr_tb/n_i" type="array" db_ref_id="1">
+   <wvobject fp_name="/adr4mul_tb/n_i" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">n_i[4:0]</obj_property>
       <obj_property name="ObjectShortName">n_i[4:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/adr_incr_tb/a_tran_i" type="logic" db_ref_id="1">
+   <wvobject fp_name="/adr4mul_tb/a_tran_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">a_tran_i</obj_property>
       <obj_property name="ObjectShortName">a_tran_i</obj_property>
    </wvobject>
-   <wvobject fp_name="/adr_incr_tb/b_tran_i" type="logic" db_ref_id="1">
+   <wvobject fp_name="/adr4mul_tb/b_tran_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">b_tran_i</obj_property>
       <obj_property name="ObjectShortName">b_tran_i</obj_property>
    </wvobject>
-   <wvobject fp_name="/adr_incr_tb/row_rdy_o" type="logic" db_ref_id="1">
+   <wvobject fp_name="/adr4mul_tb/row_rdy_o" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">row_rdy_o</obj_property>
       <obj_property name="ObjectShortName">row_rdy_o</obj_property>
    </wvobject>
-   <wvobject fp_name="/adr_incr_tb/all_rdy_o" type="logic" db_ref_id="1">
+   <wvobject fp_name="/adr4mul_tb/all_rdy_o" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">all_rdy_o</obj_property>
       <obj_property name="ObjectShortName">all_rdy_o</obj_property>
    </wvobject>
-   <wvobject fp_name="/adr_incr_tb/a_adr_o" type="array" db_ref_id="1">
+   <wvobject fp_name="/adr4mul_tb/a_adr_o" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">a_adr_o[9:0]</obj_property>
       <obj_property name="ObjectShortName">a_adr_o[9:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/adr_incr_tb/b_adr_o" type="array" db_ref_id="1">
+   <wvobject fp_name="/adr4mul_tb/b_adr_o" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">b_adr_o[9:0]</obj_property>
       <obj_property name="ObjectShortName">b_adr_o[9:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/adr_incr_tb/clk_i_period" type="other" db_ref_id="1">
+   <wvobject fp_name="/adr4mul_tb/clk_i_period" type="other" db_ref_id="1">
       <obj_property name="ElementShortName">clk_i_period</obj_property>
       <obj_property name="ObjectShortName">clk_i_period</obj_property>
    </wvobject>
