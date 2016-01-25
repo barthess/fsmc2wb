@@ -65,6 +65,10 @@ begin
     --variable i,j,k : std_logic_vector (WIDTH-1 downto 0);
   begin
     if rising_edge(clk_i) then
+      
+      row_rdy_o <= '0';
+      eoi_o <= '0';
+      
       if (rst_i = '1') then
         state <= IDLE;
         i <= (others => '0');
@@ -72,13 +76,11 @@ begin
         k <= (others => '0');
         eoi_o <= '0';
         dv_o  <= '0';
-        row_rdy_o <= '0';
       else
         if (ce_i = '1') then
           case state is
           when IDLE =>
             dv_o  <= '0';
-            eoi_o <= '0';
             m <= '0' & m_i;
             p <= '0' & p_i;
             n <= '0' & n_i;
@@ -101,8 +103,6 @@ begin
                   state <= IDLE;
                 end if;
               end if;
-            else
-              row_rdy_o <= '0';
             end if;
           end case;
           
