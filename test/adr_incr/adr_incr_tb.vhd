@@ -27,10 +27,11 @@
 --------------------------------------------------------------------------------
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
+use std.textio.all;
  
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
---USE ieee.numeric_std.ALL;
+USE ieee.numeric_std.ALL;
  
 ENTITY adr4mul_tb IS
 END adr4mul_tb;
@@ -43,8 +44,10 @@ ARCHITECTURE behavior OF adr4mul_tb IS
     PORT(
          clk_i : IN  std_logic;
          rst_i : IN  std_logic;
+         ce_i : IN  std_logic;
          row_rdy_o : OUT  std_logic;
-         all_rdy_o : OUT  std_logic;
+         eoi_o : OUT  std_logic;
+         dv_o : OUT  std_logic;
          m_i : IN  std_logic_vector(4 downto 0);
          p_i : IN  std_logic_vector(4 downto 0);
          n_i : IN  std_logic_vector(4 downto 0);
@@ -59,6 +62,9 @@ ARCHITECTURE behavior OF adr4mul_tb IS
    --Inputs
    signal clk_i : std_logic := '0';
    signal rst_i : std_logic := '0';
+   signal eoi_o : std_logic := '0';
+   signal dv_o : std_logic := '0';
+   signal adr_ce : std_logic := '0';
    signal m_i : std_logic_vector(4 downto 0) := (others => '0');
    signal p_i : std_logic_vector(4 downto 0) := (others => '0');
    signal n_i : std_logic_vector(4 downto 0) := (others => '0');
@@ -72,16 +78,25 @@ ARCHITECTURE behavior OF adr4mul_tb IS
    signal b_adr_o : std_logic_vector(9 downto 0);
 
    -- Clock period definitions
-   constant clk_i_period : time := 10 ns;
- 
+   constant clk_i_period : time := 1 ns;
+   
+   -- map file read stuff
+   signal endoffile : std_logic := '0';
+  signal file_rst : std_logic := '1';
+  
+  type state_t is (IDLE, ACTIVE, COOLDOWN);
+  signal state : state_t := IDLE;
+  
 BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
    uut: adr4mul PORT MAP (
           clk_i => clk_i,
           rst_i => rst_i,
+          ce_i  => adr_ce,
           row_rdy_o => row_rdy_o,
-          all_rdy_o => all_rdy_o,
+          eoi_o => eoi_o,
+          dv_o => dv_o,
           m_i => m_i,
           p_i => p_i,
           n_i => n_i,
@@ -100,24 +115,69 @@ BEGIN
 		wait for clk_i_period/2;
    end process;
  
+   
+   --read process
+  reading : process(clk_i)
+    --file      infile    : text is in  "test/adr_incr/test_vectors/3_3_3_a.txt";
+    file      infile    : text is in  "test/adr_incr/test_vectors/map.txt";
+    variable  inline    : line; --line number declaration
+    variable  dataread1 : real;
+    variable  m_read1, p_read1, n_read1 : integer;
+  begin
+    
+    if rising_edge(clk_i) then
+      if (file_rst = '1') then
+        state <= IDLE;
+      else
+        case state is
+        when IDLE =>
+          if (not endfile(infile)) then   --checking the "END OF FILE" is not reached.
+            readline(infile, inline);
+            read(inline, m_read1);
+            m_i <= std_logic_vector(to_unsigned(m_read1, 5));
+            readline(infile, inline);
+            read(inline, p_read1);
+            p_i <= std_logic_vector(to_unsigned(p_read1, 5));
+            readline(infile, inline);
+            read(inline, n_read1);
+            n_i <= std_logic_vector(to_unsigned(n_read1, 5));
+          else
+            endoffile <='1';         --set signal to tell end of file read file is reached.
+          end if;
+          state <= ACTIVE;
+          adr_ce <= '1';
+          rst_i <= '0';
 
+        when ACTIVE =>
+          if eoi_o = '1' then
+            adr_ce <= '0';
+            rst_i <= '1';
+            state <= COOLDOWN;
+          end if;
+          
+        when COOLDOWN =>
+          state <= IDLE;
+          
+        end case;
+      end if;
+    end if;
+  end process reading;
+   
+   
+   
    -- Stimulus process
    stim_proc: process
    begin		
-      rst_i <= '1';
-      -- hold reset state for 100 ns.
-      wait for 10 ns;	
-
-      wait for clk_i_period*2;
-      rst_i <= '0';
-      m_i <= "00010";
-      p_i <= "00010";
-      n_i <= "00010";
-
-      wait until all_rdy_o = '1';
-      rst_i <= '1';
+   
+      file_rst <= '1';
+      wait for 3 ns;	
+      file_rst <= '0';
+      
+      wait until eoi_o = '1';
+      --rst_i <= '1';
       
       wait;
-   end process;
+   end process;   
    
+
 END;
