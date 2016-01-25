@@ -14,7 +14,7 @@
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="20" />
+   <WVObjectSize size="19" />
    <wvobject fp_name="/adr4mul_tb/clk_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">clk_i</obj_property>
       <obj_property name="ObjectShortName">clk_i</obj_property>
@@ -79,11 +79,6 @@
    <wvobject fp_name="/adr4mul_tb/b_adr_o" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">b_adr_o[5:0]</obj_property>
       <obj_property name="ObjectShortName">b_adr_o[5:0]</obj_property>
-      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
-   </wvobject>
-   <wvobject fp_name="/adr4mul_tb/uut/b_col" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">b_col[5:0]</obj_property>
-      <obj_property name="ObjectShortName">b_col[5:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/adr4mul_tb/b_adr_ref" type="array" db_ref_id="1">
