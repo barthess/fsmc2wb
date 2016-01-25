@@ -29,7 +29,7 @@ entity adr4mul is
     eoi_o : out std_logic; -- end if iteration. Active high 1 clock when final valid data present on adr buses
     dv_o : out std_logic; -- data valid
 
-    -- operands' dimensions. Do NOT change them when iteration active
+    -- operands' dimensions
     m_i : in std_logic_vector(WIDTH-1 downto 0);
     p_i : in std_logic_vector(WIDTH-1 downto 0);
     n_i : in std_logic_vector(WIDTH-1 downto 0);
@@ -74,6 +74,9 @@ begin
         i <= (others => '0');
         j <= (others => '0');
         k <= (others => '0');
+        m <= (others => '0');
+        p <= (others => '0');
+        n <= (others => '0');
         eoi_o <= '0';
         dv_o  <= '0';
       else
@@ -81,9 +84,9 @@ begin
           case state is
           when IDLE =>
             dv_o  <= '0';
-            m <= '0' & m_i;
-            p <= '0' & p_i;
-            n <= '0' & n_i;
+            m <= ('0' & m_i) + 1;
+            p <= ('0' & p_i) + 1;
+            n <= ('0' & n_i) + 1;
             state <= ACTIVE;
 
           when ACTIVE =>
@@ -124,14 +127,14 @@ begin
       else
         if (ce_i = '1' and state = ACTIVE) then
           if (a_tran_i = '0') then
-            a := i*(p+1) + k; -- [i*p + k]
+            a := i*(p) + k; -- [i*p + k]
           else
-            a := k*(m+1) + i; -- [k*m + i]
+            a := k*(m) + i; -- [k*m + i]
           end if;
           if (b_tran_i = '0') then
-            b := k*(n+1) + j; -- [k*n + j]
+            b := k*(n) + j; -- [k*n + j]
           else
-            b := j*(p+1) + k; -- [j*p + k]
+            b := j*(p) + k; -- [j*p + k]
           end if;
           
           a_adr_o <= a(2*WIDTH-1 downto 0);
