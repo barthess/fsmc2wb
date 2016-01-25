@@ -5,7 +5,7 @@
 #include <fstream>
 #include "matrix_primitives.hpp"
 
-#define MAX_MTRX_SIZE   3
+#define MAX_MTRX_SIZE   8
 
 /**
  * @brief   multiply matrix A(m x p) by  B(p x n), put result in C(m x n)

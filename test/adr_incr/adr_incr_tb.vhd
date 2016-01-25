@@ -34,6 +34,9 @@ use std.textio.all;
 USE ieee.numeric_std.ALL;
  
 ENTITY adr4mul_tb IS
+  Generic (
+    WIDTH : positive := 3
+  );
 END adr4mul_tb;
  
 ARCHITECTURE behavior OF adr4mul_tb IS 
@@ -41,6 +44,9 @@ ARCHITECTURE behavior OF adr4mul_tb IS
     -- Component Declaration for the Unit Under Test (UUT)
  
     COMPONENT adr4mul
+    Generic (
+      WIDTH : positive
+    );
     PORT(
          clk_i : IN  std_logic;
          rst_i : IN  std_logic;
@@ -48,11 +54,11 @@ ARCHITECTURE behavior OF adr4mul_tb IS
          row_rdy_o : OUT  std_logic;
          eoi_o : OUT  std_logic;
          dv_o : OUT  std_logic;
-         m_i : IN  std_logic_vector(4 downto 0);
-         p_i : IN  std_logic_vector(4 downto 0);
-         n_i : IN  std_logic_vector(4 downto 0);
-         a_adr_o : OUT  std_logic_vector(9 downto 0);
-         b_adr_o : OUT  std_logic_vector(9 downto 0);
+         m_i : IN  std_logic_vector(WIDTH-1 downto 0);
+         p_i : IN  std_logic_vector(WIDTH-1 downto 0);
+         n_i : IN  std_logic_vector(WIDTH-1 downto 0);
+         a_adr_o : OUT  std_logic_vector(2*WIDTH-1 downto 0);
+         b_adr_o : OUT  std_logic_vector(2*WIDTH-1 downto 0);
          a_tran_i : IN  std_logic;
          b_tran_i : IN  std_logic
         );
@@ -65,17 +71,17 @@ ARCHITECTURE behavior OF adr4mul_tb IS
    signal eoi_o : std_logic := '0';
    signal dv_o : std_logic := '0';
    signal adr_ce : std_logic := '0';
-   signal m_i : std_logic_vector(4 downto 0) := (others => '0');
-   signal p_i : std_logic_vector(4 downto 0) := (others => '0');
-   signal n_i : std_logic_vector(4 downto 0) := (others => '0');
+   signal m_i : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
+   signal p_i : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
+   signal n_i : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
    signal a_tran_i : std_logic := '0';
    signal b_tran_i : std_logic := '0';
 
  	--Outputs
    signal row_rdy_o : std_logic;
    signal all_rdy_o : std_logic;
-   signal a_adr_o : std_logic_vector(9 downto 0);
-   signal b_adr_o : std_logic_vector(9 downto 0);
+   signal a_adr_o : std_logic_vector(2*WIDTH-1 downto 0);
+   signal b_adr_o : std_logic_vector(2*WIDTH-1 downto 0);
 
    -- Clock period definitions
    constant clk_i_period : time := 1 ns;
@@ -83,16 +89,20 @@ ARCHITECTURE behavior OF adr4mul_tb IS
    -- map file read stuff
    signal endoffile : std_logic := '0';
    signal file_rst  : std_logic := '1';
-   signal a_adr_ref : std_logic_vector(9 downto 0);
-   signal b_adr_ref : std_logic_vector(9 downto 0);
+   signal a_adr_ref : std_logic_vector(2*WIDTH-1 downto 0);
+   signal b_adr_ref : std_logic_vector(2*WIDTH-1 downto 0);
    
-  type state_t is (IDLE, ACTIVE, COOLDOWN);
+  type state_t is (IDLE, PRELOAD, ACTIVE, COOLDOWN);
   signal state : state_t := IDLE;
   
 BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
-   uut: adr4mul PORT MAP (
+   uut: adr4mul 
+   Generic map (
+    WIDTH => WIDTH
+   )
+   PORT MAP (
           clk_i => clk_i,
           rst_i => rst_i,
           ce_i  => adr_ce,
@@ -141,28 +151,39 @@ BEGIN
             if (not endfile(len_file)) then   --checking the "END OF FILE" is not reached.
               readline(len_file, len_line);
               read(len_line, m_read1);
-              m_i <= std_logic_vector(to_unsigned(m_read1, 5));
+              m_i <= std_logic_vector(to_unsigned(m_read1, WIDTH));
               readline(len_file, len_line);
               read(len_line, p_read1);
-              p_i <= std_logic_vector(to_unsigned(p_read1, 5));
+              p_i <= std_logic_vector(to_unsigned(p_read1, WIDTH));
               readline(len_file, len_line);
               read(len_line, n_read1);
-              n_i <= std_logic_vector(to_unsigned(n_read1, 5));
+              n_i <= std_logic_vector(to_unsigned(n_read1, WIDTH));
             else
               endoffile <='1';         --set signal to tell end of file read file is reached.
             end if;
-            state <= ACTIVE;
+            state  <= PRELOAD;
             adr_ce <= '1';
-            rst_i <= '0';
-
+            rst_i  <= '0';
+            
+          when PRELOAD =>
+            readline(a_adr_file, a_adr_line);
+            read(a_adr_line, a_adr_read1);
+            a_adr_ref <= std_logic_vector(to_unsigned(a_adr_read1, 2*WIDTH));
+            readline(b_adr_file, b_adr_line);
+            read(b_adr_line, b_adr_read1);
+            b_adr_ref <= std_logic_vector(to_unsigned(b_adr_read1, 2*WIDTH));
+            state <= ACTIVE;
+            
           when ACTIVE =>
             if eoi_o = '0' then
-              readline(a_adr_file, a_adr_line);
-              read(a_adr_line, a_adr_read1);
-              a_adr_ref <= std_logic_vector(to_unsigned(a_adr_read1, 10));
-              readline(b_adr_file, b_adr_line);
-              read(b_adr_line, b_adr_read1);
-              b_adr_ref <= std_logic_vector(to_unsigned(b_adr_read1, 10));
+              if (dv_o = '1') then
+                readline(a_adr_file, a_adr_line);
+                read(a_adr_line, a_adr_read1);
+                a_adr_ref <= std_logic_vector(to_unsigned(a_adr_read1, 2*WIDTH));
+                readline(b_adr_file, b_adr_line);
+                read(b_adr_line, b_adr_read1);
+                b_adr_ref <= std_logic_vector(to_unsigned(b_adr_read1, 2*WIDTH));
+              end if;
             else
               adr_ce <= '0';
               rst_i <= '1';
@@ -183,7 +204,7 @@ BEGIN
   checking : process(clk_i)
   begin
     if rising_edge(clk_i) then
-      if (dv_o = '1') then
+      if (dv_o = '1' and endoffile = '0') then
         assert (a_adr_o = a_adr_ref) report "A address incorrect!" severity failure;
         assert (b_adr_o = b_adr_ref) report "B address incorrect!" severity failure;
       end if;

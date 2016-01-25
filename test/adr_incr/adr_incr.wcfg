@@ -14,7 +14,7 @@
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="19" />
+   <WVObjectSize size="20" />
    <wvobject fp_name="/adr4mul_tb/clk_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">clk_i</obj_property>
       <obj_property name="ObjectShortName">clk_i</obj_property>
@@ -36,18 +36,18 @@
       <obj_property name="ObjectShortName">adr_ce</obj_property>
    </wvobject>
    <wvobject fp_name="/adr4mul_tb/m_i" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">m_i[4:0]</obj_property>
-      <obj_property name="ObjectShortName">m_i[4:0]</obj_property>
+      <obj_property name="ElementShortName">m_i[2:0]</obj_property>
+      <obj_property name="ObjectShortName">m_i[2:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/adr4mul_tb/p_i" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">p_i[4:0]</obj_property>
-      <obj_property name="ObjectShortName">p_i[4:0]</obj_property>
+      <obj_property name="ElementShortName">p_i[2:0]</obj_property>
+      <obj_property name="ObjectShortName">p_i[2:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/adr4mul_tb/n_i" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">n_i[4:0]</obj_property>
-      <obj_property name="ObjectShortName">n_i[4:0]</obj_property>
+      <obj_property name="ElementShortName">n_i[2:0]</obj_property>
+      <obj_property name="ObjectShortName">n_i[2:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/adr4mul_tb/a_tran_i" type="logic" db_ref_id="1">
@@ -67,23 +67,28 @@
       <obj_property name="ObjectShortName">all_rdy_o</obj_property>
    </wvobject>
    <wvobject fp_name="/adr4mul_tb/a_adr_o" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">a_adr_o[9:0]</obj_property>
-      <obj_property name="ObjectShortName">a_adr_o[9:0]</obj_property>
+      <obj_property name="ElementShortName">a_adr_o[5:0]</obj_property>
+      <obj_property name="ObjectShortName">a_adr_o[5:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/adr4mul_tb/a_adr_ref" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">a_adr_ref[9:0]</obj_property>
-      <obj_property name="ObjectShortName">a_adr_ref[9:0]</obj_property>
+      <obj_property name="ElementShortName">a_adr_ref[5:0]</obj_property>
+      <obj_property name="ObjectShortName">a_adr_ref[5:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/adr4mul_tb/b_adr_o" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">b_adr_o[9:0]</obj_property>
-      <obj_property name="ObjectShortName">b_adr_o[9:0]</obj_property>
+      <obj_property name="ElementShortName">b_adr_o[5:0]</obj_property>
+      <obj_property name="ObjectShortName">b_adr_o[5:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/adr4mul_tb/uut/b_col" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">b_col[5:0]</obj_property>
+      <obj_property name="ObjectShortName">b_col[5:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/adr4mul_tb/b_adr_ref" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">b_adr_ref[9:0]</obj_property>
-      <obj_property name="ObjectShortName">b_adr_ref[9:0]</obj_property>
+      <obj_property name="ElementShortName">b_adr_ref[5:0]</obj_property>
+      <obj_property name="ObjectShortName">b_adr_ref[5:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/adr4mul_tb/endoffile" type="logic" db_ref_id="1">

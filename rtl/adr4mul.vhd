@@ -48,13 +48,14 @@ end adr4mul;
 -----------------------------------------------------------------------------
 
 architecture beh of adr4mul is
---  signal m : std_logic_vector(WIDTH-1 downto 0);
---  signal n : std_logic_vector(WIDTH-1 downto 0);
---  signal p : std_logic_vector(WIDTH-1 downto 0);
-  signal i,j,k : std_logic_vector (WIDTH-1 downto 0) := (others => '0');
---  type state_t is (IDLE, ACTIVE);
---  signal state : state_t := IDLE;
-  
+  signal m, n, p : std_logic_vector(WIDTH downto 0);
+  signal i, j, k : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
+  type state_t is (IDLE, ACTIVE);
+  signal state : state_t := IDLE;
+  -- iteration helpers allowing to avoid multiplication
+--  signal a_row : std_logic_vector(WIDTH*2-1 downto 0) := (others => '0');
+--  signal b_col : std_logic_vector(WIDTH*2-1 downto 0) := (others => '0');
+--  signal b_col_base : std_logic_vector(WIDTH*2-1 downto 0) := (others => '0');
 begin
   
   --
@@ -65,54 +66,100 @@ begin
   begin
     if rising_edge(clk_i) then
       if (rst_i = '1') then
+        state <= IDLE;
         i <= (others => '0');
         j <= (others => '0');
         k <= (others => '0');
         eoi_o <= '0';
         dv_o  <= '0';
         row_rdy_o <= '0';
-        a_adr_o <= (others => '0');
-        b_adr_o <= (others => '0');
       else
         if (ce_i = '1') then
-          dv_o  <= '1';
-          eoi_o <= '0';        
-          
-          k <= k+1;
-          if (k = p_i) then
-            j <= j+1;
-            k <= (others => '0');
-            row_rdy_o <= '1';
-            if (j = n_i) then
-              i <= i+1;
-              j <= (others => '0');
-              if (i = m_i) then
-                i <= (others => '0');
-                eoi_o <= '1';
-              end if;
-            end if;
-          else
-            row_rdy_o <= '0';
-          end if;
+          case state is
+          when IDLE =>
+            dv_o  <= '0';
+            eoi_o <= '0';
+            m <= '0' & m_i;
+            p <= '0' & p_i;
+            n <= '0' & n_i;
+            state <= ACTIVE;
 
-          -- now calculate addresses
-          if (a_tran_i = '0') then
-            a_adr_o <= i*(p_i+1) + k; -- [i*p + k]
-          else
-            a_adr_o <= k*(m_i+1) + i; -- [k*m + i]
-          end if;
-          if (b_tran_i = '0') then
-            b_adr_o <= k*(n_i+1) + j; -- [k*n + j]
-          else
-            b_adr_o <= j*(p_i+1) + k; -- [j*p + k]
-          end if;
+          when ACTIVE =>
+            dv_o <= '1';
+            
+            k <= k+1;
+            if (k = p) then
+              j <= j+1;
+              k <= (others => '0');
+              row_rdy_o <= '1';
+              if (j = n) then
+                i <= i+1;
+                j <= (others => '0');
+                if (i = m) then
+                  i <= (others => '0');
+                  eoi_o <= '1';
+                  state <= IDLE;
+                end if;
+              end if;
+            else
+              row_rdy_o <= '0';
+            end if;
+          end case;
           
         end if; -- ce_i
       end if;
     end if;
   end process;
 
-  
+  --
+  --  multiplication based code
+  --
+  process(clk_i) 
+  variable a, b : std_logic_vector(2*WIDTH downto 0);
+  begin
+    if rising_edge(clk_i) then
+      if (rst_i = '1') then
+        a_adr_o <= (others => '0');
+        b_adr_o <= (others => '0');
+      else
+        if (ce_i = '1' and state = ACTIVE) then
+          if (a_tran_i = '0') then
+            a := i*(p+1) + k;
+          else
+            a := k*(m+1) + i; -- [k*m + i]
+          end if;
+          if (b_tran_i = '0') then
+            b := k*(n+1) + j; -- [k*n + j]
+          else
+            b := j*(p+1) + k; -- [j*p + k]
+          end if;
+          
+          a_adr_o <= a(2*WIDTH-1 downto 0);
+          b_adr_o <= b(2*WIDTH-1 downto 0);
+        end if;
+      end if;
+    end if; -- clk
+  end process;
+
+
+  --
+  -- sum based code
+  --
+--  process(clk_i) 
+--  begin
+--    if rising_edge(clk_i) then
+--      if (rst_i = '1') then
+--        a_adr_o <= (others => '0');
+--        b_adr_o <= (others => '0');
+--      else
+--        if (ce_i = '1' and state = ACTIVE) then
+--          a_adr_o <= a_row + k;
+--          b_adr_o <= b_col;
+--        end if;
+--      end if;
+--    end if; -- clk
+--  end process;
+
 end beh;
 
 
