@@ -22,10 +22,12 @@ entity adr4mul is
   );
   Port (
     clk_i : in  std_logic;
-    rst_i : in  std_logic; -- combined reset not enable
-
+    rst_i : in  std_logic;
+    ce_i  : in  std_logic;
+  
     row_rdy_o : out std_logic; -- single pre multiplied row ready. Active high during 1 clock cycle
-    all_rdy_o : out std_logic; -- all address iterated
+    eoi_o : out std_logic; -- end if iteration. Active high 1 clock when final valid data present on adr buses
+    dv_o : out std_logic; -- data valid
 
     -- operands' dimensions. Do NOT change them when iteration active
     m_i : in std_logic_vector(WIDTH-1 downto 0);
@@ -66,49 +68,45 @@ begin
         i <= (others => '0');
         j <= (others => '0');
         k <= (others => '0');
-        all_rdy_o <= '0';
+        eoi_o <= '0';
         row_rdy_o <= '0';
         a_adr_o <= (others => '0');
         b_adr_o <= (others => '0');
       else
-
-        -- 
-        k <= k+1;
-        if (k = p_i) then
-          j <= j+1;
-          k <= (others => '0');
-          row_rdy_o <= '1';
-          if (j = n_i) then
-            i <= i+1;
-            j <= (others => '0');
-            if (i = m_i) then
-              i <= (others => '0');
-              all_rdy_o <= '1';
-            else
-              all_rdy_o <= '0';
+        if (ce_i = '1') then
+          
+          eoi_o <= '0';        
+          
+          k <= k+1;
+          if (k = p_i) then
+            j <= j+1;
+            k <= (others => '0');
+            row_rdy_o <= '1';
+            if (j = n_i) then
+              i <= i+1;
+              j <= (others => '0');
+              if (i = m_i) then
+                i <= (others => '0');
+                eoi_o <= '1';
+              end if;
             end if;
+          else
+            row_rdy_o <= '0';
           end if;
-        else
-          row_rdy_o <= '0';
-        end if;
 
 
-        
-        -- now calculate addresses
-        if (a_tran_i = '0') then
-          a_adr_o <= i*(p_i+1) + k; -- [i*p + k]
-        else
-          a_adr_o <= k*(m_i+1) + i; -- [k*m + i]
-        end if;
-        if (b_tran_i = '0') then
-          b_adr_o <= k*(n_i+1) + j; -- [k*n + j]
-        else
-          b_adr_o <= j*(p_i+1) + k; -- [j*p + k]
-        end if;
-
-
-
-
+          -- now calculate addresses
+          if (a_tran_i = '0') then
+            a_adr_o <= i*(p_i+1) + k; -- [i*p + k]
+          else
+            a_adr_o <= k*(m_i+1) + i; -- [k*m + i]
+          end if;
+          if (b_tran_i = '0') then
+            b_adr_o <= k*(n_i+1) + j; -- [k*n + j]
+          else
+            b_adr_o <= j*(p_i+1) + k; -- [j*p + k]
+          end if;
+        end if; -- ce_i
       end if;
     end if;
   end process;
