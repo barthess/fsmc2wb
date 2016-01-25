@@ -3,7 +3,7 @@
    <wave_state>
    </wave_state>
    <db_ref_list>
-      <db_ref path="/home/barthess/projects/xilinx/fsmc2wb/adr4mul_tb_isim_beh1.wdb" id="1" type="auto">
+      <db_ref path="/home/barthess/projects/xilinx/fsmc2wb/adr4mul_tb_isim_beh.wdb" id="1" type="auto">
          <top_modules>
             <top_module name="adr4mul_tb" />
             <top_module name="numeric_std" />
@@ -14,7 +14,7 @@
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="17" />
+   <WVObjectSize size="19" />
    <wvobject fp_name="/adr4mul_tb/clk_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">clk_i</obj_property>
       <obj_property name="ObjectShortName">clk_i</obj_property>
@@ -71,9 +71,19 @@
       <obj_property name="ObjectShortName">a_adr_o[9:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
+   <wvobject fp_name="/adr4mul_tb/a_adr_ref" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">a_adr_ref[9:0]</obj_property>
+      <obj_property name="ObjectShortName">a_adr_ref[9:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
    <wvobject fp_name="/adr4mul_tb/b_adr_o" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">b_adr_o[9:0]</obj_property>
       <obj_property name="ObjectShortName">b_adr_o[9:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/adr4mul_tb/b_adr_ref" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">b_adr_ref[9:0]</obj_property>
+      <obj_property name="ObjectShortName">b_adr_ref[9:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/adr4mul_tb/endoffile" type="logic" db_ref_id="1">

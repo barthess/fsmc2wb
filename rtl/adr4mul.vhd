@@ -69,12 +69,13 @@ begin
         j <= (others => '0');
         k <= (others => '0');
         eoi_o <= '0';
+        dv_o  <= '0';
         row_rdy_o <= '0';
         a_adr_o <= (others => '0');
         b_adr_o <= (others => '0');
       else
         if (ce_i = '1') then
-          
+          dv_o  <= '1';
           eoi_o <= '0';        
           
           k <= k+1;
@@ -94,7 +95,6 @@ begin
             row_rdy_o <= '0';
           end if;
 
-
           -- now calculate addresses
           if (a_tran_i = '0') then
             a_adr_o <= i*(p_i+1) + k; -- [i*p + k]
@@ -106,6 +106,7 @@ begin
           else
             b_adr_o <= j*(p_i+1) + k; -- [j*p + k]
           end if;
+          
         end if; -- ce_i
       end if;
     end if;

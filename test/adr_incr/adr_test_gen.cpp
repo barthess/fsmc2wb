@@ -27,7 +27,8 @@ void matrix_iterate(uint32_t m, uint32_t p, uint32_t n,
 /**
  *
  */
-static void generate(uint32_t m, uint32_t p, uint32_t n) {
+static void generate(uint32_t m, uint32_t p, uint32_t n, 
+                    std::ofstream &a_adr_file, std::ofstream &b_adr_file) {
   const size_t N = 64;
   char a_str[N];
   char b_str[N];
@@ -41,26 +42,23 @@ static void generate(uint32_t m, uint32_t p, uint32_t n) {
 
   memset(a_str, 0x00, N);
   memset(b_str, 0x00, N);
-  sprintf(a_str, "test_vectors/%d_%d_%d_a.%s", m, p, n, "txt");
-  sprintf(b_str, "test_vectors/%d_%d_%d_b.%s", m, p, n, "txt");
+  //sprintf(a_str, "test_vectors/%d_%d_%d_a.%s", m, p, n, "txt");
+  //sprintf(b_str, "test_vectors/%d_%d_%d_b.%s", m, p, n, "txt");
 
-  std::ofstream a_file, b_file;
-  a_file.open(a_str);
-  b_file.open(b_str);
   for (size_t i=0; i<m*p*n; i++) {
-    a_file << a_adr[i] << "\n";
-    b_file << b_adr[i] << "\n";
+    a_adr_file << a_adr[i] << "\n";
+    b_adr_file << b_adr[i] << "\n";
   }
-  a_file.close();
-  b_file.close();
 }
 
 /**
  *
  */ 
 int main(void) {
-  std::ofstream map_file;
-  map_file.open("test_vectors/map.txt");
+  std::ofstream len_file, a_adr_file, b_adr_file;
+  len_file.open("test_vectors/len.txt");
+  a_adr_file.open("test_vectors/a_adr.txt");
+  b_adr_file.open("test_vectors/b_adr.txt");
 
   size_t m, p, n;
   m = p = n = MAX_MTRX_SIZE;
@@ -68,15 +66,17 @@ int main(void) {
   while(m--) {
     while(p--) {
       while(n--) {
-        generate(m+1, p+1, n+1);
-        map_file << m << "\n" << p << "\n" << n << "\n";
+        generate(m+1, p+1, n+1, a_adr_file, b_adr_file);
+        len_file << m << " --\n" << p << "\n" << n << "\n";
       }
       n = MAX_MTRX_SIZE;
     }
     p = MAX_MTRX_SIZE;
   }
 
-  map_file.close();
+  len_file.close();
+  a_adr_file.close();
+  b_adr_file.close();
 }
 
 

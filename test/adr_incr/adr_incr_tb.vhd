@@ -82,8 +82,10 @@ ARCHITECTURE behavior OF adr4mul_tb IS
    
    -- map file read stuff
    signal endoffile : std_logic := '0';
-  signal file_rst : std_logic := '1';
-  
+   signal file_rst  : std_logic := '1';
+   signal a_adr_ref : std_logic_vector(9 downto 0);
+   signal b_adr_ref : std_logic_vector(9 downto 0);
+   
   type state_t is (IDLE, ACTIVE, COOLDOWN);
   signal state : state_t := IDLE;
   
@@ -118,52 +120,76 @@ BEGIN
    
    --read process
   reading : process(clk_i)
-    --file      infile    : text is in  "test/adr_incr/test_vectors/3_3_3_a.txt";
-    file      infile    : text is in  "test/adr_incr/test_vectors/map.txt";
-    variable  inline    : line; --line number declaration
-    variable  dataread1 : real;
-    variable  m_read1, p_read1, n_read1 : integer;
+    file len_file : text is in  "test/adr_incr/test_vectors/len.txt";
+    variable len_line : line; --line number declaration
+    variable m_read1, p_read1, n_read1 : integer;
+    
+    file a_adr_file : text is in  "test/adr_incr/test_vectors/a_adr.txt";
+    file b_adr_file : text is in  "test/adr_incr/test_vectors/b_adr.txt";
+    variable a_adr_line, b_adr_line : line; --line number declaration
+    variable a_adr_read1, b_adr_read1 : integer;
   begin
     
     if rising_edge(clk_i) then
       if (file_rst = '1') then
         state <= IDLE;
+        rst_i <= '1';
       else
-        case state is
-        when IDLE =>
-          if (not endfile(infile)) then   --checking the "END OF FILE" is not reached.
-            readline(infile, inline);
-            read(inline, m_read1);
-            m_i <= std_logic_vector(to_unsigned(m_read1, 5));
-            readline(infile, inline);
-            read(inline, p_read1);
-            p_i <= std_logic_vector(to_unsigned(p_read1, 5));
-            readline(infile, inline);
-            read(inline, n_read1);
-            n_i <= std_logic_vector(to_unsigned(n_read1, 5));
-          else
-            endoffile <='1';         --set signal to tell end of file read file is reached.
-          end if;
-          state <= ACTIVE;
-          adr_ce <= '1';
-          rst_i <= '0';
+        if (endoffile = '0') then -- 1-bit latch
+          case state is
+          when IDLE =>
+            if (not endfile(len_file)) then   --checking the "END OF FILE" is not reached.
+              readline(len_file, len_line);
+              read(len_line, m_read1);
+              m_i <= std_logic_vector(to_unsigned(m_read1, 5));
+              readline(len_file, len_line);
+              read(len_line, p_read1);
+              p_i <= std_logic_vector(to_unsigned(p_read1, 5));
+              readline(len_file, len_line);
+              read(len_line, n_read1);
+              n_i <= std_logic_vector(to_unsigned(n_read1, 5));
+            else
+              endoffile <='1';         --set signal to tell end of file read file is reached.
+            end if;
+            state <= ACTIVE;
+            adr_ce <= '1';
+            rst_i <= '0';
 
-        when ACTIVE =>
-          if eoi_o = '1' then
-            adr_ce <= '0';
-            rst_i <= '1';
-            state <= COOLDOWN;
-          end if;
-          
-        when COOLDOWN =>
-          state <= IDLE;
-          
-        end case;
+          when ACTIVE =>
+            if eoi_o = '0' then
+              readline(a_adr_file, a_adr_line);
+              read(a_adr_line, a_adr_read1);
+              a_adr_ref <= std_logic_vector(to_unsigned(a_adr_read1, 10));
+              readline(b_adr_file, b_adr_line);
+              read(b_adr_line, b_adr_read1);
+              b_adr_ref <= std_logic_vector(to_unsigned(b_adr_read1, 10));
+            else
+              adr_ce <= '0';
+              rst_i <= '1';
+              state <= COOLDOWN;
+            end if;
+
+          when COOLDOWN =>
+            state <= IDLE;
+            
+          end case;
+        end if;
       end if;
     end if;
   end process reading;
-   
-   
+
+
+  -- assertion process
+  checking : process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      if (dv_o = '1') then
+        assert (a_adr_o = a_adr_ref) report "A address incorrect!" severity failure;
+        assert (b_adr_o = b_adr_ref) report "B address incorrect!" severity failure;
+      end if;
+    end if;
+  end process checking;
+  
    
    -- Stimulus process
    stim_proc: process
