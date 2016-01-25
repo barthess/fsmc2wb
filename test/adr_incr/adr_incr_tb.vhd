@@ -164,7 +164,7 @@ BEGIN
             state  <= PRELOAD;
             adr_ce <= '1';
             rst_i  <= '0';
-            
+
           when PRELOAD =>
             readline(a_adr_file, a_adr_line);
             read(a_adr_line, a_adr_read1);

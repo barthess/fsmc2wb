@@ -124,7 +124,7 @@ begin
       else
         if (ce_i = '1' and state = ACTIVE) then
           if (a_tran_i = '0') then
-            a := i*(p+1) + k;
+            a := i*(p+1) + k; -- [i*p + k]
           else
             a := k*(m+1) + i; -- [k*m + i]
           end if;
