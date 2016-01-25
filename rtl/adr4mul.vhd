@@ -84,9 +84,9 @@ begin
           case state is
           when IDLE =>
             dv_o  <= '0';
-            m <= ('0' & m_i) + 1;
-            p <= ('0' & p_i) + 1;
-            n <= ('0' & n_i) + 1;
+            m <= '0' & m_i;
+            p <= '0' & p_i;
+            n <= '0' & n_i;
             state <= ACTIVE;
 
           when ACTIVE =>
@@ -110,8 +110,8 @@ begin
           end case;
           
         end if; -- ce_i
-      end if;
-    end if;
+      end if; -- rst
+    end if; -- clk
   end process;
 
   --
@@ -127,14 +127,14 @@ begin
       else
         if (ce_i = '1' and state = ACTIVE) then
           if (a_tran_i = '0') then
-            a := i*(p) + k; -- [i*p + k]
+            a := i*(p+1) + k; -- [i*p + k]
           else
-            a := k*(m) + i; -- [k*m + i]
+            a := k*(m+1) + i; -- [k*m + i]
           end if;
           if (b_tran_i = '0') then
-            b := k*(n) + j; -- [k*n + j]
+            b := k*(n+1) + j; -- [k*n + j]
           else
-            b := j*(p) + k; -- [j*p + k]
+            b := j*(p+1) + k; -- [j*p + k]
           end if;
           
           a_adr_o <= a(2*WIDTH-1 downto 0);
@@ -144,24 +144,6 @@ begin
     end if; -- clk
   end process;
 
-
-  --
-  -- sum based code
-  --
---  process(clk_i) 
---  begin
---    if rising_edge(clk_i) then
---      if (rst_i = '1') then
---        a_adr_o <= (others => '0');
---        b_adr_o <= (others => '0');
---      else
---        if (ce_i = '1' and state = ACTIVE) then
---          a_adr_o <= a_row + k;
---          b_adr_o <= b_col;
---        end if;
---      end if;
---    end if; -- clk
---  end process;
 
 end beh;
 
