@@ -62,6 +62,7 @@ architecture beh of mtrx_mul is
   signal mtrx_p : std_logic_vector (4 downto 0) := (others => '0');
   signal mtrx_n : std_logic_vector (4 downto 0) := (others => '0');
   signal adr_incr_rst : std_logic := '1';
+  signal adr_incr_ce  : std_logic := '0';
   
   type state_t is (IDLE, PRELOAD, ACTIVE, FLUSH1, FLUSH2);
   signal state : state_t := IDLE;
@@ -104,9 +105,10 @@ begin
     port map (
       clk_i => clk_i,
       rst_i => adr_incr_rst,
+      ce_i  => adr_incr_ce,
       
       row_rdy_o => open,
-      all_rdy_o => input_iterated,
+      eoi_o => input_iterated,
       
       m_i => mtrx_m,
       p_i => mtrx_p,
@@ -158,6 +160,7 @@ begin
           mtrx_p <= dat_i(9 downto 5);
           mtrx_n <= dat_i(14 downto 10);
           adr_incr_rst <= '0';
+          adr_incr_ce  <= '1';
           err_o <= '0';
           ack_o <= '1';
         else
@@ -173,6 +176,7 @@ begin
         mul_ce <= '1';
         if (input_iterated = '1') then
           adr_incr_rst <= '1';
+          adr_incr_ce <= '0';
           state <= FLUSH1;
         end if;
 
