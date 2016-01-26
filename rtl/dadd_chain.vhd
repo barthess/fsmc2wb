@@ -31,17 +31,16 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity dadd_chain is
   Generic (
-    -- bypass input directly to output for testing of previouse levels
-    --bypass : std_logic := 0;
-    -- length of accumulator chain. Chain able to accumulate 2**LEN numbers
+    -- length of accumulator chain. As a result the chain able to accumulate 2**LEN numbers
     LEN : positive := 5
   );
   Port (
     clk_i : in  STD_LOGIC;
     rst_i : in  STD_LOGIC;
     ce_i  : in  STD_LOGIC;
-    nd_i  : in  STD_LOGIC;
-    len_i : in  STD_LOGIC_VECTOR (LEN-1 downto 0); -- number of input arguments - 1
+    nd_i  : in  STD_LOGIC; -- new data stable
+    -- Number of input arguments. 0 denotes single argument.
+    len_i : in  STD_LOGIC_VECTOR (LEN-1 downto 0);
     dat_i : in  STD_LOGIC_VECTOR (63 downto 0);
     dat_o : out STD_LOGIC_VECTOR (63 downto 0);
     rdy_o : out STD_LOGIC
