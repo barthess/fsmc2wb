@@ -67,3 +67,5 @@ sch2HdlBatchFile
 *.xsl
 *.xst
 *.xwbt
+\#*#
+*.*~
