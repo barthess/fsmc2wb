@@ -130,12 +130,12 @@ BEGIN
    
    --read process
   reading : process(clk_i)
-    file len_file : text is in  "test/adr_incr/test_vectors/len.txt";
+    file len_file : text is in  "test/adr_incr/adr_test/len.txt";
     variable len_line : line; --line number declaration
     variable m_read1, p_read1, n_read1 : integer;
     
-    file a_adr_file : text is in  "test/adr_incr/test_vectors/a_adr.txt";
-    file b_adr_file : text is in  "test/adr_incr/test_vectors/b_adr.txt";
+    file a_adr_file : text is in  "test/adr_incr/adr_test/a_adr.txt";
+    file b_adr_file : text is in  "test/adr_incr/adr_test/b_adr.txt";
     variable a_adr_line, b_adr_line : line; --line number declaration
     variable a_adr_read1, b_adr_read1 : integer;
   begin

@@ -66,12 +66,12 @@ ARCHITECTURE behavior OF dadd_link_tb IS
    signal rdy_o : std_logic;
 
    -- Clock period definitions
-   constant clk_i_period : time := 10 ns;
+   constant clk_i_period : time := 1 ns;
  
 BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
-   uut: acc_link PORT MAP (
+   uut: dadd_link PORT MAP (
           clk_i => clk_i,
           ce_i => ce_i,
           dat_i => dat_i,

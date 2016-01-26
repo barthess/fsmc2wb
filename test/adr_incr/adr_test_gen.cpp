@@ -42,8 +42,6 @@ static void generate(uint32_t m, uint32_t p, uint32_t n,
 
   memset(a_str, 0x00, N);
   memset(b_str, 0x00, N);
-  //sprintf(a_str, "test_vectors/%d_%d_%d_a.%s", m, p, n, "txt");
-  //sprintf(b_str, "test_vectors/%d_%d_%d_b.%s", m, p, n, "txt");
 
   for (size_t i=0; i<m*p*n; i++) {
     a_adr_file << a_adr[i] << "\n";
@@ -56,9 +54,9 @@ static void generate(uint32_t m, uint32_t p, uint32_t n,
  */ 
 int main(void) {
   std::ofstream len_file, a_adr_file, b_adr_file;
-  len_file.open("test_vectors/len.txt");
-  a_adr_file.open("test_vectors/a_adr.txt");
-  b_adr_file.open("test_vectors/b_adr.txt");
+  len_file.open("stim/len.txt");
+  a_adr_file.open("stim/a_adr.txt");
+  b_adr_file.open("stim/b_adr.txt");
 
   size_t m, p, n;
   m = p = n = MAX_MTRX_SIZE;
@@ -78,17 +76,5 @@ int main(void) {
   a_adr_file.close();
   b_adr_file.close();
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
