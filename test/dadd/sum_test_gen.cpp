@@ -7,7 +7,7 @@
 #include <iostream>
 #include <fstream>
 
-#define INPUT_LEN   8
+#define INPUT_LEN   2
 
 static const double MAX_MTRX_NUM = 10000;
 static const double MIN_MTRX_NUM = .0001;

@@ -49,7 +49,7 @@ end dadd_link;
 
 
 architecture Behavioral of dadd_link is
-  constant CNT_ZERO : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
+  constant ZERO : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
   signal cnt   : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
   signal a_buf : std_logic_vector(63 downto 0) := (others => '0');
   signal b_buf : std_logic_vector(63 downto 0) := (others => '0');
@@ -80,7 +80,7 @@ begin
         cnt   <= cnt_i;
       else
         if (ce_i = '1') and (nd_i = '1') then
-          if (cnt = CNT_ZERO) then
+          if (cnt = ZERO) then
             cnt   <= cnt_i;
             state <= LOAD_A;
           else
@@ -100,7 +100,7 @@ begin
         sum_nd <= '0';
       else
         if (ce_i = '1') then
-          if nd_i = '1' and (cnt = CNT_ZERO or state = LOAD_B) then
+          if nd_i = '1' and (cnt = ZERO or state = LOAD_B) then
             sum_nd <= '1';
           else
             sum_nd <= '0';
