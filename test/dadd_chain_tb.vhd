@@ -84,8 +84,8 @@ BEGIN
    PORT MAP (
           clk_i => clk_i,
           rst_i => rst_i,
-          ce_i => ce_i,
-          nd_i => nd_i,
+          ce_i  => ce_i,
+          nd_i  => nd_i,
           len_i => len_i,
           dat_i => dat_i,
           dat_o => dat_o,
@@ -106,9 +106,9 @@ BEGIN
    stim_proc: process
    begin		
       -- hold reset state for 100 ns.
-      wait for 100 ns;	
+      wait for 2 ns;	
 
-      wait for clk_i_period*10;
+      wait for clk_i_period*2;
 
       -- insert stimulus here 
 
