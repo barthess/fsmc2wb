@@ -50,9 +50,8 @@ ARCHITECTURE behavior OF adr4mul_tb IS
     PORT(
          clk_i : IN  std_logic;
          rst_i : IN  std_logic;
-         ce_i : IN  std_logic;
          row_rdy_o : OUT  std_logic;
-         eoi_o : OUT  std_logic;
+         rdy_o : OUT  std_logic;
          dv_o : OUT  std_logic;
          m_i : IN  std_logic_vector(WIDTH-1 downto 0);
          p_i : IN  std_logic_vector(WIDTH-1 downto 0);
@@ -68,9 +67,8 @@ ARCHITECTURE behavior OF adr4mul_tb IS
    --Inputs
    signal clk_i : std_logic := '0';
    signal rst_i : std_logic := '0';
-   signal eoi_o : std_logic := '0';
+   signal rdy_o : std_logic := '0';
    signal dv_o : std_logic := '0';
-   signal adr_ce : std_logic := '0';
    signal m_i : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
    signal p_i : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
    signal n_i : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
@@ -105,9 +103,8 @@ BEGIN
    PORT MAP (
           clk_i => clk_i,
           rst_i => rst_i,
-          ce_i  => adr_ce,
           row_rdy_o => row_rdy_o,
-          eoi_o => eoi_o,
+          rdy_o => rdy_o,
           dv_o => dv_o,
           m_i => m_i,
           p_i => p_i,
@@ -162,7 +159,6 @@ BEGIN
               endoffile <='1';         --set signal to tell end of file read file is reached.
             end if;
             state  <= PRELOAD;
-            adr_ce <= '1';
             rst_i  <= '0';
 
           when PRELOAD =>
@@ -175,7 +171,7 @@ BEGIN
             state <= ACTIVE;
             
           when ACTIVE =>
-            if eoi_o = '0' then
+            if rdy_o = '0' then
               if (dv_o = '1') then
                 readline(a_adr_file, a_adr_line);
                 read(a_adr_line, a_adr_read1);
@@ -185,7 +181,6 @@ BEGIN
                 b_adr_ref <= std_logic_vector(to_unsigned(b_adr_read1, 2*WIDTH));
               end if;
             else
-              adr_ce <= '0';
               rst_i <= '1';
               state <= COOLDOWN;
             end if;
@@ -220,7 +215,7 @@ BEGIN
       wait for 3 ns;	
       file_rst <= '0';
       
-      wait until eoi_o = '1';
+      wait until rdy_o = '1';
       --rst_i <= '1';
       
       wait;
