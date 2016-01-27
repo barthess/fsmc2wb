@@ -31,17 +31,17 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity dadd_chain is
   Generic (
-    LEN : positive := 5 -- length of accumulator chain. Zero forbidden.
-                        -- As a result the chain able to accumulate 2**LEN numbers
+    LEN : positive -- length of accumulator chain. Zero forbidden.
+                   -- As a result the chain able to accumulate 2**LEN numbers
   );
   Port (
     clk_i : in  STD_LOGIC;
     rst_i : in  STD_LOGIC;
-    nd_i  : in  STD_LOGIC; -- new data stable
+    nd_i  : in  STD_LOGIC; -- input data valid
     cnt_i : in  STD_LOGIC_VECTOR (LEN-1 downto 0); -- Number of input arguments. 0 denotes single argument.
     dat_i : in  STD_LOGIC_VECTOR (63 downto 0);
     dat_o : out STD_LOGIC_VECTOR (63 downto 0);
-    rdy_o : out STD_LOGIC
+    rdy_o : out STD_LOGIC -- output data valid
   );
 end dadd_chain;
 
