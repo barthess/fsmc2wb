@@ -31,8 +31,9 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity dadd_chain is
   Generic (
-    LEN : positive -- length of accumulator chain. Zero forbidden.
-                   -- As a result the chain able to accumulate 2**LEN numbers
+    -- length of accumulator chain. Zero forbidden.
+    -- As a result the chain able to accumulate 2**LEN numbers
+    LEN : positive := 5
   );
   Port (
     clk_i : in  STD_LOGIC;
@@ -48,8 +49,8 @@ end dadd_chain;
 architecture Behavioral of dadd_chain is
   
   -- Link counter regitsters
-  type link_cnt_t is array(LEN-1 downto 0) of std_logic_vector(LEN-1 downto 0);
-  signal link_cnt : link_cnt_t;
+--  type link_cnt_t is array(LEN-1 downto 0) of std_logic_vector(LEN-1 downto 0);
+--  signal link_cnt : link_cnt_t;
   
   -- Link connection registers
   type link_dat_t is array(LEN downto 0) of std_logic_vector(63 downto 0);
@@ -61,12 +62,12 @@ begin
   -- Очень важно для каждого звена загрузить правильное значение счетчика.
   -- При продвижении от входа к выходу, на кажом звене счетчик должен 
   -- сдвигаться вправо на 1 бит без переноса (по сути, делиться на 2).
-  link_cnt(0) <= cnt_i;
-  brams2mul : for n in 1 to LEN-1 generate 
-  begin
-    link_cnt(n)(LEN-1-n downto 0) <= cnt_i(LEN-1 downto n);
-    link_cnt(n)(LEN-1 downto LEN-n) <= (others => '0');
-  end generate;
+--  link_cnt(0) <= cnt_i;
+--  brams2mul : for n in 1 to LEN-1 generate 
+--  begin
+--    link_cnt(n)(LEN-1-n downto 0) <= cnt_i(LEN-1 downto n);
+--    link_cnt(n)(LEN-1 downto LEN-n) <= (others => '0');
+--  end generate;
 
   -- input  - link #0
   -- output - link #LEN-1  
@@ -79,13 +80,13 @@ begin
   begin
     dadd_link : entity work.dadd_link
       generic map (
-        WIDTH => LEN
+        WIDTH => LEN - n
       )
       port map (
         clk_i => clk_i,
         rst_i => rst_i,
-        cnt_i => link_cnt(n),
-        
+        cnt_i => cnt_i(LEN-1 downto n),
+
         dat_i => link_dat(n),
         dat_o => link_dat(n+1),
         

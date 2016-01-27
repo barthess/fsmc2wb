@@ -12,12 +12,16 @@ use IEEE.NUMERIC_STD.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
+--
+-- multiply matrix A(m x p) by  B(p x n), put result in C(m x n)
+--
 entity mtrx_mul is
   Generic (
     WB_AW   : positive;
     WB_DW   : positive;
     BRAM_AW : positive;
-    BRAM_DW : positive
+    BRAM_DW : positive;
+    MTRX_AW : positive := 5 -- 2**MTRX_AW is maximum allowable index of matrices
   );
   Port (
     -- external interrupt pin
@@ -49,22 +53,36 @@ end mtrx_mul;
 
 architecture beh of mtrx_mul is
   
+  -- operand and result addresses registers
   signal A_adr : std_logic_vector(BRAM_AW-1 downto 0) := (others => '0');
   signal B_adr : std_logic_vector(BRAM_AW-1 downto 0) := (others => '0');
   signal C_adr : std_logic_vector(BRAM_AW-1 downto 0) := (others => '0');
-  signal mul_nd  : std_logic := '0';
-  signal mul_ce  : std_logic := '0';
-  signal mul_rdy_reg : std_logic_vector(1 downto 0) := "00";
-  signal mul_rdy : std_logic;
-  signal input_iterated : std_logic;
-
-  signal mtrx_m : std_logic_vector (4 downto 0) := (others => '0');
-  signal mtrx_p : std_logic_vector (4 downto 0) := (others => '0');
-  signal mtrx_n : std_logic_vector (4 downto 0) := (others => '0');
-  signal adr_incr_rst : std_logic := '1';
-  signal adr_incr_ce  : std_logic := '0';
   
-  type state_t is (IDLE, PRELOAD, ACTIVE, FLUSH1, FLUSH2);
+  -- multiplicator control signals
+  signal mul_nd : std_logic := '0';
+  signal mul_ce : std_logic := '0';
+  signal mul_rdy : std_logic; -- connected to accumulator nd
+
+  -- matrices size registers
+  signal mtrx_m : std_logic_vector (MTRX_AW-1 downto 0) := (others => '0');
+  signal mtrx_p : std_logic_vector (MTRX_AW-1 downto 0) := (others => '0');
+  signal mtrx_n : std_logic_vector (MTRX_AW-1 downto 0) := (others => '0');
+  -- counter for detecting end of matrix multiplication. Its width looks 
+  -- strange because it must be able to store multiplication of matrices sizes
+  signal accum_rdy_cnt : std_logic_vector((MTRX_AW+1)*2 - 1 downto 0) := (others => '0');
+  signal multiplication_finished : std_logic := '0';
+  signal adr_incr_rst : std_logic := '1';
+  signal adr_incr_end : std_logic := '0';
+  signal adr_incr_dv  : std_logic := '0';
+
+  -- accumulator control signals
+  signal accum_rst : std_logic := '1';
+  signal accum_cnt : STD_LOGIC_VECTOR (MTRX_AW-1 downto 0) := (others => '0');
+  signal accum_dat_i : std_logic_vector(BRAM_DW-1 downto 0); -- to multiplicator output
+  signal accum_rdy : std_logic := '0'; -- used to increment overall operation count
+  
+  -- state machine
+  type state_t is (IDLE, WAIT_ADR_VALID, ACTIVE, FLUSH1, FLUSH2);
   signal state : state_t := IDLE;
 
 begin
@@ -83,21 +101,9 @@ begin
 
   dat_rdy_o  <= '1' when (state = IDLE) else '0';
 
-
-  -- multiplicator
-  dmul : entity work.dmul
-    port map (
-      a             => bram_dat_i(1*BRAM_DW-1 downto 0*BRAM_DW),
-      b             => bram_dat_i(2*BRAM_DW-1 downto 1*BRAM_DW),
-      result        => bram_dat_o(3*BRAM_DW-1 downto 2*BRAM_DW),
-      clk           => clk_i,
-      ce            => mul_ce,
-      operation_nd  => mul_nd,
-      rdy           => mul_rdy
-    );
-
-
+  --
   -- addres incrementer
+  --
   adr_calc : entity work.adr4mul
     generic map (
       WIDTH => 5
@@ -105,10 +111,10 @@ begin
     port map (
       clk_i => clk_i,
       rst_i => adr_incr_rst,
-      ce_i  => adr_incr_ce,
       
       row_rdy_o => open,
-      eoi_o => input_iterated,
+      end_o => adr_incr_end,
+      dv_o  => adr_incr_dv,
       
       m_i => mtrx_m,
       p_i => mtrx_p,
@@ -119,23 +125,52 @@ begin
       a_tran_i => '0',
       b_tran_i => '0'
     );
-  
-  
-  -- ready pin scanning
+
+  --
+  -- multiplicator
+  --
+  dmul : entity work.dmul
+    port map (
+      a      => bram_dat_i(1*BRAM_DW-1 downto 0*BRAM_DW),
+      b      => bram_dat_i(2*BRAM_DW-1 downto 1*BRAM_DW),
+      result => accum_dat_i,
+      clk    => clk_i,
+      ce     => mul_ce,
+      rdy    => mul_rdy,
+      operation_nd => mul_nd
+    );
+
+  -- 
+  -- data accumulator
+  --
+  accumulator : entity work.dadd_chain
+    generic map (
+      LEN => 5
+    )
+    port map (
+      clk_i => clk_i,
+      rst_i => accum_rst,
+      nd_i  => mul_rdy,
+      cnt_i => accum_cnt,
+      dat_i => accum_dat_i,
+      dat_o => bram_dat_o(3*BRAM_DW-1 downto 2*BRAM_DW),
+      rdy_o => accum_rdy
+    );
+
+  --
+  -- address increment for result matrix
+  -- total operation tracker
+  --
   process(clk_i) 
   begin
     if rising_edge(clk_i) then
-      mul_rdy_reg <= mul_rdy_reg(0) & mul_rdy;
-    end if;
-  end process;
-  
-  
-  -- result address increment
-  process(clk_i) 
-  begin
-    if rising_edge(clk_i) then
-      if state /= IDLE then
-        if (mul_rdy = '1') then
+      multiplication_finished <= '0';
+      
+      if accum_rst = '0' then
+        if (accum_rdy = '1') then
+          if (C_adr = accum_rdy_cnt) then
+            multiplication_finished <= '1';
+          end if;
           C_adr <= C_adr + 1;
         end if;
       else
@@ -143,53 +178,66 @@ begin
       end if;
     end if;
   end process;
-  
-  
+
+  --
   -- Main state machine
+  --
   process(clk_i)
+    variable tmp_m, tmp_n : std_logic_vector(MTRX_AW downto 0);
   begin
-    dat_o(WB_AW-1 downto BRAM_AW) <= (others => '0');
+    --dat_o(WB_AW-1 downto BRAM_AW) <= (others => '0');
+    dat_o <= (others => '0');
     
     if rising_edge(clk_i) then
       case state is
       when IDLE =>
         adr_incr_rst <= '1';
+        accum_rst    <= '1';
+        
         if (stb_i = '1' and sel_i = '1' and we_i = '1') then
-          state <= PRELOAD;
+          err_o <= '0';
+          ack_o <= '1';
+          state <= WAIT_ADR_VALID;
+
           mtrx_m <= dat_i(4 downto 0);
           mtrx_p <= dat_i(9 downto 5);
           mtrx_n <= dat_i(14 downto 10);
           adr_incr_rst <= '0';
-          adr_incr_ce  <= '1';
-          err_o <= '0';
-          ack_o <= '1';
+          
+          tmp_m := ('0' & dat_i(4 downto 0)) + 1;
+          tmp_n := ('0' & dat_i(14 downto 10)) + 1;
+          accum_rdy_cnt <= tmp_m * tmp_n;
+      
+          accum_cnt <= dat_i(9 downto 5);
         else
           err_o <= '1';
           ack_o <= '0';
         end if;
         
-      when PRELOAD =>
-        state <= ACTIVE;
-        
+      when WAIT_ADR_VALID =>
+        accum_rst <= '0';
+        if adr_incr_dv = '1' then
+          state <= ACTIVE;
+        end if;
+
       when ACTIVE =>
         mul_nd <= '1';
         mul_ce <= '1';
-        if (input_iterated = '1') then
+        if (adr_incr_end = '1') then
           adr_incr_rst <= '1';
-          adr_incr_ce <= '0';
           state <= FLUSH1;
         end if;
 
       when FLUSH1 =>
         mul_nd <= '0';
         state <= FLUSH2;
-        
+
       when FLUSH2 =>
-        if (mul_rdy_reg = "10") then
+        if (multiplication_finished = '1') then
           mul_ce <= '0';
           state <= IDLE;
         end if;
-        
+
       end case;
     end if;
   end process;

@@ -25,7 +25,7 @@ entity adr4mul is
     rst_i : in  std_logic;
   
     row_rdy_o : out std_logic; -- single pre multiplied row ready. Active high during 1 clock cycle
-    rdy_o : out std_logic; -- end if iteration. Active high 1 clock when final valid data present on adr buses
+    end_o : out std_logic; -- end if iteration. Active high 1 clock when final valid data present on adr buses
     dv_o : out std_logic; -- data valid
 
     -- operands' dimensions
@@ -62,7 +62,7 @@ begin
     if rising_edge(clk_i) then
       
       row_rdy_o <= '0';
-      rdy_o <= '0';
+      end_o <= '0';
       
       if (rst_i = '1') then
         state <= IDLE;
@@ -95,7 +95,7 @@ begin
               j <= (others => '0');
               if (i = m) then
                 i <= (others => '0');
-                rdy_o <= '1';
+                end_o <= '1';
                 state <= IDLE;
               end if;
             end if;

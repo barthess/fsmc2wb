@@ -31,7 +31,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity dadd_link is
   Generic (
-    WIDTH : positive := 5
+    WIDTH : positive
   );
   Port (
     clk_i : in  STD_LOGIC;
