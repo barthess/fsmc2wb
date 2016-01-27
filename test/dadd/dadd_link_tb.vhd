@@ -52,7 +52,6 @@ ARCHITECTURE behavior OF dadd_link_tb IS
     PORT(
          clk_i : IN  std_logic;
          rst_i : IN  std_logic;
-         ce_i  : IN  std_logic;
          nd_i  : IN  std_logic;
          cnt_i : IN  std_logic_vector(WIDTH-1 downto 0);
          dat_i : IN  std_logic_vector(63 downto 0);
@@ -65,9 +64,8 @@ ARCHITECTURE behavior OF dadd_link_tb IS
    --Inputs
    signal clk_i : std_logic := '0';
    signal rst_i : std_logic := '1';
-   signal ce_i  : std_logic := '0';
    signal nd_i  : std_logic := '0';
-   signal cnt_i : std_logic_vector(WIDTH-1 downto 0) := (others => '1');
+   signal cnt_i : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
    signal dat_i : std_logic_vector(63 downto 0) := (others => '0');
 
  	--Outputs
@@ -77,7 +75,7 @@ ARCHITECTURE behavior OF dadd_link_tb IS
    -- Clock period definitions
    constant clk_i_period : time := 1 ns;
  
-   type state_t is (IDLE, LOAD_A, LOAD_B, SLEEP1, SLEEP2, ACTIVE, HALT);
+   type state_t is (IDLE, LOAD_CNT, LOAD_A, LOAD_B, SLEEP1, SLEEP2, ACTIVE, HALT);
    signal state : state_t := IDLE;
    
 BEGIN
@@ -90,7 +88,6 @@ BEGIN
    PORT MAP (
           clk_i => clk_i,
           rst_i => rst_i,
-          ce_i  => ce_i,
           nd_i  => nd_i,
           cnt_i => cnt_i,
           dat_i => dat_i,
@@ -124,7 +121,10 @@ BEGIN
   --      b <= b_read;
         
         cnt_i <= "1";
-        ce_i  <= '1';
+        rst_i <= '1';
+        state <= LOAD_CNT;
+        
+      when LOAD_CNT =>
         rst_i <= '0';
         state <= LOAD_A;
         

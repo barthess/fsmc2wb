@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="/home/barthess/projects/xilinx/fsmc2wb/dadd_chain_tb_isim_beh.wdb" id="1" type="auto">
+         <top_modules>
+            <top_module name="bip_utils_pkg_v2_0" />
+            <top_module name="dadd_chain_tb" />
+            <top_module name="floating_point_pkg_v5_0" />
+            <top_module name="floating_point_v5_0_consts" />
+            <top_module name="numeric_std" />
+            <top_module name="std_logic_1164" />
+            <top_module name="std_logic_arith" />
+            <top_module name="std_logic_textio" />
+            <top_module name="textio" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="8" />
+   <wvobject fp_name="/dadd_chain_tb/clk_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_i</obj_property>
+      <obj_property name="ObjectShortName">clk_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/dadd_chain_tb/rst_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">rst_i</obj_property>
+      <obj_property name="ObjectShortName">rst_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/dadd_chain_tb/nd_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">nd_i</obj_property>
+      <obj_property name="ObjectShortName">nd_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/dadd_chain_tb/cnt_i" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">cnt_i[1:0]</obj_property>
+      <obj_property name="ObjectShortName">cnt_i[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/dadd_chain_tb/dat_i" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">dat_i[63:0]</obj_property>
+      <obj_property name="ObjectShortName">dat_i[63:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/dadd_chain_tb/dat_o" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">dat_o[63:0]</obj_property>
+      <obj_property name="ObjectShortName">dat_o[63:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/dadd_chain_tb/rdy_o" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">rdy_o</obj_property>
+      <obj_property name="ObjectShortName">rdy_o</obj_property>
+   </wvobject>
+   <wvobject fp_name="/dadd_chain_tb/state" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">state</obj_property>
+      <obj_property name="ObjectShortName">state</obj_property>
+   </wvobject>
+</wave_config>

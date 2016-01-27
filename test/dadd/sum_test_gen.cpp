@@ -7,7 +7,7 @@
 #include <iostream>
 #include <fstream>
 
-#define INPUT_LEN   2
+#define INPUT_LEN   30
 
 static const double MAX_MTRX_NUM = 10000;
 static const double MIN_MTRX_NUM = .0001;
@@ -29,6 +29,15 @@ static double rand_double(void) {
     return -r;
   else
     return r;
+}
+
+/**
+ *
+ */
+static void len2file(FILE *f, const uint32_t dat) {
+
+  //printf("%d\n", dat); // debug print
+  fprintf(f, "%d\n", dat);
 }
 
 /**
@@ -87,7 +96,7 @@ static double double_accumulate(const double *d, size_t len) {
 /**
  *
  */
-static void generate(size_t len, FILE *in_file, FILE *out_file) {
+static void generate(size_t len, FILE *in_file, FILE *out_file, FILE *map_file) {
   double buf[len];
   double sum_ref = 0;
   double sum_dbg = 0;
@@ -107,6 +116,7 @@ static void generate(size_t len, FILE *in_file, FILE *out_file) {
   }
 
   dbl2file(out_file, sum_ref);
+  len2file(map_file, len);
 }
 
 /**
@@ -116,10 +126,12 @@ int main(void) {
 
   FILE *in_file  = fopen("stim/in.txt",  "w");
   FILE *out_file = fopen("stim/out.txt", "w");
+  FILE *map_file = fopen("stim/map.txt", "w");
 
   srand (static_cast <unsigned> (time(0)));
 
-  generate(INPUT_LEN, in_file, out_file);
+  generate(INPUT_LEN, in_file, out_file, map_file);
+
   return 0;
 }
 

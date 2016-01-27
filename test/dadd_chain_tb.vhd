@@ -27,10 +27,12 @@
 --------------------------------------------------------------------------------
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
+use ieee.std_logic_textio.all;
+use std.textio.all;
  
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
---USE ieee.numeric_std.ALL;
+USE ieee.numeric_std.ALL;
  
 ENTITY dadd_chain_tb IS
   Generic (
@@ -49,12 +51,11 @@ ARCHITECTURE behavior OF dadd_chain_tb IS
     PORT(
          clk_i : IN  std_logic;
          rst_i : IN  std_logic;
-         ce_i : IN  std_logic;
-         nd_i : IN  std_logic;
-         len_i : IN  std_logic_vector(LEN-1 downto 0);
+         nd_i  : IN  std_logic;
+         cnt_i : IN  std_logic_vector(LEN-1 downto 0);
          dat_i : IN  std_logic_vector(63 downto 0);
-         dat_o : OUT  std_logic_vector(63 downto 0);
-         rdy_o : OUT  std_logic
+         dat_o : OUT std_logic_vector(63 downto 0);
+         rdy_o : OUT std_logic
         );
     END COMPONENT;
     
@@ -62,15 +63,17 @@ ARCHITECTURE behavior OF dadd_chain_tb IS
    --Inputs
    signal clk_i : std_logic := '0';
    signal rst_i : std_logic := '0';
-   signal ce_i : std_logic := '0';
-   signal nd_i : std_logic := '0';
-   signal len_i : std_logic_vector(LEN-1 downto 0) := (others => '0');
+   signal nd_i  : std_logic := '0';
+   signal cnt_i : std_logic_vector(LEN-1 downto 0) := (others => '0');
    signal dat_i : std_logic_vector(63 downto 0) := (others => '0');
 
  	--Outputs
    signal dat_o : std_logic_vector(63 downto 0);
    signal rdy_o : std_logic;
 
+   type state_t is (IDLE, LOAD_CNT, LOAD_DAT, ACTIVE, HALT);
+   signal state : state_t := IDLE;
+   
    -- Clock period definitions
    constant clk_i_period : time := 1 ns;
  
@@ -84,9 +87,8 @@ BEGIN
    PORT MAP (
           clk_i => clk_i,
           rst_i => rst_i,
-          ce_i  => ce_i,
           nd_i  => nd_i,
-          len_i => len_i,
+          cnt_i => cnt_i,
           dat_i => dat_i,
           dat_o => dat_o,
           rdy_o => rdy_o
@@ -102,17 +104,61 @@ BEGIN
    end process;
  
 
-   -- Stimulus process
-   stim_proc: process
-   begin		
-      -- hold reset state for 100 ns.
-      wait for 2 ns;	
+   -- Stimulus process for single argument
+  stim_proc: process(clk_i)
+    file fin  : text is in  "test/dadd/stim/in.txt";
+    file fout : text is in  "test/dadd/stim/out.txt";
+    file fmap : text is in  "test/dadd/stim/map.txt";
+    variable lin  : line;
+    variable lout : line;
+    variable lmap : line;
+    variable dat_read : std_logic_vector(63 downto 0);
+    variable ref_read : std_logic_vector(63 downto 0);
+    variable cnt_read1 : integer;
+    variable cnt_read  : std_logic_vector(LEN-1 downto 0);
+  begin
+    if rising_edge(clk_i) then
+      case state is
+      when IDLE =>
+        rst_i <= '1';
+        state <= LOAD_CNT;
 
-      wait for clk_i_period*2;
+      when LOAD_CNT =>
+        readline(fmap, lmap);
+        read(lmap, cnt_read1);
+        cnt_read := std_logic_vector(to_unsigned(cnt_read1 - 1, LEN));
+        cnt_i <= cnt_read;
+        state <= LOAD_DAT;
 
-      -- insert stimulus here 
+      when LOAD_DAT =>
+        rst_i <= '0'; -- to latch counter inside add links
+        if (not endfile(fin)) then   -- checking the "END OF FILE" is not reached.
+          readline(fin, lin);
+          hread(lin, dat_read);
+          dat_i <= dat_read;
+          nd_i  <= '1';
+        else
+          nd_i  <= '0';
+          state <= ACTIVE;
+        end if;
 
-      wait;
-   end process;
+      when ACTIVE =>
+        if rdy_o = '1' then
+          readline(fout, lout);
+          hread(lout, ref_read);
+          assert (ref_read = dat_o) report "Result incorrect!" severity failure;
+          state <= HALT;
+        end if;
+
+      when HALT =>
+        state <= HALT; -- infinite loop
+      
+      end case;
+      
+    end if; -- clk
+  end process;
+
+
+
 
 END;

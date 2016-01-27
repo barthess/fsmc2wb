@@ -35,12 +35,11 @@ entity dadd_link is
   );
   Port (
     clk_i : in  STD_LOGIC;
-    rst_i : in  STD_LOGIC;
-    ce_i  : in  STD_LOGIC;
+    rst_i : in  STD_LOGIC;  -- also used for latch cnt_i value
+                            -- use it every time you change cnt_i
     nd_i  : in  STD_LOGIC;
-    -- number of input values for state tracking
-    -- NOTE: 0 denotes 1 input value
-    cnt_i : in  STD_LOGIC_VECTOR (WIDTH-1 downto 0);
+    cnt_i : in  STD_LOGIC_VECTOR (WIDTH-1 downto 0);-- number of input values for state tracking
+                                                    -- NOTE: 0 denotes single input value
     dat_i : in  STD_LOGIC_VECTOR (63 downto 0);
     dat_o : out STD_LOGIC_VECTOR (63 downto 0);
     rdy_o : out STD_LOGIC
@@ -50,9 +49,9 @@ end dadd_link;
 
 architecture Behavioral of dadd_link is
   constant ZERO : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
-  signal cnt   : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
-  signal a_buf : std_logic_vector(63 downto 0) := (others => '0');
-  signal b_buf : std_logic_vector(63 downto 0) := (others => '0');
+  signal cnt    : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
+  signal a_buf  : std_logic_vector(63 downto 0) := (others => '0');
+  signal b_buf  : std_logic_vector(63 downto 0) := (others => '0');
   signal sum_nd : std_logic := '0';
   
   signal   state  : std_logic := '0';
@@ -63,7 +62,7 @@ begin
   dadd : entity work.dadd
     port map (
       clk     => clk_i,
-      ce      => ce_i,
+      ce      => '1',
       a       => a_buf,
       b       => b_buf,
       result  => dat_o,
@@ -73,15 +72,17 @@ begin
 
 
   state_switcher : process(clk_i)
+    variable cnt_latch : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
   begin
     if rising_edge(clk_i) then
       if rst_i = '1' then
         state <= LOAD_A;
         cnt   <= cnt_i;
+        cnt_latch := cnt_i;
       else
-        if (ce_i = '1') and (nd_i = '1') then
+        if (nd_i = '1') then
           if (cnt = ZERO) then
-            cnt   <= cnt_i;
+            cnt   <= cnt_latch;
             state <= LOAD_A;
           else
             cnt   <= std_logic_vector(unsigned(cnt) - 1);
@@ -99,23 +100,23 @@ begin
       if rst_i = '1' then
         sum_nd <= '0';
       else
-        if (ce_i = '1') then
-          if nd_i = '1' and (cnt = ZERO or state = LOAD_B) then
-            sum_nd <= '1';
-          else
-            sum_nd <= '0';
-          end if;
+        if nd_i = '1' and (cnt = ZERO or state = LOAD_B) then
+          sum_nd <= '1';
+        else
+          sum_nd <= '0';
         end if;
       end if;
     end if;
   end process;
 
-  
+  --
+  -- data storing
+  --
   dat2buf : process(clk_i)
   begin
     if rising_edge(clk_i) then
       if rst_i = '0' then
-        if (nd_i = '1') and (ce_i = '1') then
+        if (nd_i = '1') then
           if (state = LOAD_A) then
             a_buf <= dat_i;
             b_buf <= (others => '0');
