@@ -147,7 +147,6 @@ architecture RTL of sp6_gtp_top is
   signal tile0_rxusrclk0_i            : std_logic;
   signal tile0_rxusrclk1_i            : std_logic;
   signal gtpclkout0_0_pll0_locked_i   : std_logic;
-  signal gtpclkout0_0_pll0_reset_i    : std_logic;
   signal tile0_gtpclkout0_0_to_cmt_i  : std_logic;
   signal pll0_fb_out_i                : std_logic;
   signal tile0_gtpclkout0_1_to_bufg_i : std_logic;
@@ -181,8 +180,6 @@ begin
       I => tile0_gtpclkout0_0_to_cmt_i,
       O => tile0_txusrclk0_i
       );
-
-  gtpclkout0_0_pll0_reset_i <= not tile0_plllkdet0_i;
 
   gtpclkout0_1_bufg1_bufio2_i : BUFIO2
     generic map

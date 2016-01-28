@@ -98,6 +98,14 @@ begin
 
   gtpreset_in_i <= (others => rst);
 
+  -- Temporary values for unused signals (warning suppression)
+  txdata1_in_i      <= X"00";
+  txdata3_in_i      <= X"00";
+  txcharisk_in_i(1) <= '0';
+  txcharisk_in_i(3) <= '0';
+  uart_tx_i         <= uart_rx_i;
+  uart_rts_i        <= uart_cts_i;
+
   refclk_ibufds_i : IBUFDS
     port map
     (

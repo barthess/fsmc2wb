@@ -107,36 +107,17 @@ architecture RTL of sp6_gtp_tile is
     signal  tied_to_vcc_i                   :   std_logic;
     signal  tied_to_vcc_vec_i               :   std_logic_vector(63 downto 0);
 
-   
-
     -- RX Datapath signals
     signal rxdata0_i                        :   std_logic_vector(31 downto 0);      
-    signal rxchariscomma0_float_i           :   std_logic_vector(2 downto 0);
-    signal rxcharisk0_float_i               :   std_logic_vector(2 downto 0);
-    signal rxdisperr0_float_i               :   std_logic_vector(2 downto 0);
-    signal rxnotintable0_float_i            :   std_logic_vector(2 downto 0);
-    signal rxrundisp0_float_i               :   std_logic_vector(2 downto 0);
  
-
     -- TX Datapath signals
     signal txdata0_i                        :   std_logic_vector(31 downto 0);
-    signal txkerr0_float_i                  :   std_logic_vector(2 downto 0);
-    signal txrundisp0_float_i               :   std_logic_vector(2 downto 0);
    
-
     -- RX Datapath signals
     signal rxdata1_i                        :   std_logic_vector(31 downto 0);      
-    signal rxchariscomma1_float_i           :   std_logic_vector(2 downto 0);
-    signal rxcharisk1_float_i               :   std_logic_vector(2 downto 0);
-    signal rxdisperr1_float_i               :   std_logic_vector(2 downto 0);
-    signal rxnotintable1_float_i            :   std_logic_vector(2 downto 0);
-    signal rxrundisp1_float_i               :   std_logic_vector(2 downto 0);
  
-
     -- TX Datapath signals
     signal txdata1_i                        :   std_logic_vector(31 downto 0);
-    signal txkerr1_float_i                  :   std_logic_vector(2 downto 0);
-    signal txrundisp1_float_i               :   std_logic_vector(2 downto 0);
 
 --******************************** Main Body of Code***************************
                        
@@ -484,23 +465,23 @@ begin
         TSTOUT0                         =>      open,
         TSTOUT1                         =>      open,
         ----------------------- Receive Ports - 8b10b Decoder ----------------------
-        RXCHARISCOMMA0(3 downto 1)      =>      rxchariscomma0_float_i,
+        RXCHARISCOMMA0(3 downto 1)      =>      open,
         RXCHARISCOMMA0(0)               =>      RXCHARISCOMMA0_OUT,
-        RXCHARISCOMMA1(3 downto 1)      =>      rxchariscomma1_float_i,
+        RXCHARISCOMMA1(3 downto 1)      =>      open,
         RXCHARISCOMMA1(0)               =>      RXCHARISCOMMA1_OUT,
-        RXCHARISK0(3 downto 1)          =>      rxcharisk0_float_i,
+        RXCHARISK0(3 downto 1)          =>      open,
         RXCHARISK0(0)                   =>      RXCHARISK0_OUT,
-        RXCHARISK1(3 downto 1)          =>      rxcharisk1_float_i,
+        RXCHARISK1(3 downto 1)          =>      open,
         RXCHARISK1(0)                   =>      RXCHARISK1_OUT,
         RXDEC8B10BUSE0                  =>      tied_to_vcc_i,
         RXDEC8B10BUSE1                  =>      tied_to_vcc_i,
-        RXDISPERR0(3 downto 1)          =>      rxdisperr0_float_i,
+        RXDISPERR0(3 downto 1)          =>      open,
         RXDISPERR0(0)                   =>      RXDISPERR0_OUT,
-        RXDISPERR1(3 downto 1)          =>      rxdisperr1_float_i,
+        RXDISPERR1(3 downto 1)          =>      open,
         RXDISPERR1(0)                   =>      RXDISPERR1_OUT,
-        RXNOTINTABLE0(3 downto 1)       =>      rxnotintable0_float_i,
+        RXNOTINTABLE0(3 downto 1)       =>      open,
         RXNOTINTABLE0(0)                =>      RXNOTINTABLE0_OUT,
-        RXNOTINTABLE1(3 downto 1)       =>      rxnotintable1_float_i,
+        RXNOTINTABLE1(3 downto 1)       =>      open,
         RXNOTINTABLE1(0)                =>      RXNOTINTABLE1_OUT,
         RXRUNDISP0                      =>      open,
         RXRUNDISP1                      =>      open,

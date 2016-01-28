@@ -6,7 +6,7 @@ entity pre_tx_mnu is
 
   generic (
     COMMA_8B       : std_logic_vector (7 downto 0) := X"BC";  -- K28.5
-    COMMA_INTERVAL : integer                       := 256;  -- telemetry UART send interval
+    COMMA_INTERVAL : integer                       := 256;
     PWM_START_CHAR : std_logic_vector(7 downto 0)  := X"1C";  -- K28.0
     UART_CHANNELS  : integer                       := 16;   -- always 16
     PWM_CHANNELS   : integer                       := 16
@@ -30,14 +30,14 @@ end entity pre_tx_mnu;
 
 architecture gtp0 of pre_tx_mnu is
 
-  signal gtp_ready    : std_logic;
+  --signal gtp_ready    : std_logic;
   signal usart1_tx_i  : std_logic;
   signal usart1_rts_i : std_logic;
   signal byte_cnt     : integer range 0 to COMMA_INTERVAL-1;
 
 begin
 
-  gtp_ready <= GTP_RESETDONE and GTP_PLLLKDET;
+  --gtp_ready <= GTP_RESETDONE and GTP_PLLLKDET;
 
   process (clk) is
   begin
@@ -45,7 +45,7 @@ begin
       usart1_tx_i  <= USART1_TX;
       usart1_rts_i <= USART1_RTS;
       byte_cnt     <= byte_cnt + 1;
-      if byte_cnt = 0 then
+      if byte_cnt = 0 then              -- every COMMA_INTERVAL cycles
         GTP_TXDATA  <= COMMA_8B;
         GTP_CHARISK <= '1';
       else
