@@ -106,7 +106,8 @@ BEGIN
 
    -- Stimulus process for single argument
   stim_proc: process(clk_i)
-    file fin  : text is in  "test/dadd/stim/in.txt";
+    file fin : text is in  "test/dadd/stim/in.txt";
+    file fin_test : text;
     file fout : text is in  "test/dadd/stim/out.txt";
     file fmap : text is in  "test/dadd/stim/map.txt";
     variable lin  : line;
@@ -118,6 +119,10 @@ BEGIN
     variable cnt_read  : std_logic_vector(LEN-1 downto 0);
   begin
     if rising_edge(clk_i) then
+    
+      
+      file_close(fin_test);
+    
       case state is
       when IDLE =>
         rst_i <= '1';
