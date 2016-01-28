@@ -31,7 +31,7 @@ use IEEE.NUMERIC_STD.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity bram_file_ro is
+entity bram_file_in is
   Generic (
     LATENCY : positive := 1
   );
@@ -40,23 +40,47 @@ entity bram_file_ro is
     ce_i  : in  STD_LOGIC;
     adr_i : in  STD_LOGIC_VECTOR (9 downto 0);
     dat_o : out STD_LOGIC_VECTOR (63 downto 0);
-    nf_i  : in  STD_LOGIC;
     m_i   : in  integer;
     p_i   : in  integer;
     n_i   : in  integer
-  );
-end bram_file_r;
+    );
+end bram_file_in;
 
 
 
-architecture Behavioral of bram_file_ro is
+architecture Behavioral of bram_file_in is
 begin
   
   main : process(clk_i)
-    
+    file f : text;
+    variable l : line;
+    variable fname : string(1 to 22) := "test/mtrx_mul/stim/in_";
+    variable adr_cnt : integer;
+    variable dat_read : std_logic_vector(63 downto 0);
   begin
     if rising_edge(clk_i) then
-      
+      if ce_i = '1' then
+        file_close(f);
+        file_open(f, 
+                  fname & 
+                  integer'image(m_i) & "_" &
+                  integer'image(p_i) & "_" & 
+                  integer'image(n_i) &
+                  ".txt", 
+                  READ_MODE);
+        adr_cnt := to_integer(unsigned(adr_i));
+
+        loop
+          readline(f, l);
+          hread(l, dat_read);
+          dat_o <= dat_read;
+          if (adr_cnt = 0) then
+            exit;
+          end if;
+          adr_cnt := adr_cnt - 1;
+        end loop;
+        
+      end if;
     end if; -- clk
   end process;
 
