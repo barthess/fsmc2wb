@@ -32,7 +32,6 @@ entity wb_stub is
 end wb_stub;
 
 
-
 -----------------------------------------------------------------------------
 
 architecture beh of wb_stub is
@@ -71,7 +70,5 @@ begin
   end process;
 
 end beh;
-
-
 
 
