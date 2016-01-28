@@ -124,7 +124,7 @@
       <association xil_pn:name="PostRouteSimulation" xil_pn:seqID="67"/>
       <association xil_pn:name="PostTranslateSimulation" xil_pn:seqID="67"/>
     </file>
-    <file xil_pn:name="test/dadd_chain_tb.vhd" xil_pn:type="FILE_VHDL">
+    <file xil_pn:name="test/dadd/dadd_chain_tb.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="0"/>
       <association xil_pn:name="PostMapSimulation" xil_pn:seqID="154"/>
       <association xil_pn:name="PostRouteSimulation" xil_pn:seqID="154"/>
