@@ -16,8 +16,8 @@ entity wb_mul_bram is
   Generic (
     WB_AW   : positive := 16;
     WB_DW   : positive := 16;
-    MUL_DW  : positive := 64;
     MUL_AW  : positive := 10;
+    MUL_DW  : positive := 64;
     BRAM_AW : positive := 12; 
     SLAVES  : positive := 4   -- total wishbone slaves count (3 BRAMs + 1 control)
   );
@@ -103,9 +103,9 @@ begin
       port map (
         -- BRAM to FSMC via wishbone adapters
         clka  => wire_bram2wb_clk  (n),
-        addra => wire_bram2wb_adr  ((n+1)*BRAM_AW-1   downto n*BRAM_AW),
-        douta => wire_bram2wb_dat_o((n+1)*WB_DW-1     downto n*WB_DW),
-        dina  => wire_bram2wb_dat_i((n+1)*WB_DW-1     downto n*WB_DW),
+        addra => wire_bram2wb_adr  ((n+1)*BRAM_AW-1 downto n*BRAM_AW),
+        douta => wire_bram2wb_dat_o((n+1)*WB_DW-1   downto n*WB_DW),
+        dina  => wire_bram2wb_dat_i((n+1)*WB_DW-1   downto n*WB_DW),
         wea(0)=> wire_bram2wb_we   (n),
         ena   => wire_bram2wb_en   (n),
         

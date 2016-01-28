@@ -17,11 +17,11 @@ use IEEE.NUMERIC_STD.ALL;
 --
 entity mtrx_mul is
   Generic (
-    WB_AW   : positive;
-    WB_DW   : positive;
-    BRAM_AW : positive;
-    BRAM_DW : positive;
-    MTRX_AW : positive := 5 -- 2**MTRX_AW is maximum allowable index of matrices
+    WB_AW   : positive := 16;
+    WB_DW   : positive := 16;
+    BRAM_AW : positive := 10;
+    BRAM_DW : positive := 64;
+    MTRX_AW : positive := 5   -- 2**MTRX_AW is maximum allowable index of matrices
   );
   Port (
     -- external interrupt pin
@@ -161,7 +161,7 @@ begin
   -- address increment for result matrix
   -- total operation tracker
   --
-  process(clk_i) 
+  op_tracker : process(clk_i) 
   begin
     if rising_edge(clk_i) then
       multiplication_finished <= '0';
@@ -182,7 +182,7 @@ begin
   --
   -- Main state machine
   --
-  process(clk_i)
+  main : process(clk_i)
     variable tmp_m, tmp_n : std_logic_vector(MTRX_AW downto 0);
   begin
     --dat_o(WB_AW-1 downto BRAM_AW) <= (others => '0');
