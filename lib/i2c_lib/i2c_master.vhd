@@ -68,6 +68,8 @@ architecture logic of i2c_master is
   signal stretch       : std_logic            := '0';  --identifies if slave is stretching scl
 begin
 
+  addr_rw <= X"D4";
+
   --generate the timing for the bus clock (scl_clk) and the data clock (data_clk)
   process(clk, reset_n)
     variable count : integer range 0 to divider*4;  --timing for clock generation
@@ -121,7 +123,6 @@ begin
           when ready =>                 --idle state
             if(ena = '1') then          --transaction requested
               busy    <= '1';           --flag busy
-              addr_rw <= addr & rw;  --collect requested slave address and command
               data_tx <= data_wr;       --collect requested data to write
               state   <= start;         --go to start bit
             else                        --remain idle
@@ -179,7 +180,6 @@ begin
           when slv_ack2 =>              --slave acknowledge bit (write)
             if(ena = '1') then          --continue transaction
               busy    <= '0';           --continue is accepted
-              addr_rw <= addr & rw;  --collect requested slave address and command
               data_tx <= data_wr;       --collect requested data to write
               if(addr_rw = addr & rw) then  --continue transaction with another write
                 sda_int <= data_wr(bit_cnt);  --write first bit of data
@@ -193,7 +193,6 @@ begin
           when mstr_ack =>              --master acknowledge bit after a read
             if(ena = '1') then          --continue transaction
               busy    <= '0';  --continue is accepted and data received is available on bus
-              addr_rw <= addr & rw;  --collect requested slave address and command
               data_tx <= data_wr;       --collect requested data to write
               if(addr_rw = addr & rw) then  --continue transaction with another read
                 sda_int <= '1';         --release sda from incoming data
