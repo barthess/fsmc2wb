@@ -7,7 +7,7 @@
 #include <iostream>
 #include <fstream>
 
-#define INPUT_LEN   30
+#define INPUT_LEN   31
 
 static const double MAX_MTRX_NUM = 10000;
 static const double MIN_MTRX_NUM = .0001;
@@ -58,21 +58,17 @@ static void dbl2file(FILE *f, const double val_dbl) {
  */
 static double double_accumulate(const double *d, size_t len) {
   size_t N;
-  bool odd;
 
   if (len % 2 == 1) {
     N = (len + 1) / 2;
-    odd = true;
   }
   else {
     N = len / 2;
-    odd = false;
   }
 
-  std::cout << len << " -> " << N << "\n";
+  //std::cout << len << " -> " << N << "\n";
 
   double buf[N];
-
   size_t i = 0, j = 0;
   while (len > 1) {
     buf[i] = d[j] + d[j+1];
@@ -84,7 +80,7 @@ static double double_accumulate(const double *d, size_t len) {
   // copy last element as is when len is odd
   if (len == 1) {
     buf[i] = d[j];
-    std::cout << "odd case \n";
+    //std::cout << "odd case \n";
   }
 
   if (1 == N)
@@ -109,7 +105,7 @@ static void generate(size_t len, FILE *in_file, FILE *out_file, FILE *map_file) 
 
   sum_ref = double_accumulate(buf, len);
   double delta = fabs(sum_ref - sum_dbg);
-  std::cout << "delta = " << delta << "\n";
+  //std::cout << "delta = " << delta << "\n";
   if (delta > 1e-10) {
     std::cout << "*** ERROR: results too differ: " << sum_ref << " " << sum_dbg << "\n";
     std::exit(-1);
