@@ -33,6 +33,12 @@ architecture gtp0 of post_rx_mnu is     -- MORS link
 
 begin
 
+  -- Unused ports (warning suppression)
+  PWM_DATA_OUT <= X"0000";
+  PWM_EN_OUT   <= '0';
+  UART_RX      <= X"FFFF";
+  UART_CTS     <= X"FFFF";
+
   process (clk, rst) is
   begin
     if rst = '1' then
@@ -83,6 +89,10 @@ architecture gtp2 of post_rx_mnu is     -- MSI link
   signal uart_cts_prev : std_logic_vector (UART_CHANNELS-1 downto 0);
 
 begin
+
+  -- Unused ports (warning suppression)
+  USART1_RX  <= '1';
+  USART1_CTS <= '1';
 
   process (clk, rst) is
   begin
