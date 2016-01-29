@@ -166,3 +166,34 @@ NET "FSMC_D[2]" SLEW = FAST;
 NET "FSMC_D[1]" SLEW = FAST;
 NET "FSMC_D[0]" SLEW = FAST;
 
+# wb_to_gtp constraints
+# FPGA clock 24.84
+NET "FCLK" LOC = AA12;
+NET "FCLK" PULLDOWN;
+
+# GTP reference clock
+NET "REFCLK0_N_IN" LOC = A12;
+NET "REFCLK0_P_IN" LOC = B12;
+
+# I2C to clock generator
+NET "CSCL" LOC = AB18;
+NET "CSDA" LOC = AA18;
+NET "CSCL" IOSTANDARD = I2C;
+NET "CSDA" IOSTANDARD = I2C;
+
+#100T MNU tile 0
+INST "wb_to_gtp/sp6_gtp_top_tile0/sp6_gtp_i/tile0_sp6_gtp_i/gtpa1_dual_i" LOC = GTPA1_DUAL_X0Y1;
+
+#100T MNU tile 1
+INST "wb_to_gtp/sp6_gtp_top_tile1/sp6_gtp_i/tile0_sp6_gtp_i/gtpa1_dual_i" LOC = GTPA1_DUAL_X1Y1;
+
+NET "wb_to_gtp/txusrclk8_01" TNM_NET = txusrclk8_01;
+NET "wb_to_gtp/txusrclk8_23" TNM_NET = txusrclk8_23;
+NET "wb_to_gtp/rxusrclk8_0" TNM_NET = rxusrclk8_0;
+NET "wb_to_gtp/rxusrclk8_2" TNM_NET = rxusrclk8_2;
+#NET wb_to_gtp/rxusrclk8_1 TNM_NET = rxusrclk8_1;
+#NET wb_to_gtp/rxusrclk8_3 TNM_NET = rxusrclk8_3;
+
+TIMEGRP 100_mhz = txusrclk8_01 txusrclk8_23 rxusrclk8_0 rxusrclk8_2; # rxusrclk8_1 rxusrclk8_3
+
+TIMESPEC TS_100mhz = PERIOD 100_mhz 100 MHz;
