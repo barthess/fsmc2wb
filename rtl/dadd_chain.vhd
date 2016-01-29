@@ -47,11 +47,7 @@ entity dadd_chain is
 end dadd_chain;
 
 architecture Behavioral of dadd_chain is
-  
-  -- Link counter regitsters
---  type link_cnt_t is array(LEN-1 downto 0) of std_logic_vector(LEN-1 downto 0);
---  signal link_cnt : link_cnt_t;
-  
+
   -- Link connection registers
   type link_dat_t is array(LEN downto 0) of std_logic_vector(63 downto 0);
   signal link_dat : link_dat_t;
@@ -59,23 +55,14 @@ architecture Behavioral of dadd_chain is
 
 begin
 
+  nd2rdy(0)   <= nd_i;
+  link_dat(0) <= dat_i;
+  dat_o       <= link_dat(LEN);
+  rdy_o       <= nd2rdy(LEN);
+
   -- Очень важно для каждого звена загрузить правильное значение счетчика.
   -- При продвижении от входа к выходу, на кажом звене счетчик должен 
-  -- сдвигаться вправо на 1 бит без переноса (по сути, делиться на 2).
---  link_cnt(0) <= cnt_i;
---  brams2mul : for n in 1 to LEN-1 generate 
---  begin
---    link_cnt(n)(LEN-1-n downto 0) <= cnt_i(LEN-1 downto n);
---    link_cnt(n)(LEN-1 downto LEN-n) <= (others => '0');
---  end generate;
-
-  -- input  - link #0
-  -- output - link #LEN-1  
-  nd2rdy(0) <= nd_i;
-  link_dat(0) <= dat_i;
-  dat_o <= link_dat(LEN);
-  rdy_o <= nd2rdy(LEN);
-  
+  -- сдвигаться вправо на 1 бит без переноса (по сути, делиться на 2).  
   dadd_chain : for n in 0 to LEN-1 generate 
   begin
     dadd_link : entity work.dadd_link

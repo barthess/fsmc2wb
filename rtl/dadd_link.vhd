@@ -109,10 +109,7 @@ begin
     end if;
   end process;
 
-  --
-  -- data storing
-  --
-  dat2buf : process(clk_i)
+  data_buffering : process(clk_i)
   begin
     if rising_edge(clk_i) then
       if rst_i = '0' then

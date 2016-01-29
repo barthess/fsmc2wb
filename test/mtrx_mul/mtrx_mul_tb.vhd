@@ -198,7 +198,7 @@ BEGIN
           state <= LOAD;
           idle_cnt := idle_cnt_val;
         end if;
-      
+
       when LOAD =>
         if (not endfile(f)) then  
           readline(f, l);
