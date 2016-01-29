@@ -61,7 +61,26 @@ entity root is
     LED_LINE : out std_logic_vector (5 downto 0);
 
     DEV_NULL_BANK1 : out std_logic; -- warning suppressor
-    DEV_NULL_BANK0 : out std_logic -- warning suppressor
+    DEV_NULL_BANK0 : out std_logic; -- warning suppressor
+
+    -- GTP ports
+    REFCLK0_N_IN : in  std_logic;
+    REFCLK0_P_IN : in  std_logic;
+    RXN_IN       : in  std_logic_vector(3 downto 0);
+    RXP_IN       : in  std_logic_vector(3 downto 0);
+    TXN_OUT      : out std_logic_vector(3 downto 0);
+    TXP_OUT      : out std_logic_vector(3 downto 0);
+
+    -- I2C ports
+    FCLK : in    std_logic;             -- 24.84 MHz
+    CSDA : inout std_logic;
+    CSCL : inout std_logic;
+
+    -- MCU UART ports (named relative to MCU)
+    UART6_TX  : in  std_logic;
+    UART6_RX  : out std_logic;
+    UART6_RTS : in  std_logic;
+    UART6_CTS : out std_logic
 	);
 end root;
 
@@ -177,6 +196,32 @@ begin
       );
   end generate;
 
+   wb_to_gtp : entity work.wb_to_gtp
+      port map (
+        REFCLK0_N_IN    => REFCLK0_N_IN,
+        REFCLK0_P_IN    => REFCLK0_P_IN,
+        CSDA            => CSDA,
+        CSCL            => CSCL,
+        RST_IN          => '0',         -- temporary
+        FCLK            => FCLK,        -- 24.84 MHz
+        RXN_IN          => RXN_IN,
+        RXP_IN          => RXP_IN,
+        TXN_OUT         => TXN_OUT,
+        TXP_OUT         => TXP_OUT,
+        UART6_TX        => UART6_TX,
+        UART6_RX        => UART6_RX,
+        UART6_RTS       => UART6_RTS,
+        UART6_CTS       => UART6_CTS,
+        MODTELEM_RX_MNU => open,
+        clk_i           => clk_wb,
+        sel_i           => wb_gtp_sel,
+        stb_i           => wb_gtp_stb,
+        we_i            => wb_gtp_we,
+        err_o           => wb_gtp_err,
+        ack_o           => wb_gtp_ack,
+        adr_i           => wb_gtp_adr,
+        dat_o           => wb_gtp_dat_o,
+        dat_i           => wb_gtp_dat_i);
   --
   -- connect wishbone based LED strip
   --
