@@ -51,15 +51,13 @@ ARCHITECTURE behavior OF adr4mul_tb IS
          clk_i : IN  std_logic;
          rst_i : IN  std_logic;
          row_rdy_o : OUT  std_logic;
-         rdy_o : OUT  std_logic;
+         end_o : OUT  std_logic;
          dv_o : OUT  std_logic;
          m_i : IN  std_logic_vector(WIDTH-1 downto 0);
          p_i : IN  std_logic_vector(WIDTH-1 downto 0);
          n_i : IN  std_logic_vector(WIDTH-1 downto 0);
          a_adr_o : OUT  std_logic_vector(2*WIDTH-1 downto 0);
-         b_adr_o : OUT  std_logic_vector(2*WIDTH-1 downto 0);
-         a_tran_i : IN  std_logic;
-         b_tran_i : IN  std_logic
+         b_adr_o : OUT  std_logic_vector(2*WIDTH-1 downto 0)
         );
     END COMPONENT;
     
@@ -67,13 +65,11 @@ ARCHITECTURE behavior OF adr4mul_tb IS
    --Inputs
    signal clk_i : std_logic := '0';
    signal rst_i : std_logic := '0';
-   signal rdy_o : std_logic := '0';
+   signal end_o : std_logic := '0';
    signal dv_o : std_logic := '0';
    signal m_i : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
    signal p_i : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
    signal n_i : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
-   signal a_tran_i : std_logic := '0';
-   signal b_tran_i : std_logic := '0';
 
  	--Outputs
    signal row_rdy_o : std_logic;
@@ -104,15 +100,13 @@ BEGIN
           clk_i => clk_i,
           rst_i => rst_i,
           row_rdy_o => row_rdy_o,
-          rdy_o => rdy_o,
+          end_o => end_o,
           dv_o => dv_o,
           m_i => m_i,
           p_i => p_i,
           n_i => n_i,
           a_adr_o => a_adr_o,
-          b_adr_o => b_adr_o,
-          a_tran_i => a_tran_i,
-          b_tran_i => b_tran_i
+          b_adr_o => b_adr_o
         );
 
    -- Clock process definitions
@@ -171,7 +165,7 @@ BEGIN
             state <= ACTIVE;
             
           when ACTIVE =>
-            if rdy_o = '0' then
+            if end_o = '0' then
               if (dv_o = '1') then
                 readline(a_adr_file, a_adr_line);
                 read(a_adr_line, a_adr_read1);
@@ -215,7 +209,7 @@ BEGIN
       wait for 3 ns;	
       file_rst <= '0';
       
-      wait until rdy_o = '1';
+      wait until end_o = '1';
       --rst_i <= '1';
       
       wait;
