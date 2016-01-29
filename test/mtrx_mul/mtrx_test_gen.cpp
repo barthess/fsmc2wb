@@ -176,9 +176,9 @@ static FILE * open_mtrx_file(uint32_t m, uint32_t p, uint32_t n, const char *pre
  */
 static void generate(size_t m, size_t p, size_t n, FILE *map_file) {
 
-  FILE *a_file = open_mtrx_file(m, p, n, "a");
-  FILE *b_file = open_mtrx_file(m, p, n, "b");
-  FILE *c_file = open_mtrx_file(m, p, n, "c");
+  FILE *a_file = open_mtrx_file(m-1, p-1, n-1, "a");
+  FILE *b_file = open_mtrx_file(m-1, p-1, n-1, "b");
+  FILE *c_file = open_mtrx_file(m-1, p-1, n-1, "c");
 
   size_t aL = m*p;
   size_t bL = p*n;
@@ -203,9 +203,9 @@ static void generate(size_t m, size_t p, size_t n, FILE *map_file) {
     buf2file(c, cL, c_file);
   }
 
-  len2file(map_file, m);
-  len2file(map_file, p);
-  len2file(map_file, n);
+  len2file(map_file, m-1);
+  len2file(map_file, p-1);
+  len2file(map_file, n-1);
 }
 
 /**
@@ -218,23 +218,24 @@ int main(void) {
   srand (static_cast <unsigned> (time(0)));
 
   // first generate corner sizes
-  generate(1, 1, 1, map_file);
-  generate(MAX_MTRX, MAX_MTRX, MAX_MTRX, map_file);
+  generate(3, 3, 3, map_file);
+  // generate(1, 1, 1, map_file);
+  // generate(MAX_MTRX, MAX_MTRX, MAX_MTRX, map_file);
 
-  generate(1, MAX_MTRX, MAX_MTRX, map_file);
-  generate(1, 1, MAX_MTRX, map_file);
+  // generate(1, MAX_MTRX, MAX_MTRX, map_file);
+  // generate(1, 1, MAX_MTRX, map_file);
 
-  generate(MAX_MTRX, MAX_MTRX, 1, map_file);
-  generate(MAX_MTRX, 1, 1, map_file);
-  generate(MAX_MTRX, MAX_MTRX, MAX_MTRX, map_file);
-  generate(MAX_MTRX, MAX_MTRX, MAX_MTRX, map_file);
+  // generate(MAX_MTRX, MAX_MTRX, 1, map_file);
+  // generate(MAX_MTRX, 1, 1, map_file);
+  // generate(MAX_MTRX, MAX_MTRX, MAX_MTRX, map_file);
+  // generate(MAX_MTRX, MAX_MTRX, MAX_MTRX, map_file);
 
-  generate(MAX_MTRX, MAX_MTRX, 1, map_file);
-  generate(1, MAX_MTRX, MAX_MTRX, map_file);
+  // generate(MAX_MTRX, MAX_MTRX, 1, map_file);
+  // generate(1, MAX_MTRX, MAX_MTRX, map_file);
 
-  generate(1, MAX_MTRX, MAX_MTRX, map_file);
-  generate(MAX_MTRX, 1, MAX_MTRX, map_file);
-  generate(MAX_MTRX, MAX_MTRX, 1, map_file);
+  // generate(1, MAX_MTRX, MAX_MTRX, map_file);
+  // generate(MAX_MTRX, 1, MAX_MTRX, map_file);
+  // generate(MAX_MTRX, MAX_MTRX, 1, map_file);
 
   return 0;
 }

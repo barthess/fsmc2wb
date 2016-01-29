@@ -33,7 +33,8 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity bram_file_in is
   Generic (
-    LATENCY : positive := 1
+    LATENCY : positive := 1;
+    PREFIX  : string (1 to 1)
   );
   Port (
     clk_i : in  STD_LOGIC;
@@ -54,7 +55,7 @@ begin
   main : process(clk_i)
     file f : text;
     variable l : line;
-    variable fname : string(1 to 22) := "test/mtrx_mul/stim/in_";
+    variable fpath : string(1 to 19) := "test/mtrx_mul/stim/";
     variable adr_cnt : integer;
     variable dat_read : std_logic_vector(63 downto 0);
   begin
@@ -62,7 +63,7 @@ begin
       if ce_i = '1' then
         file_close(f);
         file_open(f, 
-                  fname & 
+                  fpath & PREFIX & "_" &
                   integer'image(m_i) & "_" &
                   integer'image(p_i) & "_" & 
                   integer'image(n_i) &

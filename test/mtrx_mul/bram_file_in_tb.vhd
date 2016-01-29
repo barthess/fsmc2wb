@@ -43,14 +43,14 @@ ARCHITECTURE behavior OF bram_file_in_tb IS
  
     COMPONENT bram_file_in
     Generic (
-      LATENCY : positive
+      LATENCY : positive;
+      PREFIX  : string(1 to 1)
     );
     PORT(
          clk_i : IN  std_logic;
          ce_i : IN  std_logic;
          adr_i : IN  std_logic_vector(9 downto 0);
          dat_o : OUT  std_logic_vector(63 downto 0);
-         nf_i : IN  std_logic;
          m_i : IN  integer;
          p_i : IN  integer;
          n_i : IN  integer
@@ -62,7 +62,6 @@ ARCHITECTURE behavior OF bram_file_in_tb IS
    signal clk_i : std_logic := '0';
    signal ce_i : std_logic := '0';
    signal adr_i : std_logic_vector(9 downto 0) := (others => '0');
-   signal nf_i : std_logic := '0';
    signal m_i : integer := 0;
    signal p_i : integer := 0;
    signal n_i : integer := 0;
@@ -80,19 +79,18 @@ BEGIN
 	-- Instantiate the Unit Under Test (UUT)
    uut: bram_file_in 
      Generic map (
-        LATENCY => 1
+        LATENCY => 1,
+        PREFIX  => "a"
      )
      PORT MAP (
           clk_i => clk_i,
           ce_i => ce_i,
           adr_i => adr_i,
           dat_o => dat_o,
-          nf_i => nf_i,
           m_i => m_i,
           p_i => p_i,
           n_i => n_i
         );
-
 
 
   -- Stimulus process
@@ -101,15 +99,15 @@ BEGIN
     if rising_edge(clk_i) then
       case state is
       when IDLE =>
-        m_i <= 10;
-        p_i <= 10;
-        n_i <= 10;
+        m_i <= 2;
+        p_i <= 2;
+        n_i <= 2;
         ce_i <= '1';
-        adr_i <= std_logic_vector(to_unsigned(10, 10));
+        adr_i <= std_logic_vector(to_unsigned(1, 10));
         state <= ACTIVE;
-        
+
       when ACTIVE =>
-        adr_i <= std_logic_vector(to_unsigned(9, 10));
+        adr_i <= std_logic_vector(to_unsigned(2, 10));
         state <= HALT;
         
       when HALT =>
