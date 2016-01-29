@@ -33,8 +33,8 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity bram_file_in is
   Generic (
-    LATENCY : positive := 1;
-    PREFIX  : string (1 to 1)
+    LATENCY : positive := 2;
+    PREFIX  : string (1 to 1) := "e"
   );
   Port (
     clk_i : in  STD_LOGIC;
@@ -51,7 +51,10 @@ end bram_file_in;
 
 
 architecture Behavioral of bram_file_in is
+  signal latency_reg : std_logic_vector(LATENCY*64-1 downto 0);
 begin
+  
+  dat_o <= latency_reg(LATENCY*64-1 downto (LATENCY-1)*64);
   
   main : process(clk_i)
     file f : text;
@@ -64,7 +67,7 @@ begin
       if ce_i = '1' then
         file_close(f);
         file_open(f, 
-                  fpath & PREFIX & "_" &
+                  fpath & PREFIX     & "_" &
                   integer'image(m_i) & "_" &
                   integer'image(p_i) & "_" & 
                   integer'image(n_i) & ".txt", 
@@ -74,7 +77,7 @@ begin
         loop
           readline(f, l);
           hread(l, dat_read);
-          dat_o <= dat_read;
+          latency_reg <= latency_reg((LATENCY-1)*64-1 downto 0) & dat_read;
           if (adr_cnt = 0) then
             exit;
           end if;

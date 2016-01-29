@@ -79,7 +79,7 @@ BEGIN
 	-- Instantiate the Unit Under Test (UUT)
    uut: bram_file_in 
      Generic map (
-        LATENCY => 1,
+        LATENCY => 2,
         PREFIX  => "a"
      )
      PORT MAP (

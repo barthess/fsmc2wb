@@ -33,21 +33,20 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity bram_file_ref is
   Generic (
-    LATENCY : positive := 1;
     PREFIX  : string (1 to 1)
   );
   Port (
     clk_i : in  STD_LOGIC;
     ce_i  : in  STD_LOGIC;
     we_i  : in  std_logic;
-    adr_i : in  STD_LOGIC_VECTOR (9 downto 0);
+    adr_i : in  STD_LOGIC_VECTOR (9  downto 0);
     dat_i : in  STD_LOGIC_VECTOR (63 downto 0);
     -- this values needs to open correct file
     m_i   : in  integer;
     p_i   : in  integer;
     n_i   : in  integer
     );
-end bram_file_in;
+end bram_file_ref;
 
 
 
@@ -65,25 +64,25 @@ begin
       if ce_i = '1' then
         file_close(f);
         file_open(f, 
-                  fpath & PREFIX & "_" &
+                  fpath & PREFIX     & "_" &
                   integer'image(m_i) & "_" &
                   integer'image(p_i) & "_" & 
                   integer'image(n_i) & ".txt", 
                   READ_MODE);
         adr_cnt := to_integer(unsigned(adr_i));
 
-        -- find specified string in file
-        loop
-          readline(f, l);
-          hread(l, dat_read);
-          if (adr_cnt = 0) then
-            exit;
-          end if;
-          adr_cnt := adr_cnt - 1;
-        end loop;
-
-        -- check and compare
         if (we_i = '1') then
+          -- find specified string in file
+          loop
+            readline(f, l);
+            hread(l, dat_read);
+            if (adr_cnt = 0) then
+              exit;
+            end if;
+            adr_cnt := adr_cnt - 1;
+          end loop;
+
+          -- check and compare
           assert (dat_read = dat_i) report "Result incorrect!" severity failure;
         end if;
         
@@ -92,10 +91,4 @@ begin
   end process;
 
 end Behavioral;
-
-
-
-
-
-
 

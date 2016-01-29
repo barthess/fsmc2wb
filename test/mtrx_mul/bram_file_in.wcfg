@@ -3,9 +3,9 @@
    <wave_state>
    </wave_state>
    <db_ref_list>
-      <db_ref path="/home/barthess/projects/xilinx/fsmc2wb/bram_file_ro_tb_isim_beh.wdb" id="1" type="auto">
+      <db_ref path="/home/barthess/projects/xilinx/fsmc2wb/bram_file_in_tb_isim_beh.wdb" id="1" type="auto">
          <top_modules>
-            <top_module name="bram_file_ro_tb" />
+            <top_module name="bram_file_in_tb" />
             <top_module name="numeric_std" />
             <top_module name="std_logic_1164" />
             <top_module name="std_logic_textio" />
@@ -13,45 +13,41 @@
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="10" />
-   <wvobject fp_name="/bram_file_ro_tb/clk_i" type="logic" db_ref_id="1">
+   <WVObjectSize size="9" />
+   <wvobject fp_name="/bram_file_in_tb/clk_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">clk_i</obj_property>
       <obj_property name="ObjectShortName">clk_i</obj_property>
    </wvobject>
-   <wvobject fp_name="/bram_file_ro_tb/ce_i" type="logic" db_ref_id="1">
+   <wvobject fp_name="/bram_file_in_tb/ce_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">ce_i</obj_property>
       <obj_property name="ObjectShortName">ce_i</obj_property>
    </wvobject>
-   <wvobject fp_name="/bram_file_ro_tb/adr_i" type="array" db_ref_id="1">
+   <wvobject fp_name="/bram_file_in_tb/adr_i" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">adr_i[9:0]</obj_property>
       <obj_property name="ObjectShortName">adr_i[9:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/bram_file_ro_tb/nf_i" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">nf_i</obj_property>
-      <obj_property name="ObjectShortName">nf_i</obj_property>
-   </wvobject>
-   <wvobject fp_name="/bram_file_ro_tb/m_i" type="other" db_ref_id="1">
+   <wvobject fp_name="/bram_file_in_tb/m_i" type="other" db_ref_id="1">
       <obj_property name="ElementShortName">m_i</obj_property>
       <obj_property name="ObjectShortName">m_i</obj_property>
    </wvobject>
-   <wvobject fp_name="/bram_file_ro_tb/p_i" type="other" db_ref_id="1">
+   <wvobject fp_name="/bram_file_in_tb/p_i" type="other" db_ref_id="1">
       <obj_property name="ElementShortName">p_i</obj_property>
       <obj_property name="ObjectShortName">p_i</obj_property>
    </wvobject>
-   <wvobject fp_name="/bram_file_ro_tb/n_i" type="other" db_ref_id="1">
+   <wvobject fp_name="/bram_file_in_tb/n_i" type="other" db_ref_id="1">
       <obj_property name="ElementShortName">n_i</obj_property>
       <obj_property name="ObjectShortName">n_i</obj_property>
    </wvobject>
-   <wvobject fp_name="/bram_file_ro_tb/dat_o" type="array" db_ref_id="1">
+   <wvobject fp_name="/bram_file_in_tb/dat_o" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">dat_o[63:0]</obj_property>
       <obj_property name="ObjectShortName">dat_o[63:0]</obj_property>
       <obj_property name="Radix">HEXRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/bram_file_ro_tb/state" type="other" db_ref_id="1">
+   <wvobject fp_name="/bram_file_in_tb/state" type="other" db_ref_id="1">
       <obj_property name="ElementShortName">state</obj_property>
       <obj_property name="ObjectShortName">state</obj_property>
    </wvobject>
-   <wvobject fp_name="/bram_file_ro_tb/clk_i_period" type="other" db_ref_id="1">
+   <wvobject fp_name="/bram_file_in_tb/clk_i_period" type="other" db_ref_id="1">
       <obj_property name="ElementShortName">clk_i_period</obj_property>
       <obj_property name="ObjectShortName">clk_i_period</obj_property>
    </wvobject>

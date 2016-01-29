@@ -21,11 +21,13 @@ entity mtrx_mul is
     WB_DW   : positive := 16;
     BRAM_AW : positive := 10;
     BRAM_DW : positive := 64;
-    MTRX_AW : positive := 5   -- 2**MTRX_AW is maximum allowable index of matrices
+    -- 2**MTRX_AW is maximum allowable index of matrices
+    -- used for adder chain instantiation
+    MTRX_AW : positive := 5
   );
   Port (
     -- external interrupt pin
-    dat_rdy_o : out std_logic;
+    the_end_o : out std_logic;
     
     -- control WB interface
     clk_i : in  std_logic;
@@ -39,12 +41,16 @@ entity mtrx_mul is
     dat_i : in  std_logic_vector(WB_DW-1 downto 0);
 
     -- BRAM interface
-    bram_clk_o  : out std_logic_vector(3-1          downto 0);
-    bram_adr_o  : out std_logic_vector(3*BRAM_AW-1  downto 0);
-    bram_dat_i  : in  std_logic_vector(3*BRAM_DW-1  downto 0);
-    bram_dat_o  : out std_logic_vector(3*BRAM_DW-1  downto 0);
-    bram_we_o   : out std_logic_vector(3-1          downto 0);
-    bram_en_o   : out std_logic_vector(3-1          downto 0)
+    -- Note: there are no clocks and enables for BRAMs. They are
+    -- handled in higher level
+    bram_adr_a_o : out std_logic_vector(BRAM_AW-1 downto 0);
+    bram_adr_b_o : out std_logic_vector(BRAM_AW-1 downto 0);
+    bram_adr_c_o : out std_logic_vector(BRAM_AW-1 downto 0);
+    
+    bram_dat_a_i : in  std_logic_vector(BRAM_DW-1 downto 0);
+    bram_dat_b_i : in  std_logic_vector(BRAM_DW-1 downto 0);
+    bram_dat_c_o : out std_logic_vector(BRAM_DW-1 downto 0);
+    bram_we_o    : out std_logic
   );
 end mtrx_mul;
 
@@ -82,24 +88,17 @@ architecture beh of mtrx_mul is
   signal accum_rdy : std_logic := '0'; -- used to increment overall operation count
   
   -- state machine
-  type state_t is (IDLE, WAIT_ADR_VALID, ACTIVE, FLUSH1, FLUSH2);
+  type state_t is (IDLE, WAIT_ADR_VALID, ACTIVE, FLUSH1, FLUSH2, FLUSH3);
   signal state : state_t := IDLE;
 
 begin
   
-  -- warning suppressor
-  bram_dat_o(2*BRAM_DW-1 downto 0) <= bram_dat_i(3*BRAM_DW-1 downto 2*BRAM_DW) & bram_dat_i(3*BRAM_DW-1 downto 2*BRAM_DW);
-  
-  bram_adr_o(3*BRAM_AW-1 downto 2*BRAM_AW) <= C_adr;
-  bram_adr_o(2*BRAM_AW-1 downto 1*BRAM_AW) <= B_adr;
-  bram_adr_o(1*BRAM_AW-1 downto 0*BRAM_AW) <= A_adr;
-  bram_clk_o <= (others => clk_i);
-  bram_en_o  <= (others => '1');
-  bram_we_o(0) <= '0';
-  bram_we_o(1) <= '0';
-  bram_we_o(2) <= mul_rdy;
+  bram_adr_a_o <= A_adr;
+  bram_adr_b_o <= B_adr;
+  bram_adr_c_o <= C_adr;
+  bram_we_o    <= accum_rdy;
 
-  dat_rdy_o  <= '1' when (state = IDLE) else '0';
+  the_end_o  <= '1' when (state = IDLE) else '0';
 
   --
   -- addres incrementer
@@ -131,8 +130,8 @@ begin
   --
   dmul : entity work.dmul
     port map (
-      a      => bram_dat_i(1*BRAM_DW-1 downto 0*BRAM_DW),
-      b      => bram_dat_i(2*BRAM_DW-1 downto 1*BRAM_DW),
+      a      => bram_dat_a_i,
+      b      => bram_dat_b_i,
       result => accum_dat_i,
       clk    => clk_i,
       ce     => mul_ce,
@@ -145,7 +144,7 @@ begin
   --
   accumulator : entity work.dadd_chain
     generic map (
-      LEN => 5
+      LEN => MTRX_AW
     )
     port map (
       clk_i => clk_i,
@@ -153,7 +152,7 @@ begin
       nd_i  => mul_rdy,
       cnt_i => accum_cnt,
       dat_i => accum_dat_i,
-      dat_o => bram_dat_o(3*BRAM_DW-1 downto 2*BRAM_DW),
+      dat_o => bram_dat_c_o,
       rdy_o => accum_rdy
     );
 
@@ -229,10 +228,13 @@ begin
         end if;
 
       when FLUSH1 =>
-        mul_nd <= '0';
         state <= FLUSH2;
-
+        
       when FLUSH2 =>
+        mul_nd <= '0';
+        state <= FLUSH3;
+        
+      when FLUSH3 =>
         if (multiplication_finished = '1') then
           mul_ce <= '0';
           state <= IDLE;

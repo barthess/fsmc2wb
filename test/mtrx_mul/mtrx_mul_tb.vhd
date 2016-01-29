@@ -43,24 +43,26 @@ ARCHITECTURE behavior OF mtrx_mul_tb IS
  
     COMPONENT mtrx_mul
     PORT(
-         dat_rdy_o : OUT  std_logic;
+         the_end_o : OUT  std_logic;
          
          clk_i : IN  std_logic;
          sel_i : IN  std_logic;
          stb_i : IN  std_logic;
-         we_i : IN  std_logic;
+         we_i  : IN  std_logic;
          err_o : OUT  std_logic;
          ack_o : OUT  std_logic;
          adr_i : IN  std_logic_vector(15 downto 0);
          dat_o : OUT  std_logic_vector(15 downto 0);
          dat_i : IN  std_logic_vector(15 downto 0);
-         
-         bram_clk_o : OUT std_logic_vector(2 downto 0);
-         bram_adr_o : OUT std_logic_vector(29 downto 0);
-         bram_dat_i : IN  std_logic_vector(191 downto 0);
-         bram_dat_o : OUT std_logic_vector(191 downto 0);
-         bram_we_o  : OUT std_logic_vector(2 downto 0);
-         bram_en_o  : OUT std_logic_vector(2 downto 0)
+
+         bram_adr_a_o : OUT std_logic_vector(9 downto 0);
+         bram_adr_b_o : OUT std_logic_vector(9 downto 0);
+         bram_adr_c_o : OUT std_logic_vector(9 downto 0);
+
+         bram_dat_a_i : IN  std_logic_vector(63 downto 0);
+         bram_dat_b_i : IN  std_logic_vector(63 downto 0);
+         bram_dat_c_o : out std_logic_vector(63 downto 0);
+         bram_we_o    : OUT std_logic
         );
     END COMPONENT;
     
@@ -72,18 +74,19 @@ ARCHITECTURE behavior OF mtrx_mul_tb IS
    signal we_i  : std_logic := '0';
    signal adr_i : std_logic_vector(15 downto 0) := (others => '0');
    signal dat_i : std_logic_vector(15 downto 0) := (others => '0');
-   signal bram_dat_i : std_logic_vector(191 downto 0) := (others => '0');
-
+   signal bram_dat_a_i : std_logic_vector(63 downto 0) := (others => '0');
+   signal bram_dat_b_i : std_logic_vector(63 downto 0) := (others => '0');
+   
  	--Outputs
-   signal dat_rdy_o : std_logic;
+   signal the_end_o : std_logic;
    signal err_o : std_logic;
    signal ack_o : std_logic;
    signal dat_o : std_logic_vector(15 downto 0);
-   signal bram_clk_o : std_logic_vector(2 downto 0);
-   signal bram_adr_o : std_logic_vector(29 downto 0);
-   signal bram_dat_o : std_logic_vector(191 downto 0);
-   signal bram_we_o  : std_logic_vector(2 downto 0);
-   signal bram_en_o  : std_logic_vector(2 downto 0);
+   signal bram_adr_a_o : std_logic_vector(9 downto 0);
+   signal bram_adr_b_o : std_logic_vector(9 downto 0);
+   signal bram_adr_c_o : std_logic_vector(9 downto 0);
+   signal bram_dat_c_o : std_logic_vector(63 downto 0);
+   signal bram_we_o : std_logic;
 
    -- Clock period definitions
    constant clk_i_period : time := 1 ns;
@@ -92,11 +95,14 @@ ARCHITECTURE behavior OF mtrx_mul_tb IS
   type state_t is (IDLE, LOAD, ACTIVE, HALT);
   signal state : state_t := IDLE;
   
+  signal m_i, p_i, n_i : integer := 0;
+  signal pseudo_bram_ce : std_logic := '0';
+  
 BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
    uut: mtrx_mul PORT MAP (
-          dat_rdy_o => dat_rdy_o,
+          the_end_o => the_end_o,
           clk_i => clk_i,
           sel_i => sel_i,
           stb_i => stb_i,
@@ -106,59 +112,59 @@ BEGIN
           adr_i => adr_i,
           dat_o => dat_o,
           dat_i => dat_i,
-          bram_clk_o => bram_clk_o,
-          bram_adr_o => bram_adr_o,
-          bram_dat_i => bram_dat_i,
-          bram_dat_o => bram_dat_o,
-          bram_we_o => bram_we_o,
-          bram_en_o => bram_en_o
+          bram_adr_a_o => bram_adr_a_o,
+          bram_adr_b_o => bram_adr_b_o,
+          bram_adr_c_o => bram_adr_c_o,
+          bram_dat_a_i => bram_dat_a_i,
+          bram_dat_b_i => bram_dat_b_i,
+          bram_dat_c_o => bram_dat_c_o,
+          bram_we_o => bram_we_o
         );
 
 
   -- Instantiate the input A bram 
-  bram_file_a: bram_file_in 
+  bram_file_a: entity work.bram_file_in 
   Generic map (
-    LATENCY => 1,
+    LATENCY => 2,
     PREFIX  => "a"
   )
   PORT MAP (
     clk_i => clk_i,
-    ce_i => ce_i,
-    adr_i => adr_i,
-    dat_o => dat_o,
+    ce_i  => pseudo_bram_ce,
+    adr_i => bram_adr_a_o,
+    dat_o => bram_dat_a_i,
     m_i => m_i,
     p_i => p_i,
     n_i => n_i
   );
 
   -- Instantiate the input B bram 
-  bram_file_b: bram_file_in 
+  bram_file_b: entity work.bram_file_in 
   Generic map (
-    LATENCY => 1,
+    LATENCY => 2,
     PREFIX  => "b"
   )
   PORT MAP (
     clk_i => clk_i,
-    ce_i => ce_i,
-    adr_i => adr_i,
-    dat_o => dat_o,
+    ce_i  => pseudo_bram_ce,
+    adr_i => bram_adr_b_o,
+    dat_o => bram_dat_b_i,
     m_i => m_i,
     p_i => p_i,
     n_i => n_i
   );
   
   -- Instantiate the pseudo output C bram 
-  bram_file_c: bram_file_ref
+  bram_file_c: entity work.bram_file_ref
   Generic map (
-    LATENCY => 1,
     PREFIX  => "c"
   )
   PORT MAP (
     clk_i => clk_i,
-    ce_i => ce_i,
-    we_i => we_i,
-    adr_i => adr_i,
-    dat_i => dat_i,
+    ce_i  => pseudo_bram_ce,
+    we_i  => bram_we_o,
+    adr_i => bram_adr_c_o,
+    dat_i => bram_dat_c_o,
     m_i => m_i,
     p_i => p_i,
     n_i => n_i
@@ -183,7 +189,6 @@ BEGIN
     file f : text is in  "test/mtrx_mul/stim/map.txt";
     variable l : line;
     variable m_read, p_read, n_read : integer;
-    variable m, p, n : std_logic_vector(4 downto 0);
   begin
     if rising_edge(clk_i) then
       case state is
@@ -203,6 +208,10 @@ BEGIN
           readline(f, l);
           read(l, n_read);
           assert (m_read < 32 and p_read < 32 and n_read < 32) report "Overflow" severity failure;
+          m_i <= m_read;
+          p_i <= p_read;
+          n_i <= n_read;
+          pseudo_bram_ce <= '1';
           dat_i(4  downto 0)  <= std_logic_vector(to_unsigned(m_read, 5));
           dat_i(9  downto 5)  <= std_logic_vector(to_unsigned(p_read, 5));
           dat_i(14 downto 10) <= std_logic_vector(to_unsigned(n_read, 5));
@@ -213,12 +222,12 @@ BEGIN
         else
           state <= HALT;
         end if;
-        
+
       when ACTIVE => 
         stb_i <= '0';
         sel_i <= '0';
         we_i  <= '0';
-        if (dat_rdy_o = '1') then
+        if (the_end_o = '1') then
           state <= IDLE;
         end if;
         
@@ -230,24 +239,5 @@ BEGIN
     
   end process;
   
-  
-  
-  -- Multiplication process
-  mul_proc: process(clk_i)
-    file fa : text is in "test/mtrx_mul/stim/a.txt";
-    file fb : text is in "test/mtrx_mul/stim/b.txt";
-    file fc : text is in "test/mtrx_mul/stim/c.txt";
-    variable la : line;
-    variable lb : line;
-    variable lc : line;
-    variable a_read : std_logic_vector(63 downto 0);
-    variable b_read : std_logic_vector(63 downto 0);
-  begin		
-    if rising_edge(clk_i) then
-    end if; -- clk
-  end process;
-
-
-
 
 END;
