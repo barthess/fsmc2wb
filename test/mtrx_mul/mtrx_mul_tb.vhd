@@ -44,6 +44,7 @@ ARCHITECTURE behavior OF mtrx_mul_tb IS
     COMPONENT mtrx_mul
     PORT(
          dat_rdy_o : OUT  std_logic;
+         
          clk_i : IN  std_logic;
          sel_i : IN  std_logic;
          stb_i : IN  std_logic;
@@ -53,12 +54,13 @@ ARCHITECTURE behavior OF mtrx_mul_tb IS
          adr_i : IN  std_logic_vector(15 downto 0);
          dat_o : OUT  std_logic_vector(15 downto 0);
          dat_i : IN  std_logic_vector(15 downto 0);
-         bram_clk_o : OUT  std_logic_vector(2 downto 0);
-         bram_adr_o : OUT  std_logic_vector(29 downto 0);
+         
+         bram_clk_o : OUT std_logic_vector(2 downto 0);
+         bram_adr_o : OUT std_logic_vector(29 downto 0);
          bram_dat_i : IN  std_logic_vector(191 downto 0);
-         bram_dat_o : OUT  std_logic_vector(191 downto 0);
-         bram_we_o : OUT  std_logic_vector(2 downto 0);
-         bram_en_o : OUT  std_logic_vector(2 downto 0)
+         bram_dat_o : OUT std_logic_vector(191 downto 0);
+         bram_we_o  : OUT std_logic_vector(2 downto 0);
+         bram_en_o  : OUT std_logic_vector(2 downto 0)
         );
     END COMPONENT;
     
@@ -112,6 +114,57 @@ BEGIN
           bram_en_o => bram_en_o
         );
 
+
+  -- Instantiate the input A bram 
+  bram_file_a: bram_file_in 
+  Generic map (
+    LATENCY => 1,
+    PREFIX  => "a"
+  )
+  PORT MAP (
+    clk_i => clk_i,
+    ce_i => ce_i,
+    adr_i => adr_i,
+    dat_o => dat_o,
+    m_i => m_i,
+    p_i => p_i,
+    n_i => n_i
+  );
+
+  -- Instantiate the input B bram 
+  bram_file_b: bram_file_in 
+  Generic map (
+    LATENCY => 1,
+    PREFIX  => "b"
+  )
+  PORT MAP (
+    clk_i => clk_i,
+    ce_i => ce_i,
+    adr_i => adr_i,
+    dat_o => dat_o,
+    m_i => m_i,
+    p_i => p_i,
+    n_i => n_i
+  );
+  
+  -- Instantiate the pseudo output C bram 
+  bram_file_c: bram_file_ref
+  Generic map (
+    LATENCY => 1,
+    PREFIX  => "c"
+  )
+  PORT MAP (
+    clk_i => clk_i,
+    ce_i => ce_i,
+    we_i => we_i,
+    adr_i => adr_i,
+    dat_i => dat_i,
+    m_i => m_i,
+    p_i => p_i,
+    n_i => n_i
+  );
+  
+  
    -- Clock process definitions
    clk_i_process :process
    begin
@@ -122,13 +175,12 @@ BEGIN
    end process;
  
 
-
  
   -- Control logic process
   control_proc: process(clk_i)
     constant idle_cnt_val : integer := 10;
     variable idle_cnt : integer := idle_cnt_val;
-    file f : text is in  "test/mtrx_mul/stim/mpn.txt";
+    file f : text is in  "test/mtrx_mul/stim/map.txt";
     variable l : line;
     variable m_read, p_read, n_read : integer;
     variable m, p, n : std_logic_vector(4 downto 0);

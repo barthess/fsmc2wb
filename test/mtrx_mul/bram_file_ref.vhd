@@ -31,7 +31,7 @@ use IEEE.NUMERIC_STD.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity bram_file_in is
+entity bram_file_ref is
   Generic (
     LATENCY : positive := 1;
     PREFIX  : string (1 to 1)
@@ -39,8 +39,9 @@ entity bram_file_in is
   Port (
     clk_i : in  STD_LOGIC;
     ce_i  : in  STD_LOGIC;
+    we_i  : in  std_logic;
     adr_i : in  STD_LOGIC_VECTOR (9 downto 0);
-    dat_o : out STD_LOGIC_VECTOR (63 downto 0);
+    dat_i : in  STD_LOGIC_VECTOR (63 downto 0);
     -- this values needs to open correct file
     m_i   : in  integer;
     p_i   : in  integer;
@@ -50,7 +51,7 @@ end bram_file_in;
 
 
 
-architecture Behavioral of bram_file_in is
+architecture Behavioral of bram_file_ref is
 begin
   
   main : process(clk_i)
@@ -71,15 +72,20 @@ begin
                   READ_MODE);
         adr_cnt := to_integer(unsigned(adr_i));
 
+        -- find specified string in file
         loop
           readline(f, l);
           hread(l, dat_read);
-          dat_o <= dat_read;
           if (adr_cnt = 0) then
             exit;
           end if;
           adr_cnt := adr_cnt - 1;
         end loop;
+
+        -- check and compare
+        if (we_i = '1') then
+          assert (dat_read = dat_i) report "Result incorrect!" severity failure;
+        end if;
         
       end if;
     end if; -- clk
