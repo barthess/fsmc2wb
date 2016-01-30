@@ -5,7 +5,7 @@
 #include <fstream>
 #include "matrix_primitives.hpp"
 
-#define MAX_MTRX_SIZE   2
+#define MAX_MTRX_SIZE   8
 
 /**
  * @brief   multiply matrix A(m x p) by  B(p x n), put result in C(m x n)
@@ -61,19 +61,28 @@ int main(void) {
   size_t m, p, n;
   m = p = n = MAX_MTRX_SIZE;
 
-  generate(m+1, p+1, n+1, a_adr_file, b_adr_file);
-  len_file << m << " --\n" << p << "\n" << n << "\n";
+  // m = 1;
+  // p = 2;
+  // n = 1;
+  // generate(m+1, p+1, n+1, a_adr_file, b_adr_file);
+  // len_file << m << " --\n" << p << "\n" << n << "\n";
 
-  // while(m--) {
-  //   while(p--) {
-  //     while(n--) {
-  //       generate(m+1, p+1, n+1, a_adr_file, b_adr_file);
-  //       len_file << m << " --\n" << p << "\n" << n << "\n";
-  //     }
-  //     n = MAX_MTRX_SIZE;
-  //   }
-  //   p = MAX_MTRX_SIZE;
-  // }
+  // generate(m+1, p+1, n+1, a_adr_file, b_adr_file);
+  // len_file << m << " --\n" << p << "\n" << n << "\n";
+
+  // generate(m, p, n, a_adr_file, b_adr_file);
+  // len_file << m-1 << " --\n" << p-1 << "\n" << n-1 << "\n";
+
+  while(m--) {
+    while(p--) {
+      while(n--) {
+        generate(m+1, p+1, n+1, a_adr_file, b_adr_file);
+        len_file << m << " --\n" << p << "\n" << n << "\n";
+      }
+      n = MAX_MTRX_SIZE;
+    }
+    p = MAX_MTRX_SIZE;
+  }
 
   len_file.close();
   a_adr_file.close();

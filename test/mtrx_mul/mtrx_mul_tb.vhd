@@ -62,6 +62,9 @@ ARCHITECTURE behavior OF mtrx_mul_tb IS
          bram_dat_a_i : IN  std_logic_vector(63 downto 0);
          bram_dat_b_i : IN  std_logic_vector(63 downto 0);
          bram_dat_c_o : out std_logic_vector(63 downto 0);
+         bram_ce_a_o  : out std_logic;
+         bram_ce_b_o  : out std_logic;
+         bram_ce_c_o  : out std_logic;
          bram_we_o    : OUT std_logic
         );
     END COMPONENT;
@@ -82,6 +85,9 @@ ARCHITECTURE behavior OF mtrx_mul_tb IS
    signal err_o : std_logic;
    signal ack_o : std_logic;
    signal dat_o : std_logic_vector(15 downto 0);
+   signal bram_ce_a_o  : std_logic;
+   signal bram_ce_b_o  : std_logic;
+   signal bram_ce_c_o  : std_logic;
    signal bram_adr_a_o : std_logic_vector(9 downto 0);
    signal bram_adr_b_o : std_logic_vector(9 downto 0);
    signal bram_adr_c_o : std_logic_vector(9 downto 0);
@@ -96,7 +102,6 @@ ARCHITECTURE behavior OF mtrx_mul_tb IS
   signal state : state_t := IDLE;
   
   signal m_i, p_i, n_i : integer := 0;
-  signal pseudo_bram_ce : std_logic := '0';
   
 BEGIN
  
@@ -118,6 +123,9 @@ BEGIN
           bram_dat_a_i => bram_dat_a_i,
           bram_dat_b_i => bram_dat_b_i,
           bram_dat_c_o => bram_dat_c_o,
+          bram_ce_a_o => bram_ce_a_o,
+          bram_ce_b_o => bram_ce_b_o, 
+          bram_ce_c_o => bram_ce_c_o,
           bram_we_o => bram_we_o
         );
 
@@ -130,7 +138,7 @@ BEGIN
   )
   PORT MAP (
     clk_i => clk_i,
-    ce_i  => pseudo_bram_ce,
+    ce_i  => bram_ce_a_o,
     adr_i => bram_adr_a_o,
     dat_o => bram_dat_a_i,
     m_i => m_i,
@@ -146,7 +154,7 @@ BEGIN
   )
   PORT MAP (
     clk_i => clk_i,
-    ce_i  => pseudo_bram_ce,
+    ce_i  => bram_ce_b_o,
     adr_i => bram_adr_b_o,
     dat_o => bram_dat_b_i,
     m_i => m_i,
@@ -161,7 +169,7 @@ BEGIN
   )
   PORT MAP (
     clk_i => clk_i,
-    ce_i  => pseudo_bram_ce,
+    ce_i  => bram_ce_c_o,
     we_i  => bram_we_o,
     adr_i => bram_adr_c_o,
     dat_i => bram_dat_c_o,
@@ -211,7 +219,6 @@ BEGIN
           m_i <= m_read;
           p_i <= p_read;
           n_i <= n_read;
-          pseudo_bram_ce <= '1';
           dat_i(4  downto 0)  <= std_logic_vector(to_unsigned(m_read, 5));
           dat_i(9  downto 5)  <= std_logic_vector(to_unsigned(p_read, 5));
           dat_i(14 downto 10) <= std_logic_vector(to_unsigned(n_read, 5));

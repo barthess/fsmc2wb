@@ -50,9 +50,7 @@ ARCHITECTURE behavior OF adr4mul_tb IS
     PORT(
          clk_i : IN  std_logic;
          rst_i : IN  std_logic;
-         row_rdy_o : OUT  std_logic;
          end_o : OUT  std_logic;
-         dv_o : OUT  std_logic;
          m_i : IN  std_logic_vector(WIDTH-1 downto 0);
          p_i : IN  std_logic_vector(WIDTH-1 downto 0);
          n_i : IN  std_logic_vector(WIDTH-1 downto 0);
@@ -66,13 +64,11 @@ ARCHITECTURE behavior OF adr4mul_tb IS
    signal clk_i : std_logic := '0';
    signal rst_i : std_logic := '0';
    signal end_o : std_logic := '0';
-   signal dv_o : std_logic := '0';
    signal m_i : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
    signal p_i : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
    signal n_i : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
 
  	--Outputs
-   signal row_rdy_o : std_logic;
    signal all_rdy_o : std_logic;
    signal a_adr_o : std_logic_vector(2*WIDTH-1 downto 0);
    signal b_adr_o : std_logic_vector(2*WIDTH-1 downto 0);
@@ -83,10 +79,10 @@ ARCHITECTURE behavior OF adr4mul_tb IS
    -- map file read stuff
    signal endoffile : std_logic := '0';
    signal file_rst  : std_logic := '1';
-   signal a_adr_ref : std_logic_vector(2*WIDTH-1 downto 0);
-   signal b_adr_ref : std_logic_vector(2*WIDTH-1 downto 0);
+   signal a_adr_trace : std_logic_vector(2*WIDTH-1 downto 0);
+   signal b_adr_trace : std_logic_vector(2*WIDTH-1 downto 0);
    
-  type state_t is (IDLE, PRELOAD, ACTIVE, COOLDOWN);
+  type state_t is (IDLE, PRELOAD1, PRELOAD2, ACTIVE, COOLDOWN);
   signal state : state_t := IDLE;
   
 BEGIN
@@ -99,9 +95,7 @@ BEGIN
    PORT MAP (
           clk_i => clk_i,
           rst_i => rst_i,
-          row_rdy_o => row_rdy_o,
           end_o => end_o,
-          dv_o => dv_o,
           m_i => m_i,
           p_i => p_i,
           n_i => n_i,
@@ -122,12 +116,11 @@ BEGIN
    --read process
   reading : process(clk_i)
     file len_file : text is in  "test/adr_incr/stim/len.txt";
-    variable len_line : line; --line number declaration
+    variable len_line : line;
     variable m_read1, p_read1, n_read1 : integer;
-    
     file a_adr_file : text is in  "test/adr_incr/stim/a_adr.txt";
     file b_adr_file : text is in  "test/adr_incr/stim/b_adr.txt";
-    variable a_adr_line, b_adr_line : line; --line number declaration
+    variable a_adr_line, b_adr_line : line;
     variable a_adr_read1, b_adr_read1 : integer;
   begin
     
@@ -152,29 +145,29 @@ BEGIN
             else
               endoffile <='1';         --set signal to tell end of file read file is reached.
             end if;
-            state  <= PRELOAD;
-            rst_i  <= '0';
+            state  <= PRELOAD1;
 
-          when PRELOAD =>
-            readline(a_adr_file, a_adr_line);
-            read(a_adr_line, a_adr_read1);
-            a_adr_ref <= std_logic_vector(to_unsigned(a_adr_read1, 2*WIDTH));
-            readline(b_adr_file, b_adr_line);
-            read(b_adr_line, b_adr_read1);
-            b_adr_ref <= std_logic_vector(to_unsigned(b_adr_read1, 2*WIDTH));
+          when PRELOAD1 =>
+            state <= PRELOAD2;
+            rst_i <= '0';
+            
+          when PRELOAD2 =>
             state <= ACTIVE;
             
           when ACTIVE =>
-            if end_o = '0' then
-              if (dv_o = '1') then
-                readline(a_adr_file, a_adr_line);
-                read(a_adr_line, a_adr_read1);
-                a_adr_ref <= std_logic_vector(to_unsigned(a_adr_read1, 2*WIDTH));
-                readline(b_adr_file, b_adr_line);
-                read(b_adr_line, b_adr_read1);
-                b_adr_ref <= std_logic_vector(to_unsigned(b_adr_read1, 2*WIDTH));
-              end if;
-            else
+            readline(a_adr_file, a_adr_line);
+            read(a_adr_line, a_adr_read1);
+            assert(a_adr_read1 < 4**WIDTH) report "too large value for instantiated entity" severity failure;
+            a_adr_trace <= std_logic_vector(to_unsigned(a_adr_read1, 2*WIDTH));
+            readline(b_adr_file, b_adr_line);
+            read(b_adr_line, b_adr_read1);
+            assert(b_adr_read1 < 4**WIDTH) report "too large value for instantiated entity" severity failure;
+            b_adr_trace <= std_logic_vector(to_unsigned(b_adr_read1, 2*WIDTH));
+            
+            assert (a_adr_o = std_logic_vector(to_unsigned(a_adr_read1, 2*WIDTH))) report "A address incorrect!" severity failure;
+            assert (b_adr_o = std_logic_vector(to_unsigned(b_adr_read1, 2*WIDTH))) report "B address incorrect!" severity failure;
+          
+            if end_o = '1' then
               rst_i <= '1';
               state <= COOLDOWN;
             end if;
@@ -188,18 +181,7 @@ BEGIN
     end if;
   end process reading;
 
-
-  -- assertion process
-  checking : process(clk_i)
-  begin
-    if rising_edge(clk_i) then
-      if (dv_o = '1' and endoffile = '0') then
-        assert (a_adr_o = a_adr_ref) report "A address incorrect!" severity failure;
-        assert (b_adr_o = b_adr_ref) report "B address incorrect!" severity failure;
-      end if;
-    end if;
-  end process checking;
-  
+ 
    
    -- Stimulus process
    stim_proc: process

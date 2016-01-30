@@ -14,7 +14,7 @@
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="21" />
+   <WVObjectSize size="14" />
    <wvobject fp_name="/adr4mul_tb/clk_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">clk_i</obj_property>
       <obj_property name="ObjectShortName">clk_i</obj_property>
@@ -27,7 +27,7 @@
       <obj_property name="ElementShortName">end_o</obj_property>
       <obj_property name="ObjectShortName">end_o</obj_property>
    </wvobject>
-   <wvobject fp_name="/adr4mul_tb/dv_o" type="logic" db_ref_id="1">
+   <wvobject fp_name="/adr4mul_tb/uut/dv_o" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">dv_o</obj_property>
       <obj_property name="ObjectShortName">dv_o</obj_property>
    </wvobject>
@@ -46,21 +46,6 @@
       <obj_property name="ObjectShortName">n_i[2:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/adr4mul_tb/uut/k_cnt" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">k_cnt[2:0]</obj_property>
-      <obj_property name="ObjectShortName">k_cnt[2:0]</obj_property>
-      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
-   </wvobject>
-   <wvobject fp_name="/adr4mul_tb/uut/j_cnt" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">j_cnt[2:0]</obj_property>
-      <obj_property name="ObjectShortName">j_cnt[2:0]</obj_property>
-      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
-   </wvobject>
-   <wvobject fp_name="/adr4mul_tb/uut/i_cnt" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">i_cnt[2:0]</obj_property>
-      <obj_property name="ObjectShortName">i_cnt[2:0]</obj_property>
-      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
-   </wvobject>
    <wvobject fp_name="/adr4mul_tb/a_adr_o" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">a_adr_o[5:0]</obj_property>
       <obj_property name="ObjectShortName">a_adr_o[5:0]</obj_property>
@@ -69,6 +54,16 @@
    <wvobject fp_name="/adr4mul_tb/b_adr_o" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">b_adr_o[5:0]</obj_property>
       <obj_property name="ObjectShortName">b_adr_o[5:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/adr4mul_tb/a_adr_trace" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">a_adr_trace[5:0]</obj_property>
+      <obj_property name="ObjectShortName">a_adr_trace[5:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/adr4mul_tb/b_adr_trace" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">b_adr_trace[5:0]</obj_property>
+      <obj_property name="ObjectShortName">b_adr_trace[5:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/adr4mul_tb/endoffile" type="logic" db_ref_id="1">
@@ -82,29 +77,5 @@
    <wvobject fp_name="/adr4mul_tb/state" type="other" db_ref_id="1">
       <obj_property name="ElementShortName">state</obj_property>
       <obj_property name="ObjectShortName">state</obj_property>
-   </wvobject>
-   <wvobject fp_name="/adr4mul_tb/uut/i_end_adj" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">i_end_adj</obj_property>
-      <obj_property name="ObjectShortName">i_end_adj</obj_property>
-   </wvobject>
-   <wvobject fp_name="/adr4mul_tb/uut/j_end_adj" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">j_end_adj</obj_property>
-      <obj_property name="ObjectShortName">j_end_adj</obj_property>
-   </wvobject>
-   <wvobject fp_name="/adr4mul_tb/uut/k_end_adj" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">k_end_adj</obj_property>
-      <obj_property name="ObjectShortName">k_end_adj</obj_property>
-   </wvobject>
-   <wvobject fp_name="/adr4mul_tb/uut/i_end" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">i_end</obj_property>
-      <obj_property name="ObjectShortName">i_end</obj_property>
-   </wvobject>
-   <wvobject fp_name="/adr4mul_tb/uut/j_end" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">j_end</obj_property>
-      <obj_property name="ObjectShortName">j_end</obj_property>
-   </wvobject>
-   <wvobject fp_name="/adr4mul_tb/uut/k_end" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">k_end</obj_property>
-      <obj_property name="ObjectShortName">k_end</obj_property>
    </wvobject>
 </wave_config>

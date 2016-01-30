@@ -201,6 +201,10 @@ static void generate(size_t m, size_t p, size_t n, FILE *map_file) {
     buf2file(a, aL, a_file);
     buf2file(b, bL, b_file);
     buf2file(c, cL, c_file);
+    // matrix iterrator generate 1 spare read outside of test space
+    // It is not a problem in hardware, but needs such workaround in
+    // test suite
+    dbl2file(a_file, 3.0/0.0); 
   }
 
   len2file(map_file, m-1);
@@ -218,21 +222,21 @@ int main(void) {
   srand (static_cast <unsigned> (time(0)));
 
   // first generate corner sizes
-  generate(3, 3, 3, map_file);
+  // generate(2, 2, 2, map_file);
   // generate(1, 1, 1, map_file);
   // generate(MAX_MTRX, MAX_MTRX, MAX_MTRX, map_file);
 
-  // generate(1, MAX_MTRX, MAX_MTRX, map_file);
+  generate(1, MAX_MTRX, MAX_MTRX, map_file);
   // generate(1, 1, MAX_MTRX, map_file);
-
+  //
   // generate(MAX_MTRX, MAX_MTRX, 1, map_file);
   // generate(MAX_MTRX, 1, 1, map_file);
   // generate(MAX_MTRX, MAX_MTRX, MAX_MTRX, map_file);
   // generate(MAX_MTRX, MAX_MTRX, MAX_MTRX, map_file);
-
+  //
   // generate(MAX_MTRX, MAX_MTRX, 1, map_file);
   // generate(1, MAX_MTRX, MAX_MTRX, map_file);
-
+  //
   // generate(1, MAX_MTRX, MAX_MTRX, map_file);
   // generate(MAX_MTRX, 1, MAX_MTRX, map_file);
   // generate(MAX_MTRX, MAX_MTRX, 1, map_file);

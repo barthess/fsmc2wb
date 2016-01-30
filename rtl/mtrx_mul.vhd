@@ -50,7 +50,10 @@ entity mtrx_mul is
     bram_dat_a_i : in  std_logic_vector(BRAM_DW-1 downto 0);
     bram_dat_b_i : in  std_logic_vector(BRAM_DW-1 downto 0);
     bram_dat_c_o : out std_logic_vector(BRAM_DW-1 downto 0);
-    bram_we_o    : out std_logic
+    bram_ce_a_o  : out std_logic;
+    bram_ce_b_o  : out std_logic;
+    bram_ce_c_o  : out std_logic;
+    bram_we_o    : out std_logic -- for C bram
   );
 end mtrx_mul;
 
@@ -76,10 +79,9 @@ architecture beh of mtrx_mul is
   -- counter for detecting end of matrix multiplication. Its width looks 
   -- strange because it must be able to store multiplication of matrices sizes
   signal accum_rdy_cnt : std_logic_vector((MTRX_AW+1)*2 - 1 downto 0) := (others => '0');
-  signal multiplication_finished : std_logic := '0';
+  signal accum_end : std_logic := '0';
   signal adr_incr_rst : std_logic := '1';
   signal adr_incr_end : std_logic := '0';
-  signal adr_incr_dv  : std_logic := '0';
 
   -- accumulator control signals
   signal accum_rst : std_logic := '1';
@@ -88,7 +90,7 @@ architecture beh of mtrx_mul is
   signal accum_rdy : std_logic := '0'; -- used to increment overall operation count
   
   -- state machine
-  type state_t is (IDLE, WAIT_ADR_VALID, ACTIVE, FLUSH1, FLUSH2, FLUSH3);
+  type state_t is (IDLE, WAIT_ADR_VALID1, WAIT_ADR_VALID2, WAIT_DATA, ACTIVE, FLUSH1, FLUSH2, FLUSH3);
   signal state : state_t := IDLE;
 
 begin
@@ -111,18 +113,14 @@ begin
       clk_i => clk_i,
       rst_i => adr_incr_rst,
       
-      row_rdy_o => open,
       end_o => adr_incr_end,
-      dv_o  => adr_incr_dv,
       
       m_i => mtrx_m,
       p_i => mtrx_p,
       n_i => mtrx_n,
       
-      a_adr_o  => A_adr,
-      b_adr_o  => B_adr,
-      a_tran_i => '0',
-      b_tran_i => '0'
+      a_adr_o => A_adr,
+      b_adr_o => B_adr
     );
 
   --
@@ -163,12 +161,12 @@ begin
   op_tracker : process(clk_i) 
   begin
     if rising_edge(clk_i) then
-      multiplication_finished <= '0';
+      accum_end <= '0';
       
       if accum_rst = '0' then
         if (accum_rdy = '1') then
           if (C_adr = accum_rdy_cnt) then
-            multiplication_finished <= '1';
+            accum_end <= '1';
           end if;
           C_adr <= C_adr + 1;
         end if;
@@ -196,29 +194,36 @@ begin
         if (stb_i = '1' and sel_i = '1' and we_i = '1') then
           err_o <= '0';
           ack_o <= '1';
-          state <= WAIT_ADR_VALID;
 
           mtrx_m <= dat_i(4 downto 0);
           mtrx_p <= dat_i(9 downto 5);
           mtrx_n <= dat_i(14 downto 10);
-          adr_incr_rst <= '0';
           
           tmp_m := ('0' & dat_i(4 downto 0)) + 1;
           tmp_n := ('0' & dat_i(14 downto 10)) + 1;
           accum_rdy_cnt <= tmp_m * tmp_n;
       
           accum_cnt <= dat_i(9 downto 5);
+          state <= WAIT_ADR_VALID1;
         else
           err_o <= '1';
           ack_o <= '0';
         end if;
         
-      when WAIT_ADR_VALID =>
+      when WAIT_ADR_VALID1 =>
+        state <= WAIT_ADR_VALID2;
+        adr_incr_rst <= '0';
+        
+      when WAIT_ADR_VALID2 =>
         accum_rst <= '0';
-        if adr_incr_dv = '1' then
-          state <= ACTIVE;
-        end if;
+        bram_ce_a_o <= '1';
+        bram_ce_b_o <= '1';
+        bram_ce_c_o <= '1';
+        state <= WAIT_DATA;
 
+      when WAIT_DATA =>
+        state <= ACTIVE;
+        
       when ACTIVE =>
         mul_nd <= '1';
         mul_ce <= '1';
@@ -226,8 +231,10 @@ begin
           adr_incr_rst <= '1';
           state <= FLUSH1;
         end if;
-
+       
       when FLUSH1 =>
+        bram_ce_a_o <= '0';
+        bram_ce_b_o <= '0';
         state <= FLUSH2;
         
       when FLUSH2 =>
@@ -235,7 +242,8 @@ begin
         state <= FLUSH3;
         
       when FLUSH3 =>
-        if (multiplication_finished = '1') then
+        if (accum_end = '1') then
+          bram_ce_c_o <= '0';
           mul_ce <= '0';
           state <= IDLE;
         end if;
