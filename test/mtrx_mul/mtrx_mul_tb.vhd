@@ -43,7 +43,7 @@ ARCHITECTURE behavior OF mtrx_mul_tb IS
  
     COMPONENT mtrx_mul
     PORT(
-         the_end_o : OUT  std_logic;
+         rdy_o : OUT  std_logic;
          
          clk_i : IN  std_logic;
          sel_i : IN  std_logic;
@@ -81,7 +81,7 @@ ARCHITECTURE behavior OF mtrx_mul_tb IS
    signal bram_dat_b_i : std_logic_vector(63 downto 0) := (others => '0');
    
  	--Outputs
-   signal the_end_o : std_logic;
+   signal rdy_o : std_logic;
    signal err_o : std_logic;
    signal ack_o : std_logic;
    signal dat_o : std_logic_vector(15 downto 0);
@@ -107,7 +107,7 @@ BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
    uut: mtrx_mul PORT MAP (
-          the_end_o => the_end_o,
+          rdy_o => rdy_o,
           clk_i => clk_i,
           sel_i => sel_i,
           stb_i => stb_i,
@@ -234,7 +234,7 @@ BEGIN
         stb_i <= '0';
         sel_i <= '0';
         we_i  <= '0';
-        if (the_end_o = '1') then
+        if (rdy_o = '1') then
           state <= IDLE;
         end if;
         

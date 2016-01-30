@@ -27,7 +27,7 @@ entity mtrx_mul is
   );
   Port (
     -- external interrupt pin
-    the_end_o : out std_logic;
+    rdy_o : out std_logic;
     
     -- control WB interface
     clk_i : in  std_logic;
@@ -76,10 +76,12 @@ architecture beh of mtrx_mul is
   signal mtrx_m : std_logic_vector (MTRX_AW-1 downto 0) := (others => '0');
   signal mtrx_p : std_logic_vector (MTRX_AW-1 downto 0) := (others => '0');
   signal mtrx_n : std_logic_vector (MTRX_AW-1 downto 0) := (others => '0');
-  -- counter for detecting end of matrix multiplication. Its width looks 
-  -- strange because it must be able to store multiplication of matrices sizes
-  signal accum_rdy_cnt : std_logic_vector((MTRX_AW+1)*2 - 1 downto 0) := (others => '0');
+  
+  -- counters end of operation detect
+  signal end_cnt_m : std_logic_vector(MTRX_AW-1 downto 0) := (others => '0');
+  signal end_cnt_n : std_logic_vector(MTRX_AW-1 downto 0) := (others => '0');
   signal accum_end : std_logic := '0';
+  
   signal adr_incr_rst : std_logic := '1';
   signal adr_incr_end : std_logic := '0';
 
@@ -100,7 +102,7 @@ begin
   bram_adr_c_o <= C_adr;
   bram_we_o    <= accum_rdy;
 
-  the_end_o  <= '1' when (state = IDLE) else '0';
+  rdy_o  <= '1' when (state = IDLE) else '0';
 
   --
   -- addres incrementer
@@ -155,32 +157,45 @@ begin
     );
 
   --
-  -- address increment for result matrix
-  -- total operation tracker
+  -- 1) address increment for result matrix
+  -- 2) total operation tracker
   --
-  op_tracker : process(clk_i) 
+  state_tracker : process(clk_i) 
   begin
     if rising_edge(clk_i) then
       accum_end <= '0';
       
-      if accum_rst = '0' then
-        if (accum_rdy = '1') then
-          if (C_adr = accum_rdy_cnt) then
-            accum_end <= '1';
-          end if;
-          C_adr <= C_adr + 1;
-        end if;
-      else
-        C_adr <= (others => '0');
+      if state = WAIT_ADR_VALID1 then
+        end_cnt_m <= mtrx_m;
+        end_cnt_n <= mtrx_n;
       end if;
+      
+      if accum_rst = '0' and accum_rdy = '1' then
+
+        C_adr <= C_adr + 1;
+
+        end_cnt_n <= end_cnt_n - 1;
+        if (end_cnt_n = 0) then
+          end_cnt_n <= mtrx_n;
+          end_cnt_m <= end_cnt_m - 1;
+        end if;
+        
+        if end_cnt_m = 0 and end_cnt_n = 0 then
+          C_adr <= (others => '0');
+          accum_end <= '1';
+
+        end if;
+      end if;
+      
     end if;
   end process;
+
+
 
   --
   -- Main state machine
   --
   main : process(clk_i)
-    variable tmp_m, tmp_n : std_logic_vector(MTRX_AW downto 0);
   begin
     --dat_o(WB_AW-1 downto BRAM_AW) <= (others => '0');
     dat_o <= (others => '0');
@@ -198,10 +213,6 @@ begin
           mtrx_m <= dat_i(4 downto 0);
           mtrx_p <= dat_i(9 downto 5);
           mtrx_n <= dat_i(14 downto 10);
-          
-          tmp_m := ('0' & dat_i(4 downto 0)) + 1;
-          tmp_n := ('0' & dat_i(14 downto 10)) + 1;
-          accum_rdy_cnt <= tmp_m * tmp_n;
       
           accum_cnt <= dat_i(9 downto 5);
           state <= WAIT_ADR_VALID1;
