@@ -2,6 +2,7 @@ _ngo/
 _xmsgs/
 iseconfig/
 isim/
+netgen/
 planAhead_run*/
 .Xil/
 xst/
