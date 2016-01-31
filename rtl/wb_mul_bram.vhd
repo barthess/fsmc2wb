@@ -18,14 +18,14 @@ entity wb_mul_bram is
     WB_DW   : positive := 16;
     MUL_AW  : positive := 10;
     MUL_DW  : positive := 64;
-    BRAM_AW : positive := 12; 
-    SLAVES  : positive := 4   -- total wishbone slaves count (3 BRAMs + 1 control)
+    BRAM_AW : positive := 12;
+    SLAVES  : positive := 9   -- total wishbone slaves count (BRAMs + 1 control)
   );
   Port (
-    dat_rdy_o : out std_logic; -- data ready interrupt
+    dat_rdy_o : out std_logic; -- data ready external interrupt
     
-    clk_mul_i : in  std_logic;
-    clk_wb_i  : in  std_logic_vector(SLAVES-2 downto 0);
+    clk_mul_i : in  std_logic; -- high speed clock for multiplier
+    clk_wb_i  : in  std_logic_vector(SLAVES-2 downto 0); -- slow wishbone clock
     
     sel_i : in  std_logic_vector(SLAVES-1 downto 0);
     stb_i : in  std_logic_vector(SLAVES-1 downto 0);
@@ -42,24 +42,115 @@ end wb_mul_bram;
 
 architecture beh of wb_mul_bram is
   
-  -- wires connecting BRAMs to multiplier
-  signal wire_bram2mul_clk    : std_logic_vector(3-1        downto 0);
-  signal wire_bram2mul_adr    : std_logic_vector(3*MUL_AW-1 downto 0);
-  signal wire_bram2mul_dat_i  : std_logic_vector(3*MUL_DW-1 downto 0);
-  signal wire_bram2mul_dat_o  : std_logic_vector(3*MUL_DW-1 downto 0);
-  signal wire_bram2mul_we     : std_logic_vector(3-1        downto 0);
-  signal wire_bram2mul_en     : std_logic_vector(3-1        downto 0);
+  constant BRAMs : integer := SLAVES-1;
   
   -- wires to connect BRAMs to wishbone adapters
-  signal wire_bram2wb_clk    : std_logic_vector(3-1           downto 0);
-  signal wire_bram2wb_adr    : std_logic_vector(3*BRAM_AW-1   downto 0);
-  signal wire_bram2wb_dat_i  : std_logic_vector(3*WB_DW-1     downto 0);
-  signal wire_bram2wb_dat_o  : std_logic_vector(3*WB_DW-1     downto 0);
-  signal wire_bram2wb_we     : std_logic_vector(3-1           downto 0);
-  signal wire_bram2wb_en     : std_logic_vector(3-1           downto 0);      
+  signal wire_bram2wb_clk    : std_logic_vector(BRAMs-1         downto 0);
+  signal wire_bram2wb_adr    : std_logic_vector(BRAMs*BRAM_AW-1 downto 0);
+  signal wire_bram2wb_dat_i  : std_logic_vector(BRAMs*WB_DW-1   downto 0);
+  signal wire_bram2wb_dat_o  : std_logic_vector(BRAMs*WB_DW-1   downto 0);
+  signal wire_bram2wb_we     : std_logic_vector(BRAMs-1         downto 0);
+  signal wire_bram2wb_en     : std_logic_vector(BRAMs-1         downto 0);      
   
-  constant BRAMs : integer := SLAVES-1;
+  -- wires connecting BRAMs to routers connected to multiplier
+  signal wire_bram2mul_clk    : std_logic_vector(BRAMs-1        downto 0);
+  signal wire_bram2mul_adr    : std_logic_vector(BRAMs*MUL_AW-1 downto 0);
+  signal wire_bram2mul_dat_i  : std_logic_vector(BRAMs*MUL_DW-1 downto 0);
+  signal wire_bram2mul_dat_o  : std_logic_vector(BRAMs*MUL_DW-1 downto 0);
+  signal wire_bram2mul_we     : std_logic_vector(BRAMs-1        downto 0);
+  signal wire_bram2mul_en     : std_logic_vector(BRAMs-1        downto 0);
+
+  signal mul_dat_a_select : std_logic_vector(2 downto 0);
+  signal mul_dat_b_select : std_logic_vector(2 downto 0);
+  signal mul2bram_we_select : std_logic_vector(2 downto 0);  
+  signal mul_adr_select : std_logic_vector(2*BRAMS-1 downto 0);-- select input for address bus matrix (8 muxers with 2-bit address)
+  
+  signal mul_a_dat : std_logic_vector(MUL_DW-1 downto 0);
+  signal mul_b_dat : std_logic_vector(MUL_DW-1 downto 0);
+  signal mul_c_dat : std_logic_vector(MUL_DW-1 downto 0);
+    
+  signal mul_adr_a : std_logic_vector(MUL_AW-1 downto 0);
+  signal mul_adr_b : std_logic_vector(MUL_AW-1 downto 0);
+  signal mul_adr_c : std_logic_vector(MUL_AW-1 downto 0);
+  constant mul_adr_z : std_logic_vector(MUL_AW-1 downto 0) := (others => '0');
+  
+  signal mul2bram_we : std_logic;
+  
 begin
+
+  -- hardcoded addresses for debug
+  
+  mul_dat_a_select <= "000";
+  mul_dat_b_select <= "001";
+  mul2bram_we_select <= "010";
+  mul_adr_select <= "00" & "01" & "10" & "11" & 
+                    "00" & "00" & "00" & "00";
+  
+  --
+  -- connect all BRAMs input together
+  --
+  result_outputs : for n in 0 to BRAMs-1 generate 
+  begin
+    wire_bram2mul_dat_i((n+1)*MUL_DW-1 downto n*MUL_DW) <= mul_c_dat;
+    wire_bram2mul_clk(n) <= clk_mul_i;
+    wire_bram2mul_en(n) <= '1';
+  end generate;
+  
+  -- 
+  -- 
+  --
+  we_router : entity work.demuxer
+  generic map (
+    AW => 3, -- address width (select bits count)
+    DW => 1,  -- data width 
+    default => '0'
+  )
+  port map (
+    A     => mul2bram_we_select,
+    di(0) => mul2bram_we,
+    do    => wire_bram2mul_we
+  );
+
+  --
+  -- addres router from mul to brams
+  -- 
+  adr_abc_router : entity work.bus_matrix
+  generic map (
+    AW   => 2, -- address width in bits
+    ocnt => BRAMS, -- output ports count
+    DW   => MUL_AW -- data bus width 
+  )
+  port map (
+    A  => mul_adr_select,
+    di => mul_adr_a & mul_adr_b & mul_adr_c & mul_adr_z,
+    do => wire_bram2mul_adr
+  );
+
+  --
+  -- connects BRAMs outputs to A or B input of multiplier
+  --
+  dat_ab_router : entity work.bus_matrix
+  generic map (
+    AW   => 3, -- address width in bits
+    ocnt => 2, -- output ports count
+    DW   => 64 -- data bus width 
+  )
+  port map (
+    A  => mul_dat_a_select & mul_dat_b_select,
+    di => wire_bram2mul_dat_o,
+    do(127 downto 64) => mul_a_dat,
+    do(63 downto 0)   => mul_b_dat
+  );
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
   
   --
   -- Connect multiplier to BRAMs and and to WB
@@ -69,10 +160,11 @@ begin
     WB_AW   => WB_AW,
     WB_DW   => WB_DW,
     BRAM_AW => MUL_AW,
-    BRAM_DW => MUL_DW
+    BRAM_DW => MUL_DW,
+    MTRX_AW => 5
   )
   port map (
-    dat_rdy_o => dat_rdy_o,
+    rdy_o => dat_rdy_o,
     
     -- mul to WB interface
     clk_i => clk_mul_i,
@@ -86,13 +178,21 @@ begin
     dat_i => dat_i((BRAMs+1)*WB_DW-1 downto BRAMs*WB_DW),
 
     -- BRAM interface
-    bram_clk_o => wire_bram2mul_clk,
-    bram_adr_o => wire_bram2mul_adr,
-    bram_dat_i => wire_bram2mul_dat_o,
-    bram_dat_o => wire_bram2mul_dat_i,
-    bram_we_o  => wire_bram2mul_we,
-    bram_en_o  => wire_bram2mul_en
+    
+    bram_adr_a_o => mul_adr_a,
+    bram_adr_b_o => mul_adr_b,
+    bram_adr_c_o => mul_adr_c,
+    bram_dat_a_i => mul_a_dat,
+    bram_dat_b_i => mul_b_dat,
+    bram_dat_c_o => mul_c_dat,
+    bram_ce_a_o  => open,
+    bram_ce_b_o  => open,
+    bram_ce_c_o  => open,
+    bram_we_o => mul2bram_we
   );
+  
+  
+  
   
   --
   -- generate and connect BRAMs to Multiplicator and wishbone adaptors
