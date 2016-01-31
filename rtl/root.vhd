@@ -142,7 +142,7 @@ begin
 		LOCKED   => clk_locked
 	);
   clk_wb  <= clk_100mhz;
-  clk_mul <= clk_200mhz;
+  clk_mul <= clk_100mhz;
 
   --
   -- connect stubs to unused wishbone slots
@@ -340,7 +340,7 @@ begin
   --
   -- multiplicator with integrated BRAMs
   --
-  wb_mul_bram : entity work.wb_mul_bram
+  mtrx_math : entity work.mtrx_math
     generic map (
       WB_AW => WB_AW,
       WB_DW => FSMC_DW
