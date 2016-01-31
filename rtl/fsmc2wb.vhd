@@ -33,11 +33,11 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity fsmc2wb is
   Generic (
-    AW : positive; -- total FSMC address width
-    DW : positive; -- data witdth
-    USENBL : std_logic; -- set to '1' if you want NBL (byte select) pin support
-    AWSEL  : positive; -- address lines used for slave select
-    AWSLAVE : positive -- wishbone slave address width 
+    AW : positive := 23; -- total FSMC address width
+    DW : positive := 16; -- data witdth
+    USENBL : std_logic :='0'; -- set to '1' if you want NBL (byte select) pin support
+    AWSEL  : positive :=4; -- address lines used for slave select
+    AWSLAVE : positive := 16 -- wishbone slave address width 
   );
 	Port (
     clk_i : in std_logic; -- high speed internal FPGA clock
