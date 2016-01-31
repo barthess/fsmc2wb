@@ -142,20 +142,11 @@ begin
     do(63 downto 0)   => mul_b_dat
   );
   
-  
-  
-  
 
-  
-  
-  
-  
-  
-  
   --
   -- Connect multiplier to BRAMs and and to WB
   --
-  mtrx_mul : entity work.mtrx_mul
+  mtrx_mul : entity work.mtrx_scale
   generic map (
     WB_AW   => WB_AW,
     WB_DW   => WB_DW,
@@ -190,8 +181,6 @@ begin
     bram_ce_c_o  => open,
     bram_we_o => mul2bram_we
   );
-  
-  
   
   
   --
