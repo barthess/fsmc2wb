@@ -39,7 +39,7 @@ entity root is
     FSMC_AW   : positive := 23;
     FSMC_DW   : positive := 16;
     WB_AW     : positive := 16;
-    WBSTUBS   : positive := 2
+    WBSTUBS   : positive := 5
   );
   port ( 
     CLK_IN_27MHZ : in std_logic;
@@ -91,14 +91,15 @@ signal wire_memtest_bram_we   : std_logic_vector(0 downto 0);
 signal wire_memtest_bram_clk  : std_logic;
 
 -- wires for multiplier combined with BRAMs
-signal wire_mul2wb_sel    : std_logic_vector(4-1 downto 0);
-signal wire_mul2wb_stb    : std_logic_vector(4-1 downto 0);
-signal wire_mul2wb_we     : std_logic_vector(4-1 downto 0);
-signal wire_mul2wb_err    : std_logic_vector(4-1 downto 0);
-signal wire_mul2wb_ack    : std_logic_vector(4-1 downto 0);
-signal wire_mul2wb_adr    : std_logic_vector(4*WB_AW-1   downto 0);
-signal wire_mul2wb_dat_o  : std_logic_vector(4*FSMC_DW-1 downto 0);
-signal wire_mul2wb_dat_i  : std_logic_vector(4*FSMC_DW-1 downto 0);
+constant MTRX_CNT : positive := 9; -- 8 brams + 1 control
+signal wire_mul2wb_sel    : std_logic_vector(MTRX_CNT-1 downto 0);
+signal wire_mul2wb_stb    : std_logic_vector(MTRX_CNT-1 downto 0);
+signal wire_mul2wb_we     : std_logic_vector(MTRX_CNT-1 downto 0);
+signal wire_mul2wb_err    : std_logic_vector(MTRX_CNT-1 downto 0);
+signal wire_mul2wb_ack    : std_logic_vector(MTRX_CNT-1 downto 0);
+signal wire_mul2wb_adr    : std_logic_vector(MTRX_CNT*WB_AW-1   downto 0);
+signal wire_mul2wb_dat_o  : std_logic_vector(MTRX_CNT*FSMC_DW-1 downto 0);
+signal wire_mul2wb_dat_i  : std_logic_vector(MTRX_CNT*FSMC_DW-1 downto 0);
 
 -- wires for wishbone stubs
 signal wb_stub_sel   : std_logic_vector(WBSTUBS - 1         downto 0);
@@ -121,8 +122,8 @@ signal wb_led_dat_i : std_logic_vector(FSMC_DW-1 downto 0);
 signal wb_led_dat_o : std_logic_vector(FSMC_DW-1 downto 0);
 
 -- clock wires
-signal clk_333mhz : std_logic;
-signal clk_166mhz : std_logic;
+signal clk_300mhz : std_logic;
+signal clk_200mhz : std_logic;
 signal clk_100mhz : std_logic;
 signal clk_locked : std_logic;
 signal clk_wb     : std_logic;
@@ -135,8 +136,8 @@ begin
   --
 	clk_src : entity work.clk_src port map (
 		CLK_IN1  => CLK_IN_27MHZ,
-  	CLK_OUT1 => clk_333mhz,
-		CLK_OUT2 => clk_166mhz,
+  	CLK_OUT1 => clk_300mhz,
+		CLK_OUT2 => clk_200mhz,
 		CLK_OUT3 => clk_100mhz,
 		LOCKED   => clk_locked
 	);
@@ -194,11 +195,11 @@ begin
   --
   fsmc2wb : entity work.fsmc2wb 
     generic map (
-      AW => FSMC_AW,
-      DW => FSMC_DW,
-      AWSEL => 3,
+      AW      => FSMC_AW,
+      DW      => FSMC_DW,
+      AWSEL   => 4,
       AWSLAVE => WB_AW,
-      USENBL => '0'
+      USENBL  => '0'
     )
     port map (
       clk_i => clk_wb,
@@ -221,45 +222,45 @@ begin
 --      ack_i => wb_stub_ack,
 --      dat_i => wb_stub_dat_o
       
-      sel_o(7 downto 8-WBSTUBS)           => wb_stub_sel,
-      sel_o(5 downto 2)                   => wire_mul2wb_sel,
+      sel_o(15 downto 16-WBSTUBS)         => wb_stub_sel,
+      sel_o(10 downto 2)                  => wire_mul2wb_sel,
       sel_o(1)                            => wb_led_sel,
       sel_o(0)                            => wire_memtest_wb_sel,
       
-      stb_o(7 downto 8-WBSTUBS)           => wb_stub_stb,
-      stb_o(5 downto 2)                   => wire_mul2wb_stb,
+      stb_o(15 downto 16-WBSTUBS)         => wb_stub_stb,
+      stb_o(10 downto 2)                  => wire_mul2wb_stb,
       stb_o(1)                            => wb_led_stb,
       stb_o(0)                            => wire_memtest_wb_stb,
       
-      we_o(7 downto 8-WBSTUBS)            => wb_stub_we,
-      we_o(5 downto 2)                    => wire_mul2wb_we,
+      we_o(15 downto 16-WBSTUBS)          => wb_stub_we,
+      we_o(10 downto 2)                   => wire_mul2wb_we,
       we_o(1)                             => wb_led_we,
       we_o(0)                             => wire_memtest_wb_we,
       
-      adr_o(WB_AW*8-1 downto WB_AW*6)     => wb_stub_adr,
-      adr_o(WB_AW*6-1 downto WB_AW*2)     => wire_mul2wb_adr,
-      adr_o(WB_AW*2-1 downto WB_AW)       => wb_led_adr,
-      adr_o(WB_AW-1   downto 0)           => wire_memtest_wb_adr,
+      adr_o(WB_AW*16-1 downto WB_AW*11)     => wb_stub_adr,
+      adr_o(WB_AW*11-1 downto WB_AW*2)      => wire_mul2wb_adr,
+      adr_o(WB_AW*2-1 downto WB_AW)         => wb_led_adr,
+      adr_o(WB_AW-1   downto 0)             => wire_memtest_wb_adr,
       
-      dat_o(FSMC_DW*8-1 downto FSMC_DW*6) => wb_stub_dat_i,
-      dat_o(FSMC_DW*6-1 downto FSMC_DW*2) => wire_mul2wb_dat_i,
-      dat_o(FSMC_DW*2-1 downto FSMC_DW)   => wb_led_dat_i,
-      dat_o(FSMC_DW-1   downto 0)         => wire_memtest_wb_dat_i,
+      dat_o(FSMC_DW*16-1 downto FSMC_DW*11) => wb_stub_dat_i,
+      dat_o(FSMC_DW*11-1 downto FSMC_DW*2)  => wire_mul2wb_dat_i,
+      dat_o(FSMC_DW*2-1 downto FSMC_DW)     => wb_led_dat_i,
+      dat_o(FSMC_DW-1   downto 0)           => wire_memtest_wb_dat_i,
       
-      err_i(7 downto 8-WBSTUBS)           => wb_stub_err,
-      err_i(5 downto 2)                   => wire_mul2wb_err,
-      err_i(1)                            => wb_led_err,
-      err_i(0)                            => wire_memtest_wb_err,
+      err_i(15 downto 16-WBSTUBS)           => wb_stub_err,
+      err_i(10 downto 2)                    => wire_mul2wb_err,
+      err_i(1)                              => wb_led_err,
+      err_i(0)                              => wire_memtest_wb_err,
       
-      ack_i(7 downto 8-WBSTUBS)           => wb_stub_ack,
-      ack_i(5 downto 2)                   => wire_mul2wb_ack,
-      ack_i(1)                            => wb_led_ack,
-      ack_i(0)                            => wire_memtest_wb_ack,
+      ack_i(15 downto 16-WBSTUBS)           => wb_stub_ack,
+      ack_i(10 downto 2)                    => wire_mul2wb_ack,
+      ack_i(1)                              => wb_led_ack,
+      ack_i(0)                              => wire_memtest_wb_ack,
       
-      dat_i(FSMC_DW*8-1 downto FSMC_DW*6) => wb_stub_dat_o,
-      dat_i(FSMC_DW*6-1 downto FSMC_DW*2) => wire_mul2wb_dat_o,
-      dat_i(FSMC_DW*2-1 downto FSMC_DW)   => wb_led_dat_o,
-      dat_i(FSMC_DW-1   downto 0)         => wire_memtest_wb_dat_o
+      dat_i(FSMC_DW*16-1 downto FSMC_DW*11) => wb_stub_dat_o,
+      dat_i(FSMC_DW*11-1 downto FSMC_DW*2)  => wire_mul2wb_dat_o,
+      dat_i(FSMC_DW*2-1 downto FSMC_DW)     => wb_led_dat_o,
+      dat_i(FSMC_DW-1   downto 0)           => wire_memtest_wb_dat_o
     );
 
   --
