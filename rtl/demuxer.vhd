@@ -35,7 +35,7 @@ entity demuxer is
   generic (
     AW : positive;  -- address width (select bits count)
     DW : positive;  -- data width 
-    default : std_logic
+    default : std_logic -- value for unselected outputs
   );
   port(
     A  : in  STD_LOGIC_VECTOR(AW-1 downto 0);
