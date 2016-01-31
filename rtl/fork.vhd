@@ -6,14 +6,9 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 -- arithmetic functions with Signed or Unsigned values
 use IEEE.NUMERIC_STD.ALL;
 
--- Uncomment the following library declaration if instantiating
--- any Xilinx primitives in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
-
 entity fork is
   generic (
-    ocnt : positive; -- number of forked outputs
+    ocnt : positive; -- number of output forks
     DW   : positive  -- data width 
   );
   port(
@@ -22,14 +17,15 @@ entity fork is
   );
 end fork;
 
-
+--
+--
+--
 architecture Behavioral of fork is
 begin
   
-  forking : for n in 0 to ocnt generate 
+  forking : for n in 0 to ocnt-1 generate 
   begin
     do ((n+1)*DW-1 downto n*DW) <= di;
   end generate;
 
 end Behavioral;
-

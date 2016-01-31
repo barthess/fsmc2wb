@@ -122,7 +122,7 @@ signal wb_led_dat_i : std_logic_vector(FSMC_DW-1 downto 0);
 signal wb_led_dat_o : std_logic_vector(FSMC_DW-1 downto 0);
 
 -- clock wires
-signal clk_300mhz : std_logic;
+signal clk_250mhz : std_logic;
 signal clk_200mhz : std_logic;
 signal clk_100mhz : std_logic;
 signal clk_locked : std_logic;
@@ -136,7 +136,7 @@ begin
   --
 	clk_src : entity work.clk_src port map (
 		CLK_IN1  => CLK_IN_27MHZ,
-  	CLK_OUT1 => clk_300mhz,
+  	CLK_OUT1 => clk_250mhz,
 		CLK_OUT2 => clk_200mhz,
 		CLK_OUT3 => clk_100mhz,
 		LOCKED   => clk_locked

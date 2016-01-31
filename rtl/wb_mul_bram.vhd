@@ -86,15 +86,29 @@ begin
   mul_adr_select <= "00" & "01" & "10" & "11" & 
                     "00" & "00" & "00" & "00";
   
+  
   --
   -- connect all BRAMs input together
   --
-  result_outputs : for n in 0 to BRAMs-1 generate 
-  begin
-    wire_bram2mul_dat_i((n+1)*MUL_DW-1 downto n*MUL_DW) <= mul_c_dat;
-    wire_bram2mul_clk(n) <= clk_mul_i;
-    wire_bram2mul_en(n) <= '1';
-  end generate;
+  wire_bram2mul_clk <= (others => clk_mul_i);
+  wire_bram2mul_en <= (others =>'1');
+  dat_fork : entity work.fork
+  generic map (
+    ocnt => BRAMS,
+    DW   => MUL_DW
+  )
+  port map (
+    di => mul_c_dat,
+    do => wire_bram2mul_dat_i
+  );
+  
+--  result_outputs : for n in 0 to BRAMs-1 generate 
+--  begin
+--    wire_bram2mul_dat_i((n+1)*MUL_DW-1 downto n*MUL_DW) <= mul_c_dat;
+--    wire_bram2mul_clk(n) <= clk_mul_i;
+--    wire_bram2mul_en(n) <= '1';
+--  end generate;
+  
   
   -- 
   -- 
