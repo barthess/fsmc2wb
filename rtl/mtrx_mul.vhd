@@ -22,7 +22,7 @@ entity mtrx_mul is
     BRAM_AW : positive := 10;
     BRAM_DW : positive := 64;
     -- 2**MTRX_AW is maximum allowable index of matrices
-    -- used for adder chain instantiation
+    -- need for correct adder chain instantiation
     MTRX_AW : positive := 5
   );
   Port (
@@ -41,8 +41,7 @@ entity mtrx_mul is
     dat_i : in  std_logic_vector(WB_DW-1 downto 0);
 
     -- BRAM interface
-    -- Note: there are no clocks and enables for BRAMs. They are
-    -- handled in higher level
+    -- Note: there are no clocks for BRAMs. They are handle in higher level
     bram_adr_a_o : out std_logic_vector(BRAM_AW-1 downto 0);
     bram_adr_b_o : out std_logic_vector(BRAM_AW-1 downto 0);
     bram_adr_c_o : out std_logic_vector(BRAM_AW-1 downto 0);
@@ -80,7 +79,7 @@ architecture beh of mtrx_mul is
   -- counters end of operation detect
   signal end_cnt_m : std_logic_vector(MTRX_AW-1 downto 0) := (others => '0');
   signal end_cnt_n : std_logic_vector(MTRX_AW-1 downto 0) := (others => '0');
-  signal accum_end : std_logic := '0';
+  signal the_end   : std_logic := '0'; -- matrix multiplication completed
   
   signal adr_incr_rst : std_logic := '1';
   signal adr_incr_end : std_logic := '0';
@@ -163,7 +162,7 @@ begin
   state_tracker : process(clk_i) 
   begin
     if rising_edge(clk_i) then
-      accum_end <= '0';
+      the_end <= '0';
       
       if state = WAIT_ADR_VALID1 then
         end_cnt_m <= mtrx_m;
@@ -182,7 +181,7 @@ begin
         
         if end_cnt_m = 0 and end_cnt_n = 0 then
           C_adr <= (others => '0');
-          accum_end <= '1';
+          the_end <= '1';
 
         end if;
       end if;
@@ -253,7 +252,7 @@ begin
         state <= FLUSH3;
         
       when FLUSH3 =>
-        if (accum_end = '1') then
+        if (the_end = '1') then
           bram_ce_c_o <= '0';
           mul_ce <= '0';
           state <= IDLE;
