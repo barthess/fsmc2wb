@@ -31,6 +31,8 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity dadd_link is
   Generic (
+    -- Width of register used for state tracking
+    -- As a result the link able to accumulate 2**WIDTH numbers
     WIDTH : positive := 5
   );
   Port (
