@@ -26,7 +26,7 @@ entity mtrx_dot is
     clk_i : in  std_logic;
     op_i  : in  std_logic_vector(15 downto 0); -- size of input operands
     rdy_o : out std_logic := '0'; -- active high 1 clock
-    
+
     -- BRAM interface
     -- Note: there are no clocks for BRAMs. They are handle in higher level
     bram_adr_a_o : out std_logic_vector(BRAM_AW-1 downto 0);
