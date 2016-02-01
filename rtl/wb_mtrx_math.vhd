@@ -21,7 +21,7 @@ entity mtrx_math is
     SLAVES  : positive := 9   -- total wishbone slaves count (BRAMs + 1 control)
   );
   Port (
-    dat_rdy_o : out std_logic; -- data ready external interrupt
+    rdy_o : out std_logic; -- data ready external interrupt. Active high when IDLE
     
     clk_mul_i : in std_logic; -- high speed clock for multiplier
     clk_wb_i  : in std_logic_vector(SLAVES-1 downto 0); -- slow wishbone clock
@@ -76,8 +76,11 @@ architecture beh of mtrx_math is
 
   signal crossbar_dat_a_select : std_logic_vector(2 downto 0);
   signal crossbar_dat_b_select : std_logic_vector(2 downto 0);
-  signal crossbar_we_select    : std_logic_vector(2 downto 0);  
-  signal crossbar_adr_select   : std_logic_vector(2*BRAMS-1 downto 0);-- select input for address bus matrix (8 muxers with 2-bit address)
+  signal crossbar_we_select    : std_logic_vector(2 downto 0);
+  --type adr_sel_t is array (0 to BRAMS-1) of std_logic_vector(1 downto 0);
+  --signal crossbar_adr_select : adr_sel_t := (others => (others => '0'));
+  -- select input for address bus matrix (8 muxers with 2-bit address)
+  signal crossbar_adr_select   : std_logic_vector(2*BRAMS-1 downto 0) := (others => '1');
 
   -- wires between BRAMs and matrix math
   signal crossbar_dat_a, crossbar_dat_b, crossbar_dat_c : std_logic_vector(MUL_DW-1 downto 0);
@@ -88,18 +91,19 @@ architecture beh of mtrx_math is
   signal math_adr_a, math_adr_b, math_adr_c : std_logic_vector(MATHs*MUL_AW-1 downto 0);
   signal math_we, math_rdy : std_logic_vector(MATHs-1 downto 0) := (others => '0');
   signal math_rst : std_logic_vector(MATHs-1 downto 0) := (others => '1');
-  signal common_we, common_rdy : std_logic;
+  signal common_we : std_logic;
+  -- multiplexer control register
   signal math_select : std_logic_vector(1 downto 0) := "00";
-  signal math_op : std_logic_vector(WB_DW-1 downto 0); -- single register for all maths
+  -- math operation. Generally is matrix sizes. Single register for all.
+  signal math_op : std_logic_vector(WB_DW-1 downto 0);
   
 begin
 
-  --------------------------------------------------------------------
-  -- multiplex together different matrix operations
-  --------------------------------------------------------------------
+  ----------------------------------------------------------------------------------
+  -- multiplex data from different matrix operations into cross bar
+  ----------------------------------------------------------------------------------
   -- ORed rdy and we
   common_we  <= '1' when (math_we  > 0) else '0';
-  common_rdy <= '1' when (math_rdy > 0) else '0';
 
   -- fan out data bus A
   fork_math_dat_a : entity work.fork
@@ -172,9 +176,9 @@ begin
   );
   
   
-  --------------------------------------------------------------------
-  -- multiplex together different BRAMs
-  --------------------------------------------------------------------
+  ----------------------------------------------------------------------------------
+  -- multiplex data from BRAMs into crossbar
+  ----------------------------------------------------------------------------------
   wire_bram2mul_clk <= (others => clk_mul_i);
   wire_bram2mul_en <= (others =>'1');
   
@@ -211,7 +215,7 @@ begin
   )
   port map (
     A  => crossbar_adr_select,
-    di => crossbar_adr_a & crossbar_adr_b & crossbar_adr_c & "0000000000",
+    di => "0000000000" & crossbar_adr_a & crossbar_adr_b & crossbar_adr_c,
     do => wire_bram2mul_adr
   );
 
@@ -223,16 +227,15 @@ begin
     DW   => 64 -- data bus width 
   )
   port map (
-    A  => crossbar_dat_a_select & crossbar_dat_b_select,
+    A  => crossbar_dat_b_select & crossbar_dat_a_select,
     di => wire_bram2mul_dat_o,
-    do(127 downto 64) => crossbar_dat_a,
-    do(63 downto 0)   => crossbar_dat_b
+    do(127 downto 64) => crossbar_dat_b,
+    do(63 downto 0)   => crossbar_dat_a
   );
   
-  --------------------------------------------------------------------
-  -- Instantiate different matrix math
-  --------------------------------------------------------------------
-
+  ----------------------------------------------------------------------------------
+  -- Instantiate matrix math
+  ----------------------------------------------------------------------------------
   -- dot product multiplier
   mtrx_dot : entity work.mtrx_dot
   generic map (
@@ -341,10 +344,9 @@ begin
     bram_we_o    => math_we(MATH_CROSS)
   );
   
-  --------------------------------------------------------------------
+  ----------------------------------------------------------------------------------
   -- Wishbone interconnect
-  --------------------------------------------------------------------
-  
+  ----------------------------------------------------------------------------------
   -- generate and connect BRAMs to Matrix crossbar and to wishbone adaptors
   brams2mul : for n in 0 to BRAMs-1 generate 
   begin
@@ -400,19 +402,9 @@ begin
   end generate;
 
 
-
-
-
-
-  -- hardcoded addresses for debug
-  
-
-
-
-
-  --------------------------------------------------------------------
+  ----------------------------------------------------------------------------------
   -- Wishbone control logic
-  --------------------------------------------------------------------
+  ----------------------------------------------------------------------------------
   ack_o(SLAVES-1) <= ctl_ack_o;
   err_o(SLAVES-1) <= ctl_err_o;
   ctl_stb_i       <= stb_i(SLAVES-1);
@@ -423,10 +415,12 @@ begin
   ctl_clk_i       <= clk_wb_i(SLAVES-1);
   dat_o(WB_DW*SLAVES-1 downto WB_DW*(SLAVES-1)) <= ctl_dat_o;
 
+  rdy_o  <= '1' when (state = IDLE) else '0';
   
-  main : process(ctl_clk_i)
+  control_logic : process(ctl_clk_i)
     variable cmd, a_num, b_num, c_num : std_logic_vector(2 downto 0) := "000";
     variable dv : std_logic := '0'; -- data valid bit
+    variable a, b, c : integer := 0;
   begin
 
     if rising_edge(ctl_clk_i) then
@@ -437,7 +431,7 @@ begin
       when IDLE =>
         if (ctl_stb_i = '1' and ctl_sel_i = '1') then
           if (ctl_adr_i > x"0007") then
-            ctl_err_o<= '1';
+            ctl_err_o <= '1';
           else
             ctl_ack_o <= '1';
             if (ctl_we_i = '1') then
@@ -448,14 +442,16 @@ begin
           end if;
         end if;
         
-        dv    := math_ctl_reg(0)(12);
-        cmd   := math_ctl_reg(0)(11 downto 9);
-        c_num := math_ctl_reg(0)(8  downto 6);
-        b_num := math_ctl_reg(0)(5  downto 3);
         a_num := math_ctl_reg(0)(2  downto 0);
+        b_num := math_ctl_reg(0)(5  downto 3);
+        c_num := math_ctl_reg(0)(8  downto 6);
+        cmd   := math_ctl_reg(0)(11 downto 9);
+        dv    := math_ctl_reg(0)(12);
+        
         if dv = '1' then
-          if (cmd < MATHs-1) then
+          if (cmd <= MATHs-1) then
             state <= DECODE;
+            math_op <= math_ctl_reg(1);
           else
             math_ctl_reg(0)(12) <= '0';
             ctl_err_o <= '1';
@@ -468,13 +464,27 @@ begin
         crossbar_dat_b_select <= b_num;
         crossbar_we_select    <= c_num;
         
-  crossbar_adr_select <= "00" & "01" & "10" & "11" & 
-                         "00" & "00" & "00" & "00";
+        -- connect address buses
+        a := conv_integer(a_num);
+        b := conv_integer(b_num);
+        c := conv_integer(c_num);
+        crossbar_adr_select <= (others => '1');
+        crossbar_adr_select((a+1)*2-1 downto a*2) <= "00";
+        crossbar_adr_select((b+1)*2-1 downto b*2) <= "01";
+        crossbar_adr_select((c+1)*2-1 downto c*2) <= "10";
         
+        -- connect data and address buses from math to crossbar
+        math_select <= cmd(1 downto 0);
+        
+        -- release reset on selected math and wait ready interrupts
+        math_rst(conv_integer(cmd)) <= '0';
         state <= EXEC;
         
       when EXEC =>
-        state <= IDLE;
+        if (math_rdy(conv_integer(cmd)) = '1') then
+          math_rst(conv_integer(cmd)) <= '1';
+          state <= IDLE;
+        end if;
         
       end case;
     end if;
