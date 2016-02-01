@@ -244,7 +244,8 @@ begin
   mtrx_dot : entity work.mtrx_dot
   generic map (
     BRAM_AW => MUL_AW,
-    BRAM_DW => MUL_DW
+    BRAM_DW => MUL_DW,
+    DAT_LAT => 1
   )
   port map (
     rdy_o => math_rdy(MATH_DOT),
@@ -596,6 +597,7 @@ begin
         
       when EXEC =>
         if (math_rdy(conv_integer(cmd)) = '1') then
+          math_ctl_reg(0)(12) <= '0';
           math_rst(conv_integer(cmd)) <= '1';
           state <= IDLE;
         end if;

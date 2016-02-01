@@ -18,7 +18,12 @@ use IEEE.NUMERIC_STD.ALL;
 entity mtrx_dot is
   Generic (
     BRAM_AW : positive := 10;
-    BRAM_DW : positive := 64
+    BRAM_DW : positive := 64;
+    -- Data latency. Consist of:
+    -- 1) address path to BRAM
+    -- 2) BRAM data latency (generally 1 cycle)
+    -- 3) data path from BRAM to device
+    DAT_LAT : positive range 1 to 15 := 1
   );
   Port (
     -- control interface
@@ -53,20 +58,23 @@ architecture beh of mtrx_dot is
   signal A_adr : std_logic_vector(BRAM_AW-1 downto 0) := ZERO;
   signal B_adr : std_logic_vector(BRAM_AW-1 downto 0) := ZERO;
   signal C_adr : std_logic_vector(BRAM_AW-1 downto 0) := ZERO;
+  signal nd_track : std_logic_vector(BRAM_AW-1 downto 0) := ZERO;
   
   constant ZERO64 : std_logic_vector(BRAM_DW-1 downto 0) := (others => '0');
   signal result_buf : std_logic_vector(BRAM_DW-1 downto 0) := ZERO64;
   signal result_we : std_logic := '0';
 
   -- multiplicator control signals
-  signal mul_nd : std_logic := '0';
-  signal mul_ce : std_logic := '0';
+  signal mul_nd  : std_logic := '0';
+  signal mul_ce  : std_logic := '0';
   signal mul_rdy : std_logic;
 
   -- state machine
-  type state_t is (IDLE, PRELOAD, ACTIVE, HALT);
+  type state_t is (IDLE, PRELOAD, ACTIVE, FLUSH, HALT);
   signal state : state_t := IDLE;
-
+  
+  signal latency : natural range 0 to 15 := DAT_LAT;
+  
 begin
   
   bram_adr_a_o <= A_adr;
@@ -77,7 +85,7 @@ begin
   bram_ce_a_o  <= '1';
   bram_ce_b_o  <= '1';
   bram_ce_c_o  <= '1';
-  
+
   --
   -- multiplicator
   --
@@ -95,15 +103,17 @@ begin
   --
   -- Main state machine
   --
-  main : process(clk_i, rst_i)
+  main : process(clk_i)
   begin
-    if (rst_i = '1') then
-      state <= IDLE;
-      result_we <= '0';
-      rdy_o <= '0';
-    else
-      if rising_edge(clk_i) then
-        
+    if rising_edge(clk_i) then
+      if (rst_i = '1') then
+        state     <= IDLE;
+        result_we <= '0';
+        rdy_o     <= '0';
+        mul_nd    <= '0';
+        mul_ce    <= '0';
+        latency   <= DAT_LAT;
+      else    
         rdy_o <= '0';
         
         case state is
@@ -111,28 +121,46 @@ begin
           A_adr <= op_i(9 downto 0);
           B_adr <= op_i(9 downto 0);
           C_adr <= op_i(9 downto 0);
+          nd_track <= op_i(9 downto 0);
+          latency <= latency - 1;
           state <= PRELOAD;
-          
+
         when PRELOAD =>
           A_adr <= A_adr - 1;
           B_adr <= B_adr - 1;
-          state <= ACTIVE;
-          
+          latency <= latency - 1;
+          if (latency = 0) then
+            state <= ACTIVE;
+          end if;
+
         when ACTIVE =>
-          mul_nd <= '1';
           mul_ce <= '1';
           A_adr <= A_adr - 1;
           B_adr <= B_adr - 1;
+
+          if (nd_track /= 0) then
+            nd_track <= nd_track - 1;
+            mul_nd <= '1';
+          else
+            mul_nd <= '0';
+          end if;
+          
           if (mul_rdy = '1') then
             C_adr <= C_adr - 1;
             result_we <= '1';
-            if (C_adr = ZERO) then
-              mul_nd <= '0';
+            if (C_adr = 0) then
               mul_ce <= '0';
               result_we <= '0';
-              rdy_o <= '1';
-              state <= HALT;
+              latency <= DAT_LAT / 2; -- important for the following FLUSH state
+              state <= FLUSH;
             end if;
+          end if;
+          
+        when FLUSH =>
+          latency <= latency - 1;
+          if (latency = 0) then
+            rdy_o <= '1';
+            state <= HALT;
           end if;
           
         when HALT =>
