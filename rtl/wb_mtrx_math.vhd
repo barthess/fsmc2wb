@@ -43,11 +43,15 @@ architecture beh of mtrx_math is
   
   constant BRAMs : integer := SLAVES-1;
   
-  constant MATHs      : integer := 4; -- number of bus master devices
-  constant MATH_DOT   : integer := 0;
+  constant MATHs      : integer := 8; -- number of bus master devices
+  constant MATH_DOT   : integer := 0; -- TODO: change DOT to SCALE
   constant MATH_TRN   : integer := 1;
-  constant MATH_SUM   : integer := 2;
+  constant MATH_SUM   : integer := 2; -- also used for diff
   constant MATH_CROSS : integer := 3;
+  constant MATH_CPY   : integer := 4;
+  constant MATH_SET   : integer := 5;
+  constant MATH_STUB1 : integer := 6;
+  constant MATH_STUB2 : integer := 7;
   
   -- wires for control interface connection to WB
   signal ctl_ack_o, ctl_err_o, ctl_stb_i, ctl_we_i, ctl_sel_i, ctl_clk_i : std_logic;
@@ -93,7 +97,7 @@ architecture beh of mtrx_math is
   signal math_rst : std_logic_vector(MATHs-1 downto 0) := (others => '1');
   signal common_we : std_logic;
   -- multiplexer control register
-  signal math_select : std_logic_vector(1 downto 0) := "00";
+  signal math_select : std_logic_vector(2 downto 0) := "000";
   -- math operation. Generally is matrix sizes. Single register for all.
   signal math_op : std_logic_vector(WB_DW-1 downto 0);
   
@@ -105,7 +109,7 @@ begin
   -- ORed rdy and we
   common_we  <= '1' when (math_we  > 0) else '0';
 
-  -- fan out data bus A
+  -- fan out DAT bus A
   fork_math_dat_a : entity work.fork
   generic map (
     ocnt => MATHs,
@@ -116,7 +120,7 @@ begin
     do => math_dat_a
   );
   
-  -- fan out data bus B
+  -- fan out DAT bus B
   fork_math_dat_b : entity work.fork
   generic map (
     ocnt => MATHs,
@@ -127,10 +131,10 @@ begin
     do => math_dat_b
   );
   
-  -- Multiplex data bus C
+  -- Multiplex DAT bus C
   mux_math_dat_c : entity work.muxer
   generic map (
-    AW => 2,
+    AW => 3,
     DW => MUL_DW
   )
   port map (
@@ -139,10 +143,10 @@ begin
     di => math_dat_c
   );
   
-  -- Multiplex address for bus A
+  -- Multiplex ADR for bus A
   mux_math_adr_a : entity work.muxer
   generic map (
-    AW => 2,
+    AW => 3,
     DW => MUL_AW
   )
   port map (
@@ -151,10 +155,10 @@ begin
     di => math_adr_a
   );
   
-  -- Multiplex address for bus B
+  -- Multiplex ADR for bus B
   mux_math_adr_b : entity work.muxer
   generic map (
-    AW => 2,
+    AW => 3,
     DW => MUL_AW
   )
   port map (
@@ -163,10 +167,10 @@ begin
     di => math_adr_b
   );
   
-  -- Multiplex address for bus C
+  -- Multiplex ADR for bus C
   mux_math_adr_c : entity work.muxer
   generic map (
-    AW => 2,
+    AW => 3,
     DW => MUL_AW
   )
   port map (
@@ -215,7 +219,7 @@ begin
   )
   port map (
     A  => crossbar_adr_select,
-    di => "0000000000" & crossbar_adr_a & crossbar_adr_b & crossbar_adr_c,
+    di => "0000000000" & crossbar_adr_c  & crossbar_adr_b & crossbar_adr_a,
     do => wire_bram2mul_adr
   );
 
@@ -230,7 +234,7 @@ begin
     A  => crossbar_dat_b_select & crossbar_dat_a_select,
     di => wire_bram2mul_dat_o,
     do(127 downto 64) => crossbar_dat_b,
-    do(63 downto 0)   => crossbar_dat_a
+    do(63  downto 0)  => crossbar_dat_a
   );
   
   ----------------------------------------------------------------------------------
@@ -264,7 +268,7 @@ begin
   );
   
   -- additional test module (transposition)
-  mtrx_trn : entity work.mtrx_dot
+  mtrx_trn : entity work.mtrx_stub
   generic map (
     BRAM_AW => MUL_AW,
     BRAM_DW => MUL_DW
@@ -291,7 +295,7 @@ begin
   );
   
   -- additional test module (sum)
-  mtrx_sum : entity work.mtrx_dot
+  mtrx_sum : entity work.mtrx_stub
   generic map (
     BRAM_AW => MUL_AW,
     BRAM_DW => MUL_DW
@@ -318,7 +322,7 @@ begin
   );
   
   -- additional test module (cross product)
-  mtrx_cross : entity work.mtrx_dot
+  mtrx_cross : entity work.mtrx_stub
   generic map (
     BRAM_AW => MUL_AW,
     BRAM_DW => MUL_DW
@@ -344,6 +348,116 @@ begin
     bram_we_o    => math_we(MATH_CROSS)
   );
   
+  -- additional test module (cross product)
+  mtrx_cpy : entity work.mtrx_cpy
+  generic map (
+    BRAM_AW => MUL_AW,
+    BRAM_DW => MUL_DW
+  )
+  port map (
+    rdy_o => math_rdy(MATH_CPY),
+    
+    -- control interface
+    clk_i => clk_mul_i,
+    rst_i => math_rst(MATH_CPY),
+    op_i  => math_op,
+    
+    -- BRAM interface
+    bram_adr_a_o => math_adr_a((MATH_CPY+1)*MUL_AW-1 downto MATH_CPY*MUL_AW),
+    bram_adr_b_o => math_adr_b((MATH_CPY+1)*MUL_AW-1 downto MATH_CPY*MUL_AW),
+    bram_adr_c_o => math_adr_c((MATH_CPY+1)*MUL_AW-1 downto MATH_CPY*MUL_AW),
+    bram_dat_a_i => math_dat_a((MATH_CPY+1)*MUL_DW-1 downto MATH_CPY*MUL_DW),
+    bram_dat_b_i => math_dat_b((MATH_CPY+1)*MUL_DW-1 downto MATH_CPY*MUL_DW),
+    bram_dat_c_o => math_dat_c((MATH_CPY+1)*MUL_DW-1 downto MATH_CPY*MUL_DW),
+    bram_ce_a_o  => open,
+    bram_ce_b_o  => open,
+    bram_ce_c_o  => open,
+    bram_we_o    => math_we(MATH_CPY)
+  );
+  
+  -- additional test module (cross product)
+  mtrx_set : entity work.mtrx_set
+  generic map (
+    BRAM_AW => MUL_AW,
+    BRAM_DW => MUL_DW
+  )
+  port map (
+    rdy_o => math_rdy(MATH_SET),
+    
+    -- control interface
+    clk_i => clk_mul_i,
+    rst_i => math_rst(MATH_SET),
+    op_i  => math_op,
+    
+    -- BRAM interface
+    bram_adr_a_o => math_adr_a((MATH_SET+1)*MUL_AW-1 downto MATH_SET*MUL_AW),
+    bram_adr_b_o => math_adr_b((MATH_SET+1)*MUL_AW-1 downto MATH_SET*MUL_AW),
+    bram_adr_c_o => math_adr_c((MATH_SET+1)*MUL_AW-1 downto MATH_SET*MUL_AW),
+    bram_dat_a_i => math_dat_a((MATH_SET+1)*MUL_DW-1 downto MATH_SET*MUL_DW),
+    bram_dat_b_i => math_dat_b((MATH_SET+1)*MUL_DW-1 downto MATH_SET*MUL_DW),
+    bram_dat_c_o => math_dat_c((MATH_SET+1)*MUL_DW-1 downto MATH_SET*MUL_DW),
+    bram_ce_a_o  => open,
+    bram_ce_b_o  => open,
+    bram_ce_c_o  => open,
+    bram_we_o    => math_we(MATH_SET)
+  );
+  
+  -- additional test module (cross product)
+  mtrx_stub1 : entity work.mtrx_stub
+  generic map (
+    BRAM_AW => MUL_AW,
+    BRAM_DW => MUL_DW
+  )
+  port map (
+    rdy_o => math_rdy(MATH_STUB1),
+    
+    -- control interface
+    clk_i => clk_mul_i,
+    rst_i => math_rst(MATH_STUB1),
+    op_i  => math_op,
+    
+    -- BRAM interface
+    bram_adr_a_o => math_adr_a((MATH_STUB1+1)*MUL_AW-1 downto MATH_STUB1*MUL_AW),
+    bram_adr_b_o => math_adr_b((MATH_STUB1+1)*MUL_AW-1 downto MATH_STUB1*MUL_AW),
+    bram_adr_c_o => math_adr_c((MATH_STUB1+1)*MUL_AW-1 downto MATH_STUB1*MUL_AW),
+    bram_dat_a_i => math_dat_a((MATH_STUB1+1)*MUL_DW-1 downto MATH_STUB1*MUL_DW),
+    bram_dat_b_i => math_dat_b((MATH_STUB1+1)*MUL_DW-1 downto MATH_STUB1*MUL_DW),
+    bram_dat_c_o => math_dat_c((MATH_STUB1+1)*MUL_DW-1 downto MATH_STUB1*MUL_DW),
+    bram_ce_a_o  => open,
+    bram_ce_b_o  => open,
+    bram_ce_c_o  => open,
+    bram_we_o    => math_we(MATH_STUB1)
+  );
+  
+  -- additional test module (cross product)
+  mtrx_stub2 : entity work.mtrx_stub
+  generic map (
+    BRAM_AW => MUL_AW,
+    BRAM_DW => MUL_DW
+  )
+  port map (
+    rdy_o => math_rdy(MATH_STUB2),
+    
+    -- control interface
+    clk_i => clk_mul_i,
+    rst_i => math_rst(MATH_STUB2),
+    op_i  => math_op,
+    
+    -- BRAM interface
+    bram_adr_a_o => math_adr_a((MATH_STUB2+1)*MUL_AW-1 downto MATH_STUB2*MUL_AW),
+    bram_adr_b_o => math_adr_b((MATH_STUB2+1)*MUL_AW-1 downto MATH_STUB2*MUL_AW),
+    bram_adr_c_o => math_adr_c((MATH_STUB2+1)*MUL_AW-1 downto MATH_STUB2*MUL_AW),
+    bram_dat_a_i => math_dat_a((MATH_STUB2+1)*MUL_DW-1 downto MATH_STUB2*MUL_DW),
+    bram_dat_b_i => math_dat_b((MATH_STUB2+1)*MUL_DW-1 downto MATH_STUB2*MUL_DW),
+    bram_dat_c_o => math_dat_c((MATH_STUB2+1)*MUL_DW-1 downto MATH_STUB2*MUL_DW),
+    bram_ce_a_o  => open,
+    bram_ce_b_o  => open,
+    bram_ce_c_o  => open,
+    bram_we_o    => math_we(MATH_STUB2)
+  );
+  
+  
+  
   ----------------------------------------------------------------------------------
   -- Wishbone interconnect
   ----------------------------------------------------------------------------------
@@ -351,54 +465,54 @@ begin
   brams2mul : for n in 0 to BRAMs-1 generate 
   begin
     bram_mtrx : entity work.bram_mtrx
-      port map (
-        -- BRAM to FSMC via wishbone adapters
-        clka  => wire_bram2wb_clk  (n),
-        addra => wire_bram2wb_adr  ((n+1)*BRAM_AW-1 downto n*BRAM_AW),
-        douta => wire_bram2wb_dat_o((n+1)*WB_DW-1   downto n*WB_DW),
-        dina  => wire_bram2wb_dat_i((n+1)*WB_DW-1   downto n*WB_DW),
-        wea(0)=> wire_bram2wb_we   (n),
-        ena   => wire_bram2wb_en   (n),
-        
-        -- BRAM to Mul
-        clkb  => wire_bram2mul_clk  (n),
-        addrb => wire_bram2mul_adr  ((n+1)*MUL_AW-1 downto n*MUL_AW),
-        doutb => wire_bram2mul_dat_o((n+1)*MUL_DW-1 downto n*MUL_DW),
-        dinb  => wire_bram2mul_dat_i((n+1)*MUL_DW-1 downto n*MUL_DW),
-        web(0)=> wire_bram2mul_we   (n),
-        enb   => wire_bram2mul_en   (n)
-      );
+    port map (
+      -- BRAM to FSMC via wishbone adapters
+      clka  => wire_bram2wb_clk  (n),
+      addra => wire_bram2wb_adr  ((n+1)*BRAM_AW-1 downto n*BRAM_AW),
+      douta => wire_bram2wb_dat_o((n+1)*WB_DW-1   downto n*WB_DW),
+      dina  => wire_bram2wb_dat_i((n+1)*WB_DW-1   downto n*WB_DW),
+      wea(0)=> wire_bram2wb_we   (n),
+      ena   => wire_bram2wb_en   (n),
+      
+      -- BRAM to Mul
+      clkb  => wire_bram2mul_clk  (n),
+      addrb => wire_bram2mul_adr  ((n+1)*MUL_AW-1 downto n*MUL_AW),
+      doutb => wire_bram2mul_dat_o((n+1)*MUL_DW-1 downto n*MUL_DW),
+      dinb  => wire_bram2mul_dat_i((n+1)*MUL_DW-1 downto n*MUL_DW),
+      web(0)=> wire_bram2mul_we   (n),
+      enb   => wire_bram2mul_en   (n)
+    );
   end generate;
 
   -- generate BRAM to WB adapters and conntect them to WB
   brams2wb : for n in 0 to BRAMs-1 generate 
   begin
     bram_adapter : entity work.wb_bram
-      generic map (
-        WB_AW   => WB_AW,
-        BRAM_AW => BRAM_AW,
-        DW      => WB_DW
-      )
-      port map (
-        -- WB interface
-        clk_i => clk_wb_i(n),
-        sel_i => sel_i(n),
-        stb_i => stb_i(n),
-        we_i  => we_i (n),
-        err_o => err_o(n),
-        ack_o => ack_o(n),
-        adr_i => adr_i((n+1)*WB_AW-1 downto n*WB_AW),
-        dat_o => dat_o((n+1)*WB_DW-1 downto n*WB_DW),
-        dat_i => dat_i((n+1)*WB_DW-1 downto n*WB_DW),
+    generic map (
+      WB_AW   => WB_AW,
+      BRAM_AW => BRAM_AW,
+      DW      => WB_DW
+    )
+    port map (
+      -- WB interface
+      clk_i => clk_wb_i(n),
+      sel_i => sel_i(n),
+      stb_i => stb_i(n),
+      we_i  => we_i (n),
+      err_o => err_o(n),
+      ack_o => ack_o(n),
+      adr_i => adr_i((n+1)*WB_AW-1 downto n*WB_AW),
+      dat_o => dat_o((n+1)*WB_DW-1 downto n*WB_DW),
+      dat_i => dat_i((n+1)*WB_DW-1 downto n*WB_DW),
 
-        -- BRAM interface
-        bram_we_o  => wire_bram2wb_we   (n),
-        bram_en_o  => wire_bram2wb_en   (n),
-        bram_clk_o => wire_bram2wb_clk  (n),
-        bram_adr_o => wire_bram2wb_adr  ((n+1)*BRAM_AW-1 downto n*BRAM_AW),
-        bram_dat_i => wire_bram2wb_dat_o((n+1)*WB_DW-1   downto n*WB_DW),
-        bram_dat_o => wire_bram2wb_dat_i((n+1)*WB_DW-1   downto n*WB_DW)
-      );
+      -- BRAM interface
+      bram_we_o  => wire_bram2wb_we   (n),
+      bram_en_o  => wire_bram2wb_en   (n),
+      bram_clk_o => wire_bram2wb_clk  (n),
+      bram_adr_o => wire_bram2wb_adr  ((n+1)*BRAM_AW-1 downto n*BRAM_AW),
+      bram_dat_i => wire_bram2wb_dat_o((n+1)*WB_DW-1   downto n*WB_DW),
+      bram_dat_o => wire_bram2wb_dat_i((n+1)*WB_DW-1   downto n*WB_DW)
+    );
   end generate;
 
 
@@ -438,7 +552,7 @@ begin
               math_ctl_reg(conv_integer(ctl_adr_i)) <= ctl_dat_i;
             else -- read request
               ctl_dat_o <= math_ctl_reg(conv_integer(ctl_adr_i));
-            end if;  
+            end if;
           end if;
         end if;
         
@@ -474,7 +588,7 @@ begin
         crossbar_adr_select((c+1)*2-1 downto c*2) <= "10";
         
         -- connect data and address buses from math to crossbar
-        math_select <= cmd(1 downto 0);
+        math_select <= cmd;
         
         -- release reset on selected math and wait ready interrupts
         math_rst(conv_integer(cmd)) <= '0';
@@ -489,12 +603,6 @@ begin
       end case;
     end if;
   end process;
-
-
-
-
-
-
 
 end beh;
 
