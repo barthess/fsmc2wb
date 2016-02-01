@@ -15,7 +15,7 @@ use IEEE.NUMERIC_STD.ALL;
 --
 --
 --
-entity mtrx_dot is
+entity mtrx_add is
   Generic (
     BRAM_AW : positive := 10;
     BRAM_DW : positive := 64;
@@ -31,7 +31,7 @@ entity mtrx_dot is
     clk_i : in  std_logic;
     op_i  : in  std_logic_vector(15 downto 0); -- size of input operands
     rdy_o : out std_logic := '0'; -- active high 1 cycle
-    scale_not_dot_i : in std_logic;
+    sub_not_add_i : in std_logic;
     
     -- BRAM interface
     -- Note: there are no clocks for BRAMs. They are handle in higher level
@@ -41,15 +41,14 @@ entity mtrx_dot is
     bram_dat_a_i : in  std_logic_vector(BRAM_DW-1 downto 0);
     bram_dat_b_i : in  std_logic_vector(BRAM_DW-1 downto 0);
     bram_dat_c_o : out std_logic_vector(BRAM_DW-1 downto 0);
-    scale_factor_i : in  std_logic_vector(BRAM_DW-1 downto 0);
     bram_we_o    : out std_logic -- for C bram
   );
-end mtrx_dot;
+end mtrx_add;
 
 
 -----------------------------------------------------------------------------
 
-architecture beh of mtrx_dot is
+architecture beh of mtrx_add is
   
   -- operand and result addresses registers
   constant ZERO : std_logic_vector(BRAM_AW-1 downto 0) := (others => '0');
@@ -57,14 +56,12 @@ architecture beh of mtrx_dot is
   signal B_adr : std_logic_vector(BRAM_AW-1 downto 0);
   signal C_adr : std_logic_vector(BRAM_AW-1 downto 0);
   signal nd_track : std_logic_vector(BRAM_AW-1 downto 0);
-  signal mul_result : std_logic_vector(BRAM_DW-1 downto 0);
-  signal mul_b_input : std_logic_vector(BRAM_DW-1 downto 0);
   signal lat_i, lat_o : natural range 0 to 15 := DAT_LAT;
   
   -- multiplicator control signals
-  signal mul_nd  : std_logic := '0';
-  signal mul_ce  : std_logic := '0';
-  signal mul_rdy : std_logic;
+  signal add_nd  : std_logic := '0';
+  signal add_ce  : std_logic := '0';
+  signal add_rdy : std_logic;
 
   -- state machine
   type state_t is (IDLE, PRELOAD, ACTIVE, HALT);
@@ -77,36 +74,22 @@ begin
   bram_adr_a_o <= A_adr;
   bram_adr_b_o <= B_adr;
   bram_adr_c_o <= C_adr;
-  bram_we_o    <= mul_rdy;
-  bram_dat_c_o <= mul_result;
+  bram_we_o    <= add_rdy;
 
   --
-  -- selector between scale factor and B input
+  -- adder
   --
-  dat_b_or_scale : entity work.muxer
-  generic map (
-    AW => 1,
-    DW => BRAM_DW
-  )
-  port map (
-    A(0)  => scale_not_dot_i,
-    do => mul_b_input,
-    di => scale_factor_i &
-          bram_dat_a_i
-  );
-  
-  --
-  -- multiplicator
-  --
-  dmul : entity work.dmul
+  dadd : entity work.dadd
   port map (
     a      => bram_dat_a_i,
-    b      => mul_b_input,
-    result => mul_result,
+    b      => bram_dat_b_i,
+    result => bram_dat_c_o,
     clk    => clk_i,
-    ce     => mul_ce,
-    rdy    => mul_rdy,
-    operation_nd => mul_nd
+    ce     => add_ce,
+    rdy    => add_rdy,
+    operation(5 downto 1) => "00000",
+    operation(0) => sub_not_add_i,
+    operation_nd => add_nd
   );
   
   --
@@ -117,8 +100,8 @@ begin
     if rising_edge(clk_i) then
       if (rst_i = '1') then
         state   <= IDLE;
-        mul_nd  <= '0';
-        mul_ce  <= '0';
+        add_nd  <= '0';
+        add_ce  <= '0';
         lat_i   <= DAT_LAT;
       else
         case state is
@@ -136,8 +119,8 @@ begin
           lat_i <= lat_i - 1;
           if (lat_i = 0) then
             state <= ACTIVE;
-            mul_ce <= '1';
-            mul_nd <= '1';
+            add_ce <= '1';
+            add_nd <= '1';
           end if;
 
         when ACTIVE =>
@@ -147,13 +130,13 @@ begin
           if (nd_track /= 0) then
             nd_track <= nd_track - 1;
           else
-            mul_nd <= '0';
+            add_nd <= '0';
           end if;
           
-          if (mul_rdy = '1') then
+          if (add_rdy = '1') then
             C_adr <= C_adr - 1;
             if (C_adr = 0) then
-              mul_ce <= '0';
+              add_ce <= '0';
               state  <= HALT;
             end if;
           end if;
@@ -183,7 +166,7 @@ begin
       else
         case rdy_state is
         when RDY_IDLE =>
-          if (C_adr = 0 and mul_rdy = '1' and state = ACTIVE) then
+          if (C_adr = 0 and add_rdy = '1' and state = ACTIVE) then
             rdy_state <= RDY_ACTIVE;
           end if;
 

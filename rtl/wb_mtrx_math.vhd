@@ -43,22 +43,38 @@ architecture beh of mtrx_math is
   
   constant BRAMs : integer := SLAVES-1;
   
-  constant MATHs      : integer := 8; -- number of bus master devices
-  constant MATH_DOT   : integer := 0; -- TODO: change DOT to SCALE
+  -- supported math operations. Note: some of them share single hardware block
+  constant MATHs      : integer := 8; -- total number of slots on bus matrix
+  -- hardware blocks
+  constant MATH_DOT   : integer := 0;
   constant MATH_TRN   : integer := 1;
-  constant MATH_SUM   : integer := 2; -- also used for diff
-  constant MATH_CROSS : integer := 3;
-  constant MATH_CPY   : integer := 4;
-  constant MATH_SET   : integer := 5;
-  constant MATH_STUB1 : integer := 6;
-  constant MATH_STUB2 : integer := 7;
+  constant MATH_ADD   : integer := 2;
+  constant MATH_SET   : integer := 3;
+  constant MATH_CROSS : integer := 4;
+  constant MATH_STUB1 : integer := 5;
+  constant MATH_STUB2 : integer := 6;
+  constant MATH_STUB3 : integer := 7;
+  -- (pseudo)operations codes
+  constant MATH_OP_DOT   : integer := 0; -- uses mtrx_dot
+  constant MATH_OP_SCALE : integer := 1; -- uses mtrx_dot
+  constant MATH_OP_TRN   : integer := 2; -- uses mtrx_trn
+  constant MATH_OP_CPY   : integer := 3; -- uses mtrx_trn
+  constant MATH_OP_ADD   : integer := 4; -- uses mtrx_add
+  constant MATH_OP_SUB   : integer := 5; -- uses mtrx_add
+  constant MATH_OP_SET   : integer := 6; -- uses mtrx_set
+  constant MATH_OP_EYE   : integer := 7; -- uses mtrx_set
+  constant MATH_OP_CROSS : integer := 8; -- uses mtrx_cross
+  constant MATH_OP_INV   : integer := 9; -- unrealised
+  
+  -- data latency on cross bar. Set it to 1 (BRAM latency) if no buffering used
+  constant DAT_LAT : positive := 1; 
   
   -- wires for control interface connection to WB
   signal ctl_ack_o, ctl_err_o, ctl_stb_i, ctl_we_i, ctl_sel_i, ctl_clk_i : std_logic;
   signal ctl_dat_i, ctl_dat_o : std_logic_vector(WB_DW-1 downto 0);
   signal ctl_adr_i : std_logic_vector(WB_AW-1 downto 0);
-  type mat_ctl_reg_t is array (0 to 7) of std_logic_vector(WB_DW-1 downto 0);
-  signal math_ctl_reg : mat_ctl_reg_t := (others => (others => '0'));
+  type math_ctl_reg_t is array (0 to 7) of std_logic_vector(WB_DW-1 downto 0);
+  signal math_ctl_reg : math_ctl_reg_t := (others => (others => '0'));
   type state_t is (IDLE, DECODE, EXEC);
   signal state : state_t := IDLE;
   
@@ -81,8 +97,6 @@ architecture beh of mtrx_math is
   signal crossbar_dat_a_select : std_logic_vector(2 downto 0);
   signal crossbar_dat_b_select : std_logic_vector(2 downto 0);
   signal crossbar_we_select    : std_logic_vector(2 downto 0);
-  --type adr_sel_t is array (0 to BRAMS-1) of std_logic_vector(1 downto 0);
-  --signal crossbar_adr_select : adr_sel_t := (others => (others => '0'));
   -- select input for address bus matrix (8 muxers with 2-bit address)
   signal crossbar_adr_select   : std_logic_vector(2*BRAMS-1 downto 0) := (others => '1');
 
@@ -95,7 +109,10 @@ architecture beh of mtrx_math is
   signal math_adr_a, math_adr_b, math_adr_c : std_logic_vector(MATHs*MUL_AW-1 downto 0);
   signal math_we, math_rdy : std_logic_vector(MATHs-1 downto 0) := (others => '0');
   signal math_rst : std_logic_vector(MATHs-1 downto 0) := (others => '1');
+  signal math_scale_not_dot : std_logic := '0'; -- swithc for scale/dot operations
+  signal math_sub_not_add : std_logic := '0'; -- swithc for scale/dot operations
   signal common_we : std_logic;
+  
   -- multiplexer control register
   signal math_select : std_logic_vector(2 downto 0) := "000";
   -- math operation. Generally is matrix sizes. Single register for all.
@@ -184,7 +201,7 @@ begin
   -- multiplex data from BRAMs into crossbar
   ----------------------------------------------------------------------------------
   wire_bram2mul_clk <= (others => clk_mul_i);
-  wire_bram2mul_en <= (others =>'1');
+  wire_bram2mul_en  <= (others =>'1');
   
   -- connect all BRAM dat_i together
   fork_bram_dat_c : entity work.fork
@@ -245,7 +262,7 @@ begin
   generic map (
     BRAM_AW => MUL_AW,
     BRAM_DW => MUL_DW,
-    DAT_LAT => 1
+    DAT_LAT => DAT_LAT
   )
   port map (
     rdy_o => math_rdy(MATH_DOT),
@@ -254,7 +271,14 @@ begin
     clk_i => clk_mul_i,
     rst_i => math_rst(MATH_DOT),
     op_i  => math_op,
+    scale_not_dot_i => math_scale_not_dot,
     
+    -- scaling factor from control register
+    scale_factor_i => math_ctl_reg(7) & 
+                      math_ctl_reg(6) & 
+                      math_ctl_reg(5) & 
+                      math_ctl_reg(4),
+                      
     -- BRAM interface
     bram_adr_a_o => math_adr_a((MATH_DOT+1)*MUL_AW-1 downto MATH_DOT*MUL_AW),
     bram_adr_b_o => math_adr_b((MATH_DOT+1)*MUL_AW-1 downto MATH_DOT*MUL_AW),
@@ -262,9 +286,6 @@ begin
     bram_dat_a_i => math_dat_a((MATH_DOT+1)*MUL_DW-1 downto MATH_DOT*MUL_DW),
     bram_dat_b_i => math_dat_b((MATH_DOT+1)*MUL_DW-1 downto MATH_DOT*MUL_DW),
     bram_dat_c_o => math_dat_c((MATH_DOT+1)*MUL_DW-1 downto MATH_DOT*MUL_DW),
-    bram_ce_a_o  => open,
-    bram_ce_b_o  => open,
-    bram_ce_c_o  => open,
     bram_we_o    => math_we(MATH_DOT)
   );
   
@@ -296,30 +317,55 @@ begin
   );
   
   -- additional test module (sum)
-  mtrx_sum : entity work.mtrx_stub
+  mtrx_add : entity work.mtrx_add
   generic map (
     BRAM_AW => MUL_AW,
     BRAM_DW => MUL_DW
   )
   port map (
-    rdy_o => math_rdy(MATH_SUM),
+    rdy_o => math_rdy(MATH_ADD),
     
     -- control interface
     clk_i => clk_mul_i,
-    rst_i => math_rst(MATH_SUM),
+    rst_i => math_rst(MATH_ADD),
+    op_i  => math_op,
+    sub_not_add_i => math_sub_not_add,
+    
+    -- BRAM interface
+    bram_adr_a_o => math_adr_a((MATH_ADD+1)*MUL_AW-1 downto MATH_ADD*MUL_AW),
+    bram_adr_b_o => math_adr_b((MATH_ADD+1)*MUL_AW-1 downto MATH_ADD*MUL_AW),
+    bram_adr_c_o => math_adr_c((MATH_ADD+1)*MUL_AW-1 downto MATH_ADD*MUL_AW),
+    bram_dat_a_i => math_dat_a((MATH_ADD+1)*MUL_DW-1 downto MATH_ADD*MUL_DW),
+    bram_dat_b_i => math_dat_b((MATH_ADD+1)*MUL_DW-1 downto MATH_ADD*MUL_DW),
+    bram_dat_c_o => math_dat_c((MATH_ADD+1)*MUL_DW-1 downto MATH_ADD*MUL_DW),
+    bram_we_o    => math_we(MATH_ADD)
+  );
+  
+  -- additional test module (cross product)
+  mtrx_set : entity work.mtrx_stub
+  generic map (
+    BRAM_AW => MUL_AW,
+    BRAM_DW => MUL_DW
+  )
+  port map (
+    rdy_o => math_rdy(MATH_SET),
+    
+    -- control interface
+    clk_i => clk_mul_i,
+    rst_i => math_rst(MATH_SET),
     op_i  => math_op,
     
     -- BRAM interface
-    bram_adr_a_o => math_adr_a((MATH_SUM+1)*MUL_AW-1 downto MATH_SUM*MUL_AW),
-    bram_adr_b_o => math_adr_b((MATH_SUM+1)*MUL_AW-1 downto MATH_SUM*MUL_AW),
-    bram_adr_c_o => math_adr_c((MATH_SUM+1)*MUL_AW-1 downto MATH_SUM*MUL_AW),
-    bram_dat_a_i => math_dat_a((MATH_SUM+1)*MUL_DW-1 downto MATH_SUM*MUL_DW),
-    bram_dat_b_i => math_dat_b((MATH_SUM+1)*MUL_DW-1 downto MATH_SUM*MUL_DW),
-    bram_dat_c_o => math_dat_c((MATH_SUM+1)*MUL_DW-1 downto MATH_SUM*MUL_DW),
+    bram_adr_a_o => math_adr_a((MATH_SET+1)*MUL_AW-1 downto MATH_SET*MUL_AW),
+    bram_adr_b_o => math_adr_b((MATH_SET+1)*MUL_AW-1 downto MATH_SET*MUL_AW),
+    bram_adr_c_o => math_adr_c((MATH_SET+1)*MUL_AW-1 downto MATH_SET*MUL_AW),
+    bram_dat_a_i => math_dat_a((MATH_SET+1)*MUL_DW-1 downto MATH_SET*MUL_DW),
+    bram_dat_b_i => math_dat_b((MATH_SET+1)*MUL_DW-1 downto MATH_SET*MUL_DW),
+    bram_dat_c_o => math_dat_c((MATH_SET+1)*MUL_DW-1 downto MATH_SET*MUL_DW),
     bram_ce_a_o  => open,
     bram_ce_b_o  => open,
     bram_ce_c_o  => open,
-    bram_we_o    => math_we(MATH_SUM)
+    bram_we_o    => math_we(MATH_SET)
   );
   
   -- additional test module (cross product)
@@ -347,60 +393,6 @@ begin
     bram_ce_b_o  => open,
     bram_ce_c_o  => open,
     bram_we_o    => math_we(MATH_CROSS)
-  );
-  
-  -- additional test module (cross product)
-  mtrx_cpy : entity work.mtrx_cpy
-  generic map (
-    BRAM_AW => MUL_AW,
-    BRAM_DW => MUL_DW
-  )
-  port map (
-    rdy_o => math_rdy(MATH_CPY),
-    
-    -- control interface
-    clk_i => clk_mul_i,
-    rst_i => math_rst(MATH_CPY),
-    op_i  => math_op,
-    
-    -- BRAM interface
-    bram_adr_a_o => math_adr_a((MATH_CPY+1)*MUL_AW-1 downto MATH_CPY*MUL_AW),
-    bram_adr_b_o => math_adr_b((MATH_CPY+1)*MUL_AW-1 downto MATH_CPY*MUL_AW),
-    bram_adr_c_o => math_adr_c((MATH_CPY+1)*MUL_AW-1 downto MATH_CPY*MUL_AW),
-    bram_dat_a_i => math_dat_a((MATH_CPY+1)*MUL_DW-1 downto MATH_CPY*MUL_DW),
-    bram_dat_b_i => math_dat_b((MATH_CPY+1)*MUL_DW-1 downto MATH_CPY*MUL_DW),
-    bram_dat_c_o => math_dat_c((MATH_CPY+1)*MUL_DW-1 downto MATH_CPY*MUL_DW),
-    bram_ce_a_o  => open,
-    bram_ce_b_o  => open,
-    bram_ce_c_o  => open,
-    bram_we_o    => math_we(MATH_CPY)
-  );
-  
-  -- additional test module (cross product)
-  mtrx_set : entity work.mtrx_set
-  generic map (
-    BRAM_AW => MUL_AW,
-    BRAM_DW => MUL_DW
-  )
-  port map (
-    rdy_o => math_rdy(MATH_SET),
-    
-    -- control interface
-    clk_i => clk_mul_i,
-    rst_i => math_rst(MATH_SET),
-    op_i  => math_op,
-    
-    -- BRAM interface
-    bram_adr_a_o => math_adr_a((MATH_SET+1)*MUL_AW-1 downto MATH_SET*MUL_AW),
-    bram_adr_b_o => math_adr_b((MATH_SET+1)*MUL_AW-1 downto MATH_SET*MUL_AW),
-    bram_adr_c_o => math_adr_c((MATH_SET+1)*MUL_AW-1 downto MATH_SET*MUL_AW),
-    bram_dat_a_i => math_dat_a((MATH_SET+1)*MUL_DW-1 downto MATH_SET*MUL_DW),
-    bram_dat_b_i => math_dat_b((MATH_SET+1)*MUL_DW-1 downto MATH_SET*MUL_DW),
-    bram_dat_c_o => math_dat_c((MATH_SET+1)*MUL_DW-1 downto MATH_SET*MUL_DW),
-    bram_ce_a_o  => open,
-    bram_ce_b_o  => open,
-    bram_ce_c_o  => open,
-    bram_we_o    => math_we(MATH_SET)
   );
   
   -- additional test module (cross product)
@@ -457,8 +449,34 @@ begin
     bram_we_o    => math_we(MATH_STUB2)
   );
   
+  -- additional test module (cross product)
+  mtrx_stub3 : entity work.mtrx_stub
+  generic map (
+    BRAM_AW => MUL_AW,
+    BRAM_DW => MUL_DW
+  )
+  port map (
+    rdy_o => math_rdy(MATH_STUB3),
+    
+    -- control interface
+    clk_i => clk_mul_i,
+    rst_i => math_rst(MATH_STUB3),
+    op_i  => math_op,
+    
+    -- BRAM interface
+    bram_adr_a_o => math_adr_a((MATH_STUB3+1)*MUL_AW-1 downto MATH_STUB3*MUL_AW),
+    bram_adr_b_o => math_adr_b((MATH_STUB3+1)*MUL_AW-1 downto MATH_STUB3*MUL_AW),
+    bram_adr_c_o => math_adr_c((MATH_STUB3+1)*MUL_AW-1 downto MATH_STUB3*MUL_AW),
+    bram_dat_a_i => math_dat_a((MATH_STUB3+1)*MUL_DW-1 downto MATH_STUB3*MUL_DW),
+    bram_dat_b_i => math_dat_b((MATH_STUB3+1)*MUL_DW-1 downto MATH_STUB3*MUL_DW),
+    bram_dat_c_o => math_dat_c((MATH_STUB3+1)*MUL_DW-1 downto MATH_STUB3*MUL_DW),
+    bram_ce_a_o  => open,
+    bram_ce_b_o  => open,
+    bram_ce_c_o  => open,
+    bram_we_o    => math_we(MATH_STUB3)
+  );
   
-  
+
   ----------------------------------------------------------------------------------
   -- Wishbone interconnect
   ----------------------------------------------------------------------------------
@@ -587,10 +605,12 @@ begin
         crossbar_adr_select((a+1)*2-1 downto a*2) <= "00";
         crossbar_adr_select((b+1)*2-1 downto b*2) <= "01";
         crossbar_adr_select((c+1)*2-1 downto c*2) <= "10";
-        
+
         -- connect data and address buses from math to crossbar
         math_select <= cmd;
-        
+---------------------------------------------------------------------------------------------
+-- HERE MUST BE HUGE SWITCH CASE FOR OPERATION DECODING AND RESET LOGIC
+---------------------------------------------------------------------------------------------
         -- release reset on selected math and wait ready interrupts
         math_rst(conv_integer(cmd)) <= '0';
         state <= EXEC;
