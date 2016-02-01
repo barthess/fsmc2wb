@@ -39,7 +39,7 @@ entity root is
     FSMC_AW   : positive := 23;
     FSMC_DW   : positive := 16;
     WB_AW     : positive := 16;
-    WBSTUBS   : positive := 5
+    WBSTUBS   : positive := 4
   );
   port ( 
     CLK_IN_27MHZ : in std_logic;
@@ -61,7 +61,26 @@ entity root is
     LED_LINE : out std_logic_vector (5 downto 0);
 
     DEV_NULL_BANK1 : out std_logic; -- warning suppressor
-    DEV_NULL_BANK0 : out std_logic -- warning suppressor
+    DEV_NULL_BANK0 : out std_logic; -- warning suppressor
+
+    -- GTP ports
+    REFCLK0_N_IN : in  std_logic;
+    REFCLK0_P_IN : in  std_logic;
+    RXN_IN       : in  std_logic_vector(3 downto 0);
+    RXP_IN       : in  std_logic_vector(3 downto 0);
+    TXN_OUT      : out std_logic_vector(3 downto 0);
+    TXP_OUT      : out std_logic_vector(3 downto 0);
+
+    -- I2C ports
+    FCLK : in    std_logic;             -- 24.84 MHz
+    CSDA : inout std_logic;
+    CSCL : inout std_logic;
+
+    -- MCU UART ports (named relative to MCU)
+    UART6_TX  : in  std_logic;
+    UART6_RX  : out std_logic;
+    UART6_RTS : in  std_logic;
+    UART6_CTS : out std_logic
 	);
 end root;
 
@@ -121,6 +140,16 @@ signal wb_led_adr   : std_logic_vector(WB_AW-1   downto 0);
 signal wb_led_dat_i : std_logic_vector(FSMC_DW-1 downto 0);
 signal wb_led_dat_o : std_logic_vector(FSMC_DW-1 downto 0);
 
+-- wires for wishbone_to_gtp module
+signal wb_gtp_sel   : std_logic;
+signal wb_gtp_stb   : std_logic;
+signal wb_gtp_we    : std_logic;
+signal wb_gtp_err   : std_logic;
+signal wb_gtp_ack   : std_logic;
+signal wb_gtp_adr   : std_logic_vector(WB_AW-1 downto 0);
+signal wb_gtp_dat_i : std_logic_vector(FSMC_DW-1 downto 0);
+signal wb_gtp_dat_o : std_logic_vector(FSMC_DW-1 downto 0);
+
 -- clock wires
 signal clk_200mhz : std_logic;
 signal clk_150mhz : std_logic;
@@ -168,6 +197,32 @@ begin
       );
   end generate;
 
+   wb_to_gtp : entity work.wb_to_gtp
+      port map (
+        REFCLK0_N_IN    => REFCLK0_N_IN,
+        REFCLK0_P_IN    => REFCLK0_P_IN,
+        CSDA            => CSDA,
+        CSCL            => CSCL,
+        RST_IN          => '0',         -- temporary
+        FCLK            => FCLK,        -- 24.84 MHz
+        RXN_IN          => RXN_IN,
+        RXP_IN          => RXP_IN,
+        TXN_OUT         => TXN_OUT,
+        TXP_OUT         => TXP_OUT,
+        UART6_TX        => UART6_TX,
+        UART6_RX        => UART6_RX,
+        UART6_RTS       => UART6_RTS,
+        UART6_CTS       => UART6_CTS,
+        MODTELEM_RX_MNU => open,
+        clk_i           => clk_wb,
+        sel_i           => wb_gtp_sel,
+        stb_i           => wb_gtp_stb,
+        we_i            => wb_gtp_we,
+        err_o           => wb_gtp_err,
+        ack_o           => wb_gtp_ack,
+        adr_i           => wb_gtp_adr,
+        dat_o           => wb_gtp_dat_o,
+        dat_i           => wb_gtp_dat_i);
   --
   -- connect wishbone based LED strip
   --
@@ -223,41 +278,49 @@ begin
 --      dat_i => wb_stub_dat_o
       
       sel_o(15 downto 16-WBSTUBS)         => wb_stub_sel,
+      sel_o(11)                           => wb_gtp_sel,
       sel_o(10 downto 2)                  => wire_mul2wb_sel,
       sel_o(1)                            => wb_led_sel,
       sel_o(0)                            => wire_memtest_wb_sel,
       
       stb_o(15 downto 16-WBSTUBS)         => wb_stub_stb,
+      stb_o(11)                           => wb_gtp_stb,
       stb_o(10 downto 2)                  => wire_mul2wb_stb,
       stb_o(1)                            => wb_led_stb,
       stb_o(0)                            => wire_memtest_wb_stb,
       
       we_o(15 downto 16-WBSTUBS)          => wb_stub_we,
+      we_o(11)                            => wb_gtp_we,
       we_o(10 downto 2)                   => wire_mul2wb_we,
       we_o(1)                             => wb_led_we,
       we_o(0)                             => wire_memtest_wb_we,
       
-      adr_o(WB_AW*16-1 downto WB_AW*11)     => wb_stub_adr,
+      adr_o(WB_AW*16-1 downto WB_AW*12)     => wb_stub_adr,
+      adr_o(WB_AW*12-1 downto WB_AW*11)     => wb_gtp_adr,
       adr_o(WB_AW*11-1 downto WB_AW*2)      => wire_mul2wb_adr,
       adr_o(WB_AW*2-1 downto WB_AW)         => wb_led_adr,
       adr_o(WB_AW-1   downto 0)             => wire_memtest_wb_adr,
       
-      dat_o(FSMC_DW*16-1 downto FSMC_DW*11) => wb_stub_dat_i,
+      dat_o(FSMC_DW*16-1 downto FSMC_DW*12) => wb_stub_dat_i,
+      dat_o(FSMC_DW*12-1 downto FSMC_DW*11) => wb_gtp_dat_i,
       dat_o(FSMC_DW*11-1 downto FSMC_DW*2)  => wire_mul2wb_dat_i,
       dat_o(FSMC_DW*2-1 downto FSMC_DW)     => wb_led_dat_i,
       dat_o(FSMC_DW-1   downto 0)           => wire_memtest_wb_dat_i,
       
       err_i(15 downto 16-WBSTUBS)           => wb_stub_err,
+      err_i(11)                             => wb_gtp_err,
       err_i(10 downto 2)                    => wire_mul2wb_err,
       err_i(1)                              => wb_led_err,
       err_i(0)                              => wire_memtest_wb_err,
       
       ack_i(15 downto 16-WBSTUBS)           => wb_stub_ack,
+      ack_i(11)                             => wb_gtp_ack,
       ack_i(10 downto 2)                    => wire_mul2wb_ack,
       ack_i(1)                              => wb_led_ack,
       ack_i(0)                              => wire_memtest_wb_ack,
       
-      dat_i(FSMC_DW*16-1 downto FSMC_DW*11) => wb_stub_dat_o,
+      dat_i(FSMC_DW*16-1 downto FSMC_DW*12) => wb_stub_dat_o,
+      dat_i(FSMC_DW*12-1 downto FSMC_DW*11) => wb_gtp_dat_o,
       dat_i(FSMC_DW*11-1 downto FSMC_DW*2)  => wire_mul2wb_dat_o,
       dat_i(FSMC_DW*2-1 downto FSMC_DW)     => wb_led_dat_o,
       dat_i(FSMC_DW-1   downto 0)           => wire_memtest_wb_dat_o

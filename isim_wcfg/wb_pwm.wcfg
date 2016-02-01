@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="/home/pilgrim/Git/fsmc2wb/wb_pwm_tb_isim_beh.wdb" id="1" type="auto">
+         <top_modules>
+            <top_module name="numeric_std" />
+            <top_module name="std_logic_1164" />
+            <top_module name="std_logic_arith" />
+            <top_module name="std_logic_unsigned" />
+            <top_module name="wb_pwm_tb" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="22" />
+   <wvobject fp_name="/wb_pwm_tb/rst" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">rst</obj_property>
+      <obj_property name="ObjectShortName">rst</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wb_pwm_tb/clk_gtp_tx" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_gtp_tx</obj_property>
+      <obj_property name="ObjectShortName">clk_gtp_tx</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wb_pwm_tb/clk_gtp_rx" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_gtp_rx</obj_property>
+      <obj_property name="ObjectShortName">clk_gtp_rx</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wb_pwm_tb/clk_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_i</obj_property>
+      <obj_property name="ObjectShortName">clk_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wb_pwm_tb/pwm_data_in" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">pwm_data_in[15:0]</obj_property>
+      <obj_property name="ObjectShortName">pwm_data_in[15:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wb_pwm_tb/pwm_en_in" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">pwm_en_in</obj_property>
+      <obj_property name="ObjectShortName">pwm_en_in</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wb_pwm_tb/pwm_data_out" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">pwm_data_out[15:0]</obj_property>
+      <obj_property name="ObjectShortName">pwm_data_out[15:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wb_pwm_tb/pwm_en_out" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">pwm_en_out</obj_property>
+      <obj_property name="ObjectShortName">pwm_en_out</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wb_pwm_tb/sel_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">sel_i</obj_property>
+      <obj_property name="ObjectShortName">sel_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wb_pwm_tb/stb_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">stb_i</obj_property>
+      <obj_property name="ObjectShortName">stb_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wb_pwm_tb/we_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">we_i</obj_property>
+      <obj_property name="ObjectShortName">we_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wb_pwm_tb/err_o" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">err_o</obj_property>
+      <obj_property name="ObjectShortName">err_o</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wb_pwm_tb/ack_o" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ack_o</obj_property>
+      <obj_property name="ObjectShortName">ack_o</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wb_pwm_tb/adr_i" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">adr_i[15:0]</obj_property>
+      <obj_property name="ObjectShortName">adr_i[15:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wb_pwm_tb/dat_o" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">dat_o[15:0]</obj_property>
+      <obj_property name="ObjectShortName">dat_o[15:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wb_pwm_tb/dat_i" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">dat_i[15:0]</obj_property>
+      <obj_property name="ObjectShortName">dat_i[15:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_gtp" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">pwm_reg_rx_gtp[0:15]</obj_property>
+      <obj_property name="ObjectShortName">pwm_reg_rx_gtp[0:15]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_gtp[0]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[0]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_gtp[0]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_gtp[1]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[1]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_gtp[1]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_gtp[2]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[2]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_gtp[2]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_gtp[3]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[3]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_gtp[3]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_gtp[4]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[4]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_gtp[4]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_gtp[5]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[5]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_gtp[5]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_gtp[6]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[6]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_gtp[6]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_gtp[7]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[7]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_gtp[7]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_gtp[8]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[8]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_gtp[8]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_gtp[9]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[9]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_gtp[9]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_gtp[10]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[10]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_gtp[10]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_gtp[11]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[11]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_gtp[11]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_gtp[12]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[12]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_gtp[12]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_gtp[13]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[13]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_gtp[13]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_gtp[14]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[14]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_gtp[14]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_gtp[15]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[15]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_gtp[15]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_wb" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">pwm_reg_rx_wb[0:15]</obj_property>
+      <obj_property name="ObjectShortName">pwm_reg_rx_wb[0:15]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_wb[0]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[0]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_wb[0]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_wb[1]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[1]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_wb[1]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_wb[2]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[2]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_wb[2]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_wb[3]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[3]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_wb[3]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_wb[4]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[4]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_wb[4]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_wb[5]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[5]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_wb[5]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_wb[6]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[6]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_wb[6]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_wb[7]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[7]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_wb[7]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_wb[8]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[8]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_wb[8]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_wb[9]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[9]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_wb[9]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_wb[10]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[10]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_wb[10]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_wb[11]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[11]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_wb[11]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_wb[12]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[12]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_wb[12]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_wb[13]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[13]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_wb[13]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_wb[14]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[14]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_wb[14]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_rx_wb[15]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[15]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_rx_wb[15]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_wb" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">pwm_reg_tx_wb[0:15]</obj_property>
+      <obj_property name="ObjectShortName">pwm_reg_tx_wb[0:15]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_wb[0]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[0]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_wb[0]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_wb[1]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[1]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_wb[1]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_wb[2]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[2]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_wb[2]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_wb[3]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[3]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_wb[3]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_wb[4]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[4]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_wb[4]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_wb[5]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[5]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_wb[5]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_wb[6]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[6]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_wb[6]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_wb[7]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[7]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_wb[7]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_wb[8]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[8]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_wb[8]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_wb[9]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[9]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_wb[9]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_wb[10]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[10]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_wb[10]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_wb[11]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[11]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_wb[11]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_wb[12]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[12]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_wb[12]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_wb[13]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[13]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_wb[13]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_wb[14]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[14]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_wb[14]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_wb[15]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[15]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_wb[15]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_gtp" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">pwm_reg_tx_gtp[0:15]</obj_property>
+      <obj_property name="ObjectShortName">pwm_reg_tx_gtp[0:15]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_gtp[0]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[0]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_gtp[0]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_gtp[1]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[1]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_gtp[1]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_gtp[2]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[2]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_gtp[2]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_gtp[3]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[3]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_gtp[3]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_gtp[4]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[4]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_gtp[4]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_gtp[5]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[5]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_gtp[5]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_gtp[6]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[6]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_gtp[6]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_gtp[7]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[7]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_gtp[7]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_gtp[8]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[8]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_gtp[8]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_gtp[9]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[9]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_gtp[9]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_gtp[10]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[10]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_gtp[10]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_gtp[11]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[11]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_gtp[11]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_gtp[12]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[12]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_gtp[12]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_gtp[13]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[13]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_gtp[13]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_gtp[14]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[14]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_gtp[14]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/wb_pwm_tb/DUT/pwm_reg_tx_gtp[15]" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">[15]</obj_property>
+         <obj_property name="ObjectShortName">pwm_reg_tx_gtp[15]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="/wb_pwm_tb/DUT/pwm_rx_cnt" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">pwm_rx_cnt</obj_property>
+      <obj_property name="ObjectShortName">pwm_rx_cnt</obj_property>
+   </wvobject>
+   <wvobject fp_name="/wb_pwm_tb/DUT/pwm_tx_cnt" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">pwm_tx_cnt</obj_property>
+      <obj_property name="ObjectShortName">pwm_tx_cnt</obj_property>
+   </wvobject>
+</wave_config>
