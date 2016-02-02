@@ -63,7 +63,7 @@ begin
       else
         pwm_reg_rx_wb <= pwm_reg_rx_gtp;      -- sync
         addr_int      := to_integer(unsigned(adr_i));
-        if (sel_i = '1' and stb_i = '1') then
+        if (sel_i = '1') then
           if addr_int <= PWM_CHANNELS-1 then  -- address range check
             if we_i = '1' then
               pwm_reg_tx_wb(addr_int) <= dat_i;
