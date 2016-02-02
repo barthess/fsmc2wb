@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 14.7
-# Date: Sun Jan 31 17:35:26 2016
+# Date: Mon Feb  1 20:24:13 2016
 #
 ##############################################################
 #
@@ -40,7 +40,7 @@ SELECT Floating-point xilinx.com:ip:floating_point:5.0
 # END Select
 # BEGIN Parameters
 CSET a_precision_type=Double
-CSET add_sub_value=Add
+CSET add_sub_value=Both
 CSET c_a_exponent_width=11
 CSET c_a_fraction_width=53
 CSET c_compare_operation=Programmable
@@ -69,4 +69,4 @@ CSET result_precision_type=Double
 MISC pkg_timestamp=2012-07-02T11:22:24Z
 # END Extra information
 GENERATE
-# CRC: 4ac6c4ab
+# CRC: 48b2cef2

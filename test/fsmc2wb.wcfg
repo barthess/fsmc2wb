@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="/home/barthess/projects/xilinx/fsmc2wb/fsmc2wb_tb_isim_beh.wdb" id="1" type="auto">
+         <top_modules>
+            <top_module name="attributes" />
+            <top_module name="fsmc2wb_tb" />
+            <top_module name="numeric_std" />
+            <top_module name="std_logic_1164" />
+            <top_module name="std_logic_arith" />
+            <top_module name="std_logic_misc" />
+            <top_module name="std_logic_unsigned" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="11" />
+   <wvobject fp_name="/fsmc2wb_tb/clk_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_i</obj_property>
+      <obj_property name="ObjectShortName">clk_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc2wb_tb/nwe" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">nwe</obj_property>
+      <obj_property name="ObjectShortName">nwe</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc2wb_tb/noe" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">noe</obj_property>
+      <obj_property name="ObjectShortName">noe</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc2wb_tb/nce" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">nce</obj_property>
+      <obj_property name="ObjectShortName">nce</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc2wb_tb/w_rst" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">w_rst</obj_property>
+      <obj_property name="ObjectShortName">w_rst</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc2wb_tb/clk_fsmc" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_fsmc</obj_property>
+      <obj_property name="ObjectShortName">clk_fsmc</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc2wb_tb/err_o" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">err_o</obj_property>
+      <obj_property name="ObjectShortName">err_o</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc2wb_tb/ack_o" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ack_o</obj_property>
+      <obj_property name="ObjectShortName">ack_o</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc2wb_tb/state" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">state</obj_property>
+      <obj_property name="ObjectShortName">state</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc2wb_tb/a" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">a[22:0]</obj_property>
+      <obj_property name="ObjectShortName">a[22:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc2wb_tb/d" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">d[15:0]</obj_property>
+      <obj_property name="ObjectShortName">d[15:0]</obj_property>
+   </wvobject>
+</wave_config>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="/home/barthess/projects/xilinx/fsmc2wb/mtrx_dot_tb_isim_beh.wdb" id="1" type="auto">
+         <top_modules>
+            <top_module name="attributes" />
+            <top_module name="bip_utils_pkg_v2_0" />
+            <top_module name="floating_point_pkg_v5_0" />
+            <top_module name="floating_point_v5_0_consts" />
+            <top_module name="mtrx_dot_tb" />
+            <top_module name="numeric_std" />
+            <top_module name="std_logic_1164" />
+            <top_module name="std_logic_arith" />
+            <top_module name="std_logic_misc" />
+            <top_module name="std_logic_unsigned" />
+            <top_module name="textio" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="14" />
+   <wvobject fp_name="/mtrx_dot_tb/rst_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">rst_i</obj_property>
+      <obj_property name="ObjectShortName">rst_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_dot_tb/clk_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_i</obj_property>
+      <obj_property name="ObjectShortName">clk_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_dot_tb/op_i" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">op_i[15:0]</obj_property>
+      <obj_property name="ObjectShortName">op_i[15:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_dot_tb/rdy_o" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">rdy_o</obj_property>
+      <obj_property name="ObjectShortName">rdy_o</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_dot_tb/bram_adr_a_o" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">bram_adr_a_o[9:0]</obj_property>
+      <obj_property name="ObjectShortName">bram_adr_a_o[9:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_dot_tb/bram_adr_b_o" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">bram_adr_b_o[9:0]</obj_property>
+      <obj_property name="ObjectShortName">bram_adr_b_o[9:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_dot_tb/bram_adr_c_o" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">bram_adr_c_o[9:0]</obj_property>
+      <obj_property name="ObjectShortName">bram_adr_c_o[9:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_dot_tb/bram_we_o" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">bram_we_o</obj_property>
+      <obj_property name="ObjectShortName">bram_we_o</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_dot_tb/uut/state" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">state</obj_property>
+      <obj_property name="ObjectShortName">state</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_dot_tb/uut/latency" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">latency</obj_property>
+      <obj_property name="ObjectShortName">latency</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_dot_tb/uut/mul_nd" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">mul_nd</obj_property>
+      <obj_property name="ObjectShortName">mul_nd</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_dot_tb/uut/mul_ce" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">mul_ce</obj_property>
+      <obj_property name="ObjectShortName">mul_ce</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_dot_tb/uut/nd_track" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">nd_track[9:0]</obj_property>
+      <obj_property name="ObjectShortName">nd_track[9:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_dot_tb/uut/mul_ce" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">mul_ce</obj_property>
+      <obj_property name="ObjectShortName">mul_ce</obj_property>
+   </wvobject>
+</wave_config>

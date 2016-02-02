@@ -22,10 +22,10 @@ entity mtrx_set is
   );
   Port (
     -- control interface
-    rst_i : in  std_logic; -- active high. Must be used before every new calculation
-    clk_i : in  std_logic;
-    op_i  : in  std_logic_vector(15 downto 0); -- size of input operands
-    rdy_o : out std_logic := '0'; -- active high 1 clock
+    rst_i  : in  std_logic; -- active high. Must be used before every new calculation
+    clk_i  : in  std_logic;
+    size_i : in  std_logic_vector(15 downto 0); -- size of input operands
+    rdy_o  : out std_logic := '0'; -- active high 1 clock
 
     -- BRAM interface
     -- Note: there are no clocks for BRAMs. They are handle in higher level
@@ -85,7 +85,7 @@ begin
         
         case state is
         when IDLE =>
-          C_adr <= op_i(9 downto 0);
+          C_adr <= size_i(9 downto 0);
           state <= ACTIVE;
           
         when ACTIVE =>
