@@ -36,7 +36,7 @@ entity fsmc2wb is
     AW : positive := 23; -- total FSMC address width
     DW : positive := 16; -- data witdth
     USENBL : std_logic :='0'; -- set to '1' if you want NBL (byte select) pin support
-    AWSEL  : positive :=4; -- address lines used for slave select
+    AWSEL  : positive  := 1; -- address lines used for slave select
     AWSLAVE : positive := 16 -- wishbone slave address width 
   );
 	Port (
@@ -101,14 +101,22 @@ architecture beh of fsmc2wb is
   signal sel_reg  : STD_LOGIC_VECTOR (AWSEL-1 downto 0);
   signal d_reg    : STD_LOGIC_VECTOR (DW-1 downto 0); 
   signal nwe_reg  : STD_LOGIC_VECTOR (1 downto 0) := "11";
+  signal noe_reg  : STD_LOGIC_VECTOR (1 downto 0) := "11";
+  
   -- control signals for WB slave
-  signal we_wire : std_logic;
-  signal stb_wire : std_logic;
+  signal we_wire  : std_logic := '0';
+  signal stb_wire : std_logic := '0';
+  signal sel_wire : std_logic := '0';
   signal err_wire : std_logic;
+  signal sel_w, sel_r, stb_r, stb_w : std_logic := '0';
+  
   -- outputs from data bus muxer
   signal fsmc_do_wire : std_logic_vector(DW-1 downto 0);
   signal fsmc_do_reg  : std_logic_vector(DW-1 downto 0);
 
+  type state_t is (IDLE, ADSET, READ1);
+  signal state : state_t := IDLE;
+  
 begin
 
   -- data muxer from multiple wishbone slaves to data bus
@@ -155,8 +163,8 @@ begin
       default => '0'
     )
     port map (
-      di(0) => not NCE,
       a     => sel_reg,
+      di(0) => sel_wire,
       do    => sel_o
     );
     
@@ -179,24 +187,66 @@ begin
       a_reg   <= get_addr(A);
       sel_reg <= get_sel(A);
       nwe_reg <= nwe_reg(0) & NWE;
+      noe_reg <= noe_reg(0) & NOE;
       fsmc_do_reg <= fsmc_do_wire;
     end if;
   end process;
   
-  -- BRAM WE logic. Will be activate 1 clock after WE goes down
-  process(clk_i) begin
+  
+  -- resolution function for STB and SEL signals
+  stb_wire <= stb_r or stb_w;
+  sel_wire <= sel_r or sel_w;
+  
+  --
+  --
+  --
+  read_proc : process(clk_i) 
+  begin
     if rising_edge(clk_i) then
-      if (nwe_reg = "10") then
-         we_wire  <= '1';
-         stb_wire <= '1';
+      case state is
+      when IDLE =>
+        if (noe_reg = "10") then добавить проверку на NCE
+          stb_r <= '1';
+          sel_r <= '1';
+          state <= ADSET;
+        end if;
+      
+      when ADSET =>
+        state <= READ1;
+        
+      when READ1 =>
+        stb_r <= '0';
+        sel_r <= '0';
+        state <= IDLE;
+      end case;
+      
+    end if;
+  end process;
+
+  --
+  -- BRAM WE logic. Will be activate 1 clock after WE goes down
+  --
+  write_proc : process(clk_i) 
+  begin
+    if rising_edge(clk_i) then
+      if (nwe_reg = "10") then добавить проверку на NCE
+        we_wire <= '1';
+        stb_w   <= '1';
+        sel_w   <= '1';
       else
-         we_wire  <= '0';
-         stb_wire <= '0';
+        we_wire <= '0';
+        stb_w   <= '0';
+        sel_w   <= '0';
+        тут получаются сигналы, активные 1 такт,
+        а для вишбона надо 2. Возможно есть смысл скостылить чего-нибудь. 
+        Такую же траблу надо проверить на цикле чтения
       end if;
     end if;
   end process;
 
+  --
   -- MMU process
+  --
   process(clk_i) begin
     if rising_edge(clk_i) then
       if (NCE = '0') then

@@ -49,8 +49,8 @@ begin
   bram_adr_o  <= adr_i(BRAM_AW-1 downto 0);
   bram_dat_o  <= dat_i;
   dat_o       <= bram_dat_i;
-  bram_we_o   <= we_i and stb_i;
-  bram_en_o   <= sel_i;
+  bram_we_o   <= we_i and stb_i; a сюда надо бы добавить sel_i
+  bram_en_o   <= sel_i; возможно сюда есть смысл захардкодить '1' и забыть
   ack_o       <= we_i and stb_i;
   
   err_o <= '1' when (WB_AW > BRAM_AW and sel_i = '1' and adr_i(WB_AW-1 downto BRAM_AW) > 0) else '0';
