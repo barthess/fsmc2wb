@@ -27,10 +27,10 @@ entity mtrx_add is
   );
   Port (
     -- control interface
-    rst_i : in  std_logic; -- active high. Must be used before every new calculation
-    clk_i : in  std_logic;
-    op_i  : in  std_logic_vector(15 downto 0); -- size of input operands
-    rdy_o : out std_logic := '0'; -- active high 1 cycle
+    rst_i  : in  std_logic; -- active high. Must be used before every new calculation
+    clk_i  : in  std_logic;
+    size_i : in  std_logic_vector(15 downto 0); -- size of input operands
+    rdy_o  : out std_logic := '0'; -- active high 1 cycle
     sub_not_add_i : in std_logic;
     
     -- BRAM interface
@@ -106,19 +106,19 @@ begin
       else
         case state is
         when IDLE =>
-          A_adr <= op_i(9 downto 0);
-          B_adr <= op_i(9 downto 0);
-          C_adr <= op_i(9 downto 0);
-          nd_track <= op_i(9 downto 0);
-          lat_i <= lat_i - 1;
-          state <= PRELOAD;
+          A_adr     <= size_i(9 downto 0);
+          B_adr     <= size_i(9 downto 0);
+          C_adr     <= size_i(9 downto 0);
+          nd_track  <= size_i(9 downto 0);
+          lat_i     <= lat_i - 1;
+          state     <= PRELOAD;
 
         when PRELOAD =>
           A_adr <= A_adr - 1;
           B_adr <= B_adr - 1;
           lat_i <= lat_i - 1;
           if (lat_i = 0) then
-            state <= ACTIVE;
+            state  <= ACTIVE;
             add_ce <= '1';
             add_nd <= '1';
           end if;

@@ -27,12 +27,12 @@ entity mtrx_dot is
   );
   Port (
     -- control interface
-    rst_i : in  std_logic; -- active high. Must be used before every new calculation
-    clk_i : in  std_logic;
-    op_i  : in  std_logic_vector(15 downto 0); -- size of input operands
-    rdy_o : out std_logic := '0'; -- active high 1 cycle
+    rst_i  : in  std_logic; -- active high. Must be used before every new calculation
+    clk_i  : in  std_logic;
+    size_i : in  std_logic_vector(15 downto 0); -- size of input operands
+    rdy_o  : out std_logic := '0'; -- active high 1 cycle
     scale_not_dot_i : in std_logic;
-    
+
     -- BRAM interface
     -- Note: there are no clocks for BRAMs. They are handle in higher level
     bram_adr_a_o : out std_logic_vector(BRAM_AW-1 downto 0);
@@ -92,7 +92,7 @@ begin
     A(0)  => scale_not_dot_i,
     do => mul_b_input,
     di => scale_factor_i &
-          bram_dat_a_i
+          bram_dat_b_i
   );
   
   --
@@ -123,10 +123,10 @@ begin
       else
         case state is
         when IDLE =>
-          A_adr <= op_i(9 downto 0);
-          B_adr <= op_i(9 downto 0);
-          C_adr <= op_i(9 downto 0);
-          nd_track <= op_i(9 downto 0);
+          A_adr <= size_i(9 downto 0);
+          B_adr <= size_i(9 downto 0);
+          C_adr <= size_i(9 downto 0);
+          nd_track <= size_i(9 downto 0);
           lat_i <= lat_i - 1;
           state <= PRELOAD;
 
