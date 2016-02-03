@@ -205,7 +205,8 @@ begin
     if rising_edge(clk_i) then
       case state is
       when IDLE =>
-        if (noe_reg = "10") then добавить проверку на NCE
+        -- добавить проверку на NCE
+        if (noe_reg = "10") then
           stb_r <= '1';
           sel_r <= '1';
           state <= ADSET;
