@@ -41,10 +41,17 @@ ARCHITECTURE behavior OF fsmc2wb_tb IS
     -- Component Declaration for the Unit Under Test (UUT)
  
     COMPONENT fsmc2wb
+    generic(
+      AW : positive;
+      DW : positive;
+      USENBL : std_logic;
+      AWSEL  : positive;
+      AWSLAVE : positive
+    );
     PORT(
          clk_i : IN  std_logic;
-         err_o : OUT  std_logic;
-         ack_o : OUT  std_logic;
+         external_err_o : OUT  std_logic;
+         external_ack_o : OUT  std_logic;
          A : IN  std_logic_vector(22 downto 0);
          D : INOUT  std_logic_vector(15 downto 0);
          NWE : IN  std_logic;
@@ -78,8 +85,8 @@ ARCHITECTURE behavior OF fsmc2wb_tb IS
    signal D : std_logic_vector(15 downto 0);
 
  	--Outputs
-   signal err_o : std_logic;
-   signal ack_o : std_logic;
+   signal external_err_o : std_logic;
+   signal external_ack_o : std_logic;
    signal sel_o : std_logic_vector(1 downto 0);
    signal stb_o : std_logic_vector(1 downto 0);
    signal we_o : std_logic_vector(1 downto 0);
@@ -108,10 +115,18 @@ ARCHITECTURE behavior OF fsmc2wb_tb IS
 BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
-   uut: fsmc2wb PORT MAP (
+   uut: fsmc2wb 
+   generic map (
+    AW => 23,
+    DW => 16,
+    USENBL => '0',
+    AWSEL  => 1,
+    AWSLAVE => 16
+    )
+   PORT MAP (
           clk_i => clk_i,
-          err_o => err_o,
-          ack_o => ack_o,
+          external_err_o => external_err_o,
+          external_ack_o => external_ack_o,
           A => A,
           D => D,
           NWE => NWE,

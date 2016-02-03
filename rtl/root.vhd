@@ -141,8 +141,8 @@ begin
 		CLK_OUT3 => clk_108mhz,
 		LOCKED   => clk_locked
 	);
-  clk_wb  <= clk_216mhz;
-  clk_mul <= clk_216mhz;
+  clk_wb  <= clk_108mhz;
+  clk_mul <= clk_108mhz;
 
   --
   -- connect stubs to unused wishbone slots
@@ -203,8 +203,8 @@ begin
     )
     port map (
       clk_i => clk_wb,
-      err_o => STM_IO_WB_ERR_OUT,
-      ack_o => STM_IO_WB_ACK_OUT,
+      external_err_o => STM_IO_WB_ERR_OUT,
+      external_ack_o => STM_IO_WB_ACK_OUT,
       
       A   => FSMC_A,
       D   => FSMC_D,
@@ -340,27 +340,27 @@ begin
   --
   -- multiplicator with integrated BRAMs
   --
---  mtrx_math : entity work.mtrx_math
---    generic map (
---      WB_AW => WB_AW,
---      WB_DW => FSMC_DW
---    )
---    port map (
---      rdy_o => STM_IO_MUL_RDY_OUT,
---      
---      clk_wb_i  => (others => clk_wb),
---      clk_mul_i => clk_mul,
---      
---      sel_i => wire_mul2wb_sel,
---      stb_i => wire_mul2wb_stb,
---      we_i  => wire_mul2wb_we,
---      err_o => wire_mul2wb_err,
---      ack_o => wire_mul2wb_ack,
---      adr_i => wire_mul2wb_adr,
---      dat_o => wire_mul2wb_dat_o,
---      dat_i => wire_mul2wb_dat_i
---    );
-  STM_IO_MUL_RDY_OUT <= '0';
+  mtrx_math : entity work.mtrx_math
+    generic map (
+      WB_AW => WB_AW,
+      WB_DW => FSMC_DW
+    )
+    port map (
+      rdy_o => STM_IO_MUL_RDY_OUT,
+      
+      clk_wb_i  => (others => clk_wb),
+      clk_mul_i => clk_mul,
+      
+      sel_i => wire_mul2wb_sel,
+      stb_i => wire_mul2wb_stb,
+      we_i  => wire_mul2wb_we,
+      err_o => wire_mul2wb_err,
+      ack_o => wire_mul2wb_ack,
+      adr_i => wire_mul2wb_adr,
+      dat_o => wire_mul2wb_dat_o,
+      dat_i => wire_mul2wb_dat_i
+    );
+  --STM_IO_MUL_RDY_OUT <= '0';
   
   --
 	-- raize ready flag for STM32
