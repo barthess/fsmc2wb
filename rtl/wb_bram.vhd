@@ -67,7 +67,7 @@ begin
   bram_dat_o  <= dat_wb2bram_reg;
   dat_o       <= dat_bram2wb_reg;
   bram_we_o   <= we_reg;
-  
+
 --
 -- old slow code without registering
 --  

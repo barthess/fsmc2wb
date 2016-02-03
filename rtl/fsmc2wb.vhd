@@ -169,7 +169,7 @@ begin
       di(0) => sel_wire,
       do    => sel_o
     );
-    
+
   -- fanout bus outputs to slaves (no muxers)
   wb_fanout : for n in 0 to 2**AWSEL-1 generate 
   begin
