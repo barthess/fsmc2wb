@@ -46,7 +46,7 @@ entity root is
 
     FSMC_A : in std_logic_vector ((FSMC_AW - 1) downto 0);
     FSMC_D : inout std_logic_vector ((FSMC_DW - 1) downto 0);
-    --FSMC_NBL : in std_logic_vector (1 downto 0);
+    FSMC_NBL : in std_logic_vector (1 downto 0);
     FSMC_NOE : in std_logic;
     FSMC_NWE : in std_logic;
     FSMC_NCE : in std_logic;
@@ -69,7 +69,8 @@ end root;
 architecture Behavioral of root is
 
 -- wires for memtest
-signal wire_bram_a   : std_logic_vector(14 downto 0); 
+constant MEMTEST_BRAM_AW : integer := 12;
+signal wire_bram_a   : std_logic_vector(MEMTEST_BRAM_AW-1 downto 0); 
 signal wire_bram_di  : std_logic_vector(FSMC_DW-1 downto 0); 
 signal wire_bram_do  : std_logic_vector(FSMC_DW-1 downto 0); 
 signal wire_bram_ce  : std_logic; 
@@ -83,7 +84,7 @@ signal wire_memtest_wb_ack    : std_logic;
 signal wire_memtest_wb_adr    : std_logic_vector(WB_AW-1 downto 0);
 signal wire_memtest_wb_dat_o  : std_logic_vector(FSMC_DW-1 downto 0);
 signal wire_memtest_wb_dat_i  : std_logic_vector(FSMC_DW-1 downto 0);
-signal wire_memtest_bram_a    : std_logic_vector(14 downto 0); 
+signal wire_memtest_bram_a    : std_logic_vector(MEMTEST_BRAM_AW-1 downto 0); 
 signal wire_memtest_bram_di   : std_logic_vector(FSMC_DW-1 downto 0); 
 signal wire_memtest_bram_do   : std_logic_vector(FSMC_DW-1 downto 0); 
 signal wire_memtest_bram_ce   : std_logic;
@@ -141,8 +142,8 @@ begin
 		CLK_OUT3 => clk_108mhz,
 		LOCKED   => clk_locked
 	);
-  clk_wb  <= clk_108mhz;
-  clk_mul <= clk_108mhz;
+  clk_wb  <= clk_216mhz;
+  clk_mul <= clk_216mhz;
 
   --
   -- connect stubs to unused wishbone slots
@@ -153,7 +154,7 @@ begin
       generic map (
         AW => WB_AW,
         DW => FSMC_DW,
-        ID => n
+        DAT_AW => 3
       )
       port map (
         clk_i => clk_wb,
@@ -268,7 +269,7 @@ begin
   --
   memtest_assist : entity work.memtest_assist
   generic map (
-    AW => 15,
+    AW => MEMTEST_BRAM_AW,
     DW => FSMC_DW
   )
   port map (
@@ -315,7 +316,7 @@ begin
     generic map (
       WB_AW   => WB_AW,
       DW      => FSMC_DW,
-      BRAM_AW => 15
+      BRAM_AW => MEMTEST_BRAM_AW
     )
     port map (
       -- BRAM
@@ -370,7 +371,7 @@ begin
   --
   -- warning suppressors and other trash
   --
-  DEV_NULL_BANK0 <= '1';
+  DEV_NULL_BANK0 <= '1';--FSMC_NBL(0) or FSMC_NBL(1);
   DEV_NULL_BANK1 <= '1';
 
 end Behavioral;
