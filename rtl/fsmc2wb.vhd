@@ -35,7 +35,7 @@ entity fsmc2wb is
   Generic (
     AW : positive := 23; -- total FSMC address width
     DW : positive := 16; -- data witdth
-    USENBL : std_logic :='0'; -- set to '1' if you want NBL (byte select) pin support
+    --USENBL : std_logic :='0'; -- set to '1' if you want NBL (byte select) pin support
     AWSEL  : positive  := 4; -- address lines used for slave select
     AWSLAVE : positive := 16 -- wishbone slave address width 
   );
@@ -48,10 +48,11 @@ entity fsmc2wb is
     NWE : in STD_LOGIC;
     NOE : in STD_LOGIC;
     NCE : in STD_LOGIC;
-    NBL : in std_logic_vector (1 downto 0);
+    --NBL : in std_logic_vector (1 downto 0);
     
     -- External interrupt/status lines for STM32
     external_err_o : out std_logic;
+    external_mmu_err_o : out std_logic;
     external_ack_o : out std_logic;
     
     -- WB slaves interface
@@ -64,18 +65,6 @@ entity fsmc2wb is
     dat_o : out std_logic_vector(DW * 2**AWSEL - 1      downto 0);
     dat_i : in  std_logic_vector(DW * 2**AWSEL - 1      downto 0)
   );
-
-  -- MMU check routine. Must be called when addres sampled
-  function mmu_check(A   : in std_logic_vector(AW-1 downto 0);
-                     NBL : in std_logic_vector(1 downto 0)) 
-                     return std_logic is
-  begin
-    if (A(AW-1 downto AWSEL+AWSLAVE) /= 0) or ((NBL(0) /= NBL(1) and USENBL = '0')) then
-      return '1';
-    else
-      return '0';
-    end if;
-  end mmu_check;
 
   -- Return actual address bits
   function get_addr(A : in std_logic_vector(AW-1 downto 0)) 
@@ -147,7 +136,7 @@ begin
   port map (
     clk_i => clk_i,
     a     => slave_select,
-    do(0) => err_wire,
+    do(0) => external_err_o,
     di    => err_i
   );
 
@@ -298,15 +287,24 @@ begin
   end process;
 
   --
+  -- MMU check
+  --
+  external_mmu_err_o <= '1' when (stb_wire = '1' and A(AW-1 downto AWSEL+AWSLAVE) > 0) else '0';
+        
+  --
   -- MMU process
   --
-  process(clk_i) begin
-    if rising_edge(clk_i) then
-      if (NCE = '0') then
-        external_err_o <= mmu_check(A, NBL) or err_wire;
-      end if;
-    end if;
-  end process;
+--  process(clk_i) begin
+--    if rising_edge(clk_i) then
+--      if stb_wire = '1' then
+--        if A(AW-1 downto AWSEL+AWSLAVE) > 0 then
+--          external_mmu_err_o <= '1';
+--        else
+--          external_mmu_err_o <= '0';
+--        end if;
+--      end if;
+--    end if;
+--  end process;
 
 
 end beh;

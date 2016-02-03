@@ -46,7 +46,7 @@ entity root is
 
     FSMC_A : in std_logic_vector ((FSMC_AW - 1) downto 0);
     FSMC_D : inout std_logic_vector ((FSMC_DW - 1) downto 0);
-    FSMC_NBL : in std_logic_vector (1 downto 0);
+    --FSMC_NBL : in std_logic_vector (1 downto 0);
     FSMC_NOE : in std_logic;
     FSMC_NWE : in std_logic;
     FSMC_NCE : in std_logic;
@@ -198,12 +198,12 @@ begin
       AW      => FSMC_AW,
       DW      => FSMC_DW,
       AWSEL   => 4,
-      AWSLAVE => WB_AW,
-      USENBL  => '0'
+      AWSLAVE => WB_AW
     )
     port map (
       clk_i => clk_wb,
       external_err_o => STM_IO_WB_ERR_OUT,
+      external_mmu_err_o => open,
       external_ack_o => STM_IO_WB_ACK_OUT,
       
       A   => FSMC_A,
@@ -211,7 +211,7 @@ begin
       NCE => FSMC_NCE,
       NOE => FSMC_NOE,
       NWE => FSMC_NWE,
-      NBL => FSMC_NBL,
+      --NBL => FSMC_NBL,
       
 --      sel_o => wb_stub_sel,
 --      stb_o => wb_stub_stb,

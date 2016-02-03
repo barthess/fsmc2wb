@@ -55,7 +55,7 @@ begin
       end if;
     end if;
   end process;
-  
+
   -- MMU process
   process(clk_i) begin
     if rising_edge(clk_i) then

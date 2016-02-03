@@ -80,6 +80,7 @@ begin
   bram_we_o   <= we_i and stb_i and sel_i;
   bram_en_o   <= '1';
   ack_o       <= stb_i and sel_i;
+  --err_o       <= '0';
   err_o       <= '1' when (WB_AW > BRAM_AW and sel_i = '1' and adr_i(WB_AW-1 downto BRAM_AW) > 0) else '0';
 
 end beh;
