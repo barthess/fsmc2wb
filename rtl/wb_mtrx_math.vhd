@@ -71,10 +71,17 @@ architecture beh of mtrx_math is
   signal ctl_adr_i : std_logic_vector(WB_AW-1 downto 0);
   type math_ctl_reg_t is array (0 to 7) of std_logic_vector(WB_DW-1 downto 0);
   signal math_ctl_array : math_ctl_reg_t := (others => (others => '0'));
+  constant CONTROL_REG : integer := 0;
+  constant SIZES_REG   : integer := 1;
+  constant RESERVED_REG: integer := 2;
+  constant STATUS_REG  : integer := 3;
+  constant SCALE_REG0  : integer := 4;
+  constant SCALE_REG1  : integer := 5;
+  constant SCALE_REG2  : integer := 6;
+  constant SCALE_REG3  : integer := 7;
+  
   type state_t is (IDLE, DECODE, EXEC);
   signal state : state_t := IDLE;
-  
-  constant CTL_DBL_CONSTANT_OFFSET : integer := 4;
   
   -- wires to connect BRAMs to wishbone adapters
   signal wire_bram2wb_clk    : std_logic_vector(BRAMs-1         downto 0);
@@ -106,7 +113,7 @@ architecture beh of mtrx_math is
   signal math_dat_a, math_dat_b, math_dat_c : std_logic_vector(MATHs*MUL_DW-1 downto 0);
   signal math_adr_a, math_adr_b, math_adr_c : std_logic_vector(MATHs*MUL_AW-1 downto 0);
   -- math operations' handshake signals
-  signal math_we, math_rdy : std_logic_vector(MATHs-1 downto 0) := (others => '0');
+  signal math_we, math_rdy, math_err : std_logic_vector(MATHs-1 downto 0) := (others => '0');
   -- reset lines for selecting different math operations
   signal math_rst : std_logic_vector(MATHs-1 downto 0) := (others => '1');
   -- swithc for scale/dot operations
@@ -276,6 +283,7 @@ begin
     -- control interface
     clk_i  => clk_mul_i,
     rst_i  => math_rst(MATH_HW_DOT),
+    err_o  => math_err(MATH_HW_DOT),
     size_i => math_sizes,
     scale_not_dot_i => math_scale_not_dot,
     scale_factor_i  => double_constant,
@@ -300,8 +308,9 @@ begin
     rdy_o => math_rdy(MATH_HW_ADD),
     
     -- control interface
-    clk_i => clk_mul_i,
-    rst_i => math_rst(MATH_HW_ADD),
+    clk_i  => clk_mul_i,
+    rst_i  => math_rst(MATH_HW_ADD),
+    err_o  => math_err(MATH_HW_ADD),
     size_i => math_sizes,
     --sub_not_add_i => math_sub_not_add,
     set_constant => double_constant,
@@ -329,6 +338,7 @@ begin
     -- control interface
     clk_i  => clk_mul_i,
     rst_i  => math_rst(MATH_HW_MOV),
+    err_o  => math_err(MATH_HW_MOV),
     size_i => math_sizes,
     op_i   => math_mov_type,
     set_constant => double_constant,
@@ -353,9 +363,10 @@ begin
     rdy_o => math_rdy(MATH_HW_CROSS),
     
     -- control interface
-    clk_i => clk_mul_i,
-    rst_i => math_rst(MATH_HW_CROSS),
-    size_i => math_sizes,
+    clk_i   => clk_mul_i,
+    rst_i   => math_rst(MATH_HW_CROSS),
+    err_o   => math_err(MATH_HW_CROSS),
+    size_i  => math_sizes,
     set_constant => double_constant,
     op_i => "00",
 
@@ -436,10 +447,10 @@ begin
   const_buffering : process(ctl_clk_i)
   begin
     if rising_edge(ctl_clk_i) then
-      double_constant <= math_ctl_array(CTL_DBL_CONSTANT_OFFSET + 3) &
-                         math_ctl_array(CTL_DBL_CONSTANT_OFFSET + 2) &
-                         math_ctl_array(CTL_DBL_CONSTANT_OFFSET + 1) &
-                         math_ctl_array(CTL_DBL_CONSTANT_OFFSET + 0);
+      double_constant <= math_ctl_array(SCALE_REG3) &
+                         math_ctl_array(SCALE_REG2) &
+                         math_ctl_array(SCALE_REG1) &
+                         math_ctl_array(SCALE_REG0);
     end if;
   end process;
   
@@ -464,8 +475,8 @@ begin
     variable dv : std_logic := '0'; -- data valid bit
     variable a, b, c : integer := 0;
     variable cmd_raw : natural range 0 to 15;
-    variable hw_sel_v : std_logic_vector(1 downto 0);
-    variable hw_sel_i : natural range 0 to 7;
+    variable hw_sel_v : std_logic_vector(1 downto 0); -- same as hw_sel_i
+    variable hw_sel_i : natural range 0 to 7;         -- same as hw_sel_v
     constant DV_BIT : integer := 15;
   begin
 
@@ -488,14 +499,14 @@ begin
           end if;
         end if;
         
-        a_num := math_ctl_array(0)(2  downto 0);
-        b_num := math_ctl_array(0)(5  downto 3);
-        c_num := math_ctl_array(0)(8  downto 6);
-        cmd_raw := conv_integer(math_ctl_array(0)(12 downto 9));
-        dv    := math_ctl_array(0)(DV_BIT);
+        a_num := math_ctl_array(CONTROL_REG)(2  downto 0);
+        b_num := math_ctl_array(CONTROL_REG)(5  downto 3);
+        c_num := math_ctl_array(CONTROL_REG)(8  downto 6);
+        cmd_raw := conv_integer(math_ctl_array(CONTROL_REG)(12 downto 9));
+        dv    := math_ctl_array(CONTROL_REG)(DV_BIT);
         
         if dv = '1' then
-          math_ctl_array(0)(DV_BIT) <= '0';
+          math_ctl_array(CONTROL_REG)(DV_BIT) <= '0';
           state <= DECODE;
         end if;
 
@@ -515,7 +526,7 @@ begin
         crossbar_adr_select((c+1)*2-1 downto c*2) <= "10";
 
         -- copy math operands' sized from control array
-        math_sizes <= math_ctl_array(1);
+        math_sizes <= math_ctl_array(SIZES_REG);
         
         -- parse command
         case cmd_raw is
@@ -581,7 +592,11 @@ begin
 
       -- execute command if successfully recognized
       when EXEC =>
-        if (math_rdy(hw_sel_i) = '1') then
+        if (math_rdy(hw_sel_i) = '1') or (math_err(hw_sel_i) = '1') then
+          if math_err(hw_sel_i) = '1' then
+            ctl_err_o <= '1';
+            math_ctl_array(STATUS_REG) <= "00000000000000" & hw_sel_v;
+          end if;
           math_rst(hw_sel_i) <= '1';
           state <= IDLE;
         end if;

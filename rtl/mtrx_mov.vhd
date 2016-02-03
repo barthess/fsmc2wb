@@ -17,14 +17,20 @@ use IEEE.NUMERIC_STD.ALL;
 --
 entity mtrx_mov is
   Generic (
-    BRAM_AW : positive := 10;
-    BRAM_DW : positive := 64
+    MTRX_AW : positive := 5; -- 2**MTRX_AW = max matrix index
+    BRAM_DW : positive := 64;
+    -- Data latency. Contains
+    -- 1) address path to BRAM
+    -- 2) BRAM data latency (generally 1 cycle)
+    -- 3) data path from BRAM to device
+    DAT_LAT : positive range 1 to 15 := 1
   );
   Port (
     -- control interface
     rst_i  : in  std_logic; -- active high. Must be used before every new calculation
     clk_i  : in  std_logic;
     size_i : in  std_logic_vector(15 downto 0); -- size of input operands
+    err_o  : out std_logic := '0'; -- active high 1 clock
     rdy_o  : out std_logic := '0'; -- active high 1 clock
     -- operation select
     -- 0 copy
@@ -52,9 +58,23 @@ end mtrx_mov;
 architecture beh of mtrx_mov is
   
   -- operand and result addresses registers
-  constant ZERO : std_logic_vector(BRAM_AW-1 downto 0) := (others => '0');
-  signal A_adr : std_logic_vector(BRAM_AW-1 downto 0) := ZERO;
-  signal C_adr : std_logic_vector(BRAM_AW-1 downto 0) := ZERO;
+  constant ZERO  : std_logic_vector(MTRX_AW-1   downto 0) := (others => '0');
+  constant ZERO2 : std_logic_vector(2*MTRX_AW-1 downto 0) := (others => '0');
+  
+  signal a_adr : std_logic_vector(2*MTRX_AW-1 downto 0) := ZERO2;
+  signal c_adr : std_logic_vector(2*MTRX_AW-1 downto 0) := ZERO2;
+  signal a_adr_array : std_logic_vector(4*2*MTRX_AW-1 downto 0) := (others => '0');
+  signal c_adr_array : std_logic_vector(4*2*MTRX_AW-1 downto 0) := (others => '0');
+  
+  signal m_size, p_size : std_logic_vector(MTRX_AW-1 downto 0) := ZERO;
+  signal mi, pi, mo, po : std_logic_vector(MTRX_AW-1 downto 0) := ZERO;
+  
+  signal end_of_i, end_of_o : std_logic := '0';
+  
+  signal rst_i_tracker_array : std_logic_vector(3 downto 0) := '1';
+  signal rst_o_tracker_array : std_logic_vector(3 downto 0) := '1';
+  signal rst_i_tracker : std_logic := '1';
+  signal rst_o_tracker : std_logic := '1';
   
   constant ZERO64 : std_logic_vector(BRAM_DW-1 downto 0) := (others => '0');
   constant ONE64  : std_logic_vector(BRAM_DW-1 downto 0) := x"3FF0000000000000"; -- 1.000000
@@ -64,51 +84,112 @@ architecture beh of mtrx_mov is
   -- state machine
   type state_t is (IDLE, PRELOAD, ACTIVE, HALT);
   signal state : state_t := IDLE;
-
+  
+  signal lat_i, lat_o : natural range 0 to 15 := DAT_LAT;
+  
 begin
   
-  bram_adr_a_o <= A_adr;
+  rst_i_demuxer : entity work.demuxer
+  generic map(
+    AW => 2,
+    DW => 1,
+    default => '1'
+  )
+  port map(
+    A  => op_i,
+    di => rst_i_tracker,
+    do => rst_i_tracker_array
+  );
+  
+  rst_o_demuxer : entity work.demuxer
+  generic map(
+    AW => 2,
+    DW => 1,
+    default => '1'
+  )
+  port map(
+    A  => op_i,
+    di => rst_o_tracker,
+    do => rst_o_tracker_array
+  );
+  
+  
+  a_adr_muxer : entity work.muxer
+  generic map(
+    AW => 2,
+    DW => BRAM_DW
+  )
+  port map(
+    A  => op_i,
+    di => a_adr_array,
+    do => a_adr
+  );
+  
+  c_adr_muxer : entity work.muxer
+  generic map(
+    AW => 2,
+    DW => BRAM_DW
+  )
+  port map(
+    A  => op_i,
+    di => c_adr_array,
+    do => c_adr
+  );
+  
+
+  
+  
+  bram_adr_a_o <= a_adr;
   bram_adr_b_o <= (others => '0');
-  bram_adr_c_o <= C_adr;
+  bram_adr_c_o <= c_adr;
   bram_we_o    <= result_we;
   bram_dat_c_o <= result_buf;
 
   --
   -- Main state machine
   --
-  main : process(clk_i, rst_i)
+  main : process(clk_i)
   begin
-    if (rst_i = '1') then
-      state <= IDLE;
-      result_we <= '0';
-      rdy_o <= '0';
-    else
-      if rising_edge(clk_i) then
-        
+    if rising_edge(clk_i) then
+      if (rst_i = '1') then
+        state <= IDLE;
+        result_we <= '0';
         rdy_o <= '0';
+        err_o <= '0';
+        rst_tracker <= '1';
+      else        
+        rdy_o <= '0';
+        err_o <= '0';  
         
         case state is
         when IDLE =>
-          A_adr <= size_i(9 downto 0);
-          C_adr <= size_i(9 downto 0);
-          state <= PRELOAD;
-          
-        when PRELOAD =>
-          A_adr <= A_adr - 1;
-          state <= ACTIVE;
-         
-        when ACTIVE =>
-          A_adr <= A_adr - 1;
-          C_adr <= C_adr - 1;
-          result_we  <= '1';
-          
-          if (op_i = 0) then
-            result_buf <= set_constant;
+          if size_i(15 downto 2*MTRX_AW) > 0 then
+            err_o <= '1';
+            state <= HALT;
           else
-            result_buf <= bram_dat_a_i;
+            m_size <= size_i(MTRX_AW-1   downto 0);
+            p_size <= size_i(2*MTRX_AW-1 downto MTRX_AW);
+            rst_i_tracker <= '0';
+            lat_i <= lat_i - 1;
+            state <= PRELOAD;
           end if;
           
-          if (C_adr = ZERO) then
+        when PRELOAD =>
+          lat_i <= lat_i - 1;
+          if (lat_i = 0) then
+            state <= ACTIVE;
+            rst_o_tracker <= '0';
+            result_we <= '1';
+            result_buf <= bram_dat_a_i;
+          end if;
+         
+        when ACTIVE =>
+          if eof_of_i = '1' then
+            rst_i_tracker <= '1';
+          end if;
+          
+          if eof_of_o = '1' then
+            rst_o_tracker <= '1';
             result_we <= '0';
             rdy_o <= '1';
             state <= HALT;
@@ -122,5 +203,97 @@ begin
     end if; -- rst
   end process;
 
+
+
+
+
+
+  end_of_i <= '1' when (mi = m_size and ni = n_size) else '0';
+
+  cpy_i_tracker_proc : process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      if (rst_cpy_i_tracker = '1') then
+        mi <= ZERO;
+        ni <= ZERO;
+        a_adr <= ZERO2;
+      else
+        a_adr <= a_adr + 1;
+        mi <= mi + 1;
+        if (mi = m_size) then
+          mi <= ZERO;
+          ni <= ni + 1;
+        end if;
+      end if; -- rst
+    end if; -- clk
+  end process;
+
+
+
+  end_of_o <= '1' when (mo = m_size and no = n_size) else '0';
+
+  cpy_o_tracker_proc : process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      if (rst_cpy_o_tracker = '1') then
+        mo <= ZERO;
+        no <= ZERO;
+        c_adr <= ZERO2;
+      else
+        c_adr <= c_adr + 1;
+        mo <= mo + 1;
+        if (mo = m_size) then
+          mo <= ZERO;
+          no <= no + 1;
+        end if;
+      end if; -- rst
+    end if; -- clk
+  end process;
+
+
+
+
+
+
+
+
+
+
+  eye_tracker_proc : process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      if (rst_eye_tracker = '1') then
+      else 
+      end if; -- rst
+    end if; -- clk
+  end process;
+
+  trn_tracker_proc : process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      if (rst_trn_tracker = '1') then
+      else 
+      end if; -- rst
+    end if; -- clk
+  end process;
+
+  set_tracker_proc : process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      if (rst_set_tracker = '1') then
+      else 
+      end if; -- rst
+    end if; -- clk
+  end process;
+
+
+
+
+
+
+
+
+
 end beh;
+
 

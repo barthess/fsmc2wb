@@ -19,7 +19,7 @@ entity mtrx_dot is
   Generic (
     BRAM_AW : positive := 10;
     BRAM_DW : positive := 64;
-    -- Data latency. Consist of:
+    -- Data latency. Contains
     -- 1) address path to BRAM
     -- 2) BRAM data latency (generally 1 cycle)
     -- 3) data path from BRAM to device
@@ -31,6 +31,7 @@ entity mtrx_dot is
     clk_i  : in  std_logic;
     size_i : in  std_logic_vector(15 downto 0); -- size of input operands
     rdy_o  : out std_logic := '0'; -- active high 1 cycle
+    err_o  : out std_logic := '0';
     scale_not_dot_i : in std_logic;
 
     -- BRAM interface
@@ -119,17 +120,26 @@ begin
         state   <= IDLE;
         mul_nd  <= '0';
         mul_ce  <= '0';
+        err_o   <= '0';
         lat_i   <= DAT_LAT;
       else
+        
+        err_o <= '0';
+        
         case state is
         when IDLE =>
-          A_adr <= size_i(9 downto 0);
-          B_adr <= size_i(9 downto 0);
-          C_adr <= size_i(9 downto 0);
-          nd_track <= size_i(9 downto 0);
-          lat_i <= lat_i - 1;
-          state <= PRELOAD;
-
+          if size_i(15 downto BRAM_AW) > 0 then
+            err_o <= '1';
+            state <= HALT;
+          else
+            A_adr     <= size_i(BRAM_AW-1 downto 0);
+            B_adr     <= size_i(BRAM_AW-1 downto 0);
+            C_adr     <= size_i(BRAM_AW-1 downto 0);
+            nd_track  <= size_i(BRAM_AW-1 downto 0);
+            lat_i     <= lat_i - 1;
+            state     <= PRELOAD;
+          end if;
+          
         when PRELOAD =>
           A_adr <= A_adr - 1;
           B_adr <= B_adr - 1;
