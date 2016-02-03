@@ -47,38 +47,40 @@ architecture beh of wb_bram is
   signal dat_wb2bram_reg : std_logic_vector(DW-1 downto 0);
   signal we_reg   : std_logic; 
 begin
+  ----------------------------------------------------------------------------------------
+  -- new registered code
+  ----------------------------------------------------------------------------------------
+--  bram_clk_o  <= clk_i;
+--  bram_en_o   <= '1'; 
+--  ack_o       <= stb_i and sel_i;
+--  err_o       <= '1' when (WB_AW > BRAM_AW and sel_i = '1' and adr_i(WB_AW-1 downto BRAM_AW) > 0) else '0';
+--  
+--  main : process(clk_i)
+--  begin
+--    if rising_edge(clk_i) then
+--      adr_reg         <= adr_i(BRAM_AW-1 downto 0);
+--      dat_wb2bram_reg <= dat_i;
+--      dat_bram2wb_reg <= bram_dat_i;
+--      we_reg          <= we_i and stb_i and sel_i;
+--    end if;
+--  end process;
+--  
+--  bram_adr_o  <= adr_reg;
+--  bram_dat_o  <= dat_wb2bram_reg;
+--  dat_o       <= dat_bram2wb_reg;
+--  bram_we_o   <= we_reg;
 
+  ----------------------------------------------------------------------------------------
+  -- old code without registering
+  ----------------------------------------------------------------------------------------
   bram_clk_o  <= clk_i;
-  bram_en_o   <= '1'; 
+  bram_adr_o  <= adr_i(BRAM_AW-1 downto 0);
+  bram_dat_o  <= dat_i;
+  dat_o       <= bram_dat_i;
+  bram_we_o   <= we_i and stb_i and sel_i;
+  bram_en_o   <= '1';
   ack_o       <= stb_i and sel_i;
   err_o       <= '1' when (WB_AW > BRAM_AW and sel_i = '1' and adr_i(WB_AW-1 downto BRAM_AW) > 0) else '0';
-  
-  main : process(clk_i)
-  begin
-    if rising_edge(clk_i) then
-      adr_reg         <= adr_i(BRAM_AW-1 downto 0);
-      dat_wb2bram_reg <= dat_i;
-      dat_bram2wb_reg <= bram_dat_i;
-      we_reg          <= we_i and stb_i and sel_i;
-    end if;
-  end process;
-  
-  bram_adr_o  <= adr_reg;
-  bram_dat_o  <= dat_wb2bram_reg;
-  dat_o       <= dat_bram2wb_reg;
-  bram_we_o   <= we_reg;
-
---
--- old slow code without registering
---  
---  bram_clk_o  <= clk_i;
---  bram_adr_o  <= adr_i(BRAM_AW-1 downto 0);
---  bram_dat_o  <= dat_i;
---  dat_o       <= bram_dat_i;
---  bram_we_o   <= we_i and stb_i and sel_i;
---  bram_en_o   <= '1';
---  ack_o       <= stb_i and sel_i;
---  err_o <= '1' when (WB_AW > BRAM_AW and sel_i = '1' and adr_i(WB_AW-1 downto BRAM_AW) > 0) else '0';
 
 end beh;
 
