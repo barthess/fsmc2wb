@@ -21,7 +21,7 @@ end fork_reg;
 --
 --
 --
-architecture Behavioral of fork_reg is
+architecture reg_io of fork_reg is
   signal di_reg : STD_LOGIC_VECTOR(DW-1 downto 0);
   signal do_reg : STD_LOGIC_VECTOR(ocnt*DW-1 downto 0);
 begin
@@ -44,4 +44,56 @@ begin
     end if;
   end process;
   
-end Behavioral;
+end reg_io;
+
+--
+--
+--
+architecture reg_i of fork_reg is
+  signal di_reg : STD_LOGIC_VECTOR(DW-1 downto 0);
+begin
+  
+  frk : entity work.fork
+  generic map (
+    ocnt => ocnt,
+    DW => DW
+  )
+  port map (
+    do => do,
+    di => di_reg
+  );
+  
+  main : process(clk_i) 
+  begin
+    if rising_edge(clk_i) then
+      di_reg <= di;
+    end if;
+  end process;
+  
+end reg_i;
+
+--
+--
+--
+architecture reg_o of fork_reg is
+  signal do_reg : STD_LOGIC_VECTOR(ocnt*DW-1 downto 0);
+begin
+  
+  frk : entity work.fork
+  generic map (
+    ocnt => ocnt,
+    DW => DW
+  )
+  port map (
+    do => do_reg,
+    di => di
+  );
+  
+  main : process(clk_i) 
+  begin
+    if rising_edge(clk_i) then
+      do <= do_reg;
+    end if;
+  end process;
+  
+end reg_o;
