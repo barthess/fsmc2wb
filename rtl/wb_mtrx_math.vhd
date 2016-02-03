@@ -301,7 +301,7 @@ begin
   -- 
   mtrx_add_FIXME_STUB : entity work.mtrx_mov
   generic map (
-    BRAM_AW => MUL_AW,
+    MTRX_AW => 5,
     BRAM_DW => MUL_DW
   )
   port map (
@@ -329,7 +329,7 @@ begin
   -- 
   mtrx_mov : entity work.mtrx_mov
   generic map (
-    BRAM_AW => MUL_AW,
+    MTRX_AW => 5,
     BRAM_DW => MUL_DW
   )
   port map (
@@ -356,7 +356,7 @@ begin
   -- 
   mtrx_cross_STUB_FIXME : entity work.mtrx_mov
   generic map (
-    BRAM_AW => MUL_AW,
+    MTRX_AW => 5,
     BRAM_DW => MUL_DW
   )
   port map (

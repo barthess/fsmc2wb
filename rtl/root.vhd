@@ -46,7 +46,7 @@ entity root is
 
     FSMC_A : in std_logic_vector ((FSMC_AW - 1) downto 0);
     FSMC_D : inout std_logic_vector ((FSMC_DW - 1) downto 0);
-    FSMC_NBL : in std_logic_vector (1 downto 0);
+    --FSMC_NBL : in std_logic_vector (1 downto 0);
     FSMC_NOE : in std_logic;
     FSMC_NWE : in std_logic;
     FSMC_NCE : in std_logic;

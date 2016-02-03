@@ -37,13 +37,14 @@ entity mtrx_mov is
     -- 1 set
     -- 2 transposition
     -- 3 eye generate
-    op_i : in  std_logic_vector(1 downto 0);
+    op_i : in std_logic_vector(1 downto 0);
 
     -- BRAM interface
     -- Note: there are no clocks for BRAMs. They are handle in higher level
-    bram_adr_a_o : out std_logic_vector(BRAM_AW-1 downto 0);
-    bram_adr_b_o : out std_logic_vector(BRAM_AW-1 downto 0); -- unused
-    bram_adr_c_o : out std_logic_vector(BRAM_AW-1 downto 0);
+    bram_adr_a_o : out std_logic_vector(2*MTRX_AW-1 downto 0);
+    bram_adr_b_o : out std_logic_vector(2*MTRX_AW-1 downto 0); -- unused
+    bram_adr_c_o : out std_logic_vector(2*MTRX_AW-1 downto 0);
+    
     set_constant : in  std_logic_vector(BRAM_DW-1 downto 0); -- external constant for memset
     bram_dat_a_i : in  std_logic_vector(BRAM_DW-1 downto 0);
     bram_dat_b_i : in  std_logic_vector(BRAM_DW-1 downto 0);
@@ -60,6 +61,10 @@ architecture beh of mtrx_mov is
   -- operand and result addresses registers
   constant ZERO  : std_logic_vector(MTRX_AW-1   downto 0) := (others => '0');
   constant ZERO2 : std_logic_vector(2*MTRX_AW-1 downto 0) := (others => '0');
+  constant OP_CPY : integer := 0;
+  constant OP_EYE : integer := 1;
+  constant OP_TRN : integer := 2;
+  constant OP_SET : integer := 3;
   
   signal a_adr : std_logic_vector(2*MTRX_AW-1 downto 0) := ZERO2;
   signal c_adr : std_logic_vector(2*MTRX_AW-1 downto 0) := ZERO2;
@@ -71,8 +76,8 @@ architecture beh of mtrx_mov is
   
   signal end_of_i, end_of_o : std_logic := '0';
   
-  signal rst_i_tracker_array : std_logic_vector(3 downto 0) := '1';
-  signal rst_o_tracker_array : std_logic_vector(3 downto 0) := '1';
+  signal rst_i_tracker_array : std_logic_vector(3 downto 0) := (others => '1');
+  signal rst_o_tracker_array : std_logic_vector(3 downto 0) := (others => '1');
   signal rst_i_tracker : std_logic := '1';
   signal rst_o_tracker : std_logic := '1';
   
@@ -96,9 +101,9 @@ begin
     default => '1'
   )
   port map(
-    A  => op_i,
-    di => rst_i_tracker,
-    do => rst_i_tracker_array
+    A     => op_i,
+    di(0) => rst_i_tracker,
+    do    => rst_i_tracker_array
   );
   
   rst_o_demuxer : entity work.demuxer
@@ -108,16 +113,15 @@ begin
     default => '1'
   )
   port map(
-    A  => op_i,
-    di => rst_o_tracker,
-    do => rst_o_tracker_array
+    A     => op_i,
+    di(0) => rst_o_tracker,
+    do    => rst_o_tracker_array
   );
-  
   
   a_adr_muxer : entity work.muxer
   generic map(
     AW => 2,
-    DW => BRAM_DW
+    DW => 2*MTRX_AW
   )
   port map(
     A  => op_i,
@@ -128,7 +132,7 @@ begin
   c_adr_muxer : entity work.muxer
   generic map(
     AW => 2,
-    DW => BRAM_DW
+    DW => 2*MTRX_AW
   )
   port map(
     A  => op_i,
@@ -156,7 +160,8 @@ begin
         result_we <= '0';
         rdy_o <= '0';
         err_o <= '0';
-        rst_tracker <= '1';
+        rst_i_tracker <= '1';
+        rst_o_tracker <= '1';
       else        
         rdy_o <= '0';
         err_o <= '0';  
@@ -184,11 +189,11 @@ begin
           end if;
          
         when ACTIVE =>
-          if eof_of_i = '1' then
+          if end_of_i = '1' then
             rst_i_tracker <= '1';
           end if;
           
-          if eof_of_o = '1' then
+          if end_of_o = '1' then
             rst_o_tracker <= '1';
             result_we <= '0';
             rdy_o <= '1';
@@ -206,23 +211,21 @@ begin
 
 
 
-
-
-  end_of_i <= '1' when (mi = m_size and ni = n_size) else '0';
+  end_of_i <= '1' when (mi = m_size and pi = p_size) else '0';
 
   cpy_i_tracker_proc : process(clk_i)
   begin
     if rising_edge(clk_i) then
-      if (rst_cpy_i_tracker = '1') then
+      if (rst_i_tracker_array(OP_CPY) = '1') then
         mi <= ZERO;
-        ni <= ZERO;
-        a_adr <= ZERO2;
+        pi <= ZERO;
+        a_adr_array(OP_CPY) <= ZERO2;
       else
-        a_adr <= a_adr + 1;
+        a_adr_array(OP_CPY) <= a_adr_array(OP_CPY) + 1;
         mi <= mi + 1;
         if (mi = m_size) then
           mi <= ZERO;
-          ni <= ni + 1;
+          pi <= pi + 1;
         end if;
       end if; -- rst
     end if; -- clk
@@ -230,21 +233,21 @@ begin
 
 
 
-  end_of_o <= '1' when (mo = m_size and no = n_size) else '0';
+  end_of_o <= '1' when (mo = m_size and po = p_size) else '0';
 
   cpy_o_tracker_proc : process(clk_i)
   begin
     if rising_edge(clk_i) then
-      if (rst_cpy_o_tracker = '1') then
+      if (rst_o_tracker_array(OP_CPY) = '1') then
         mo <= ZERO;
-        no <= ZERO;
-        c_adr <= ZERO2;
+        po <= ZERO;
+        c_adr_array(OP_CPY) <= ZERO2;
       else
-        c_adr <= c_adr + 1;
+        c_adr_array(OP_CPY) <= c_adr_array(OP_CPY) + 1;
         mo <= mo + 1;
         if (mo = m_size) then
           mo <= ZERO;
-          no <= no + 1;
+          po <= po + 1;
         end if;
       end if; -- rst
     end if; -- clk
@@ -262,7 +265,7 @@ begin
   eye_tracker_proc : process(clk_i)
   begin
     if rising_edge(clk_i) then
-      if (rst_eye_tracker = '1') then
+      if (rst_i_tracker_array(OP_EYE) = '1') then
       else 
       end if; -- rst
     end if; -- clk
@@ -271,7 +274,7 @@ begin
   trn_tracker_proc : process(clk_i)
   begin
     if rising_edge(clk_i) then
-      if (rst_trn_tracker = '1') then
+      if (rst_i_tracker_array(OP_TRN) = '1') then
       else 
       end if; -- rst
     end if; -- clk
@@ -280,7 +283,7 @@ begin
   set_tracker_proc : process(clk_i)
   begin
     if rising_edge(clk_i) then
-      if (rst_set_tracker = '1') then
+      if (rst_i_tracker_array(OP_SET) = '1') then
       else 
       end if; -- rst
     end if; -- clk
