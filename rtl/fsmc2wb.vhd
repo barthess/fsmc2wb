@@ -98,10 +98,12 @@ end fsmc2wb;
 architecture beh of fsmc2wb is
 
   signal a_reg    : STD_LOGIC_VECTOR (AWSLAVE-1 downto 0);
-  signal sel_reg  : STD_LOGIC_VECTOR (AWSEL-1 downto 0);
   signal d_reg    : STD_LOGIC_VECTOR (DW-1 downto 0); 
   signal nwe_reg  : STD_LOGIC_VECTOR (1 downto 0) := "11";
   signal noe_reg  : STD_LOGIC_VECTOR (1 downto 0) := "11";
+  signal nce_reg  : STD_LOGIC := '1';
+
+  signal sel_reg  : STD_LOGIC_VECTOR (AWSEL-1 downto 0);
   
   -- control signals for WB slave
   signal we_wire  : std_logic := '0';
@@ -188,6 +190,7 @@ begin
       sel_reg <= get_sel(A);
       nwe_reg <= nwe_reg(0) & NWE;
       noe_reg <= noe_reg(0) & NOE;
+      nce_reg <= NCE;
       fsmc_do_reg <= fsmc_do_wire;
     end if;
   end process;
@@ -205,8 +208,7 @@ begin
     if rising_edge(clk_i) then
       case state is
       when IDLE =>
-        -- добавить проверку на NCE
-        if (noe_reg = "10") then
+        if (noe_reg = "10" and nce_reg = '0') then
           stb_r <= '1';
           sel_r <= '1';
           state <= ADSET;
@@ -230,7 +232,7 @@ begin
   write_proc : process(clk_i) 
   begin
     if rising_edge(clk_i) then
-      if (nwe_reg = "10") then добавить проверку на NCE
+      if (nwe_reg = "10" and nce_reg = '0') then
         we_wire <= '1';
         stb_w   <= '1';
         sel_w   <= '1';
@@ -238,9 +240,9 @@ begin
         we_wire <= '0';
         stb_w   <= '0';
         sel_w   <= '0';
-        тут получаются сигналы, активные 1 такт,
-        а для вишбона надо 2. Возможно есть смысл скостылить чего-нибудь. 
-        Такую же траблу надо проверить на цикле чтения
+        -- тут получаются сигналы, активные 1 такт,
+        -- а для вишбона надо 2. Возможно есть смысл скостылить чего-нибудь. 
+        -- Такую же траблу надо проверить на цикле чтения
       end if;
     end if;
   end process;

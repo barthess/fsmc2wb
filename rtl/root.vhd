@@ -360,7 +360,8 @@ begin
 --      dat_o => wire_mul2wb_dat_o,
 --      dat_i => wire_mul2wb_dat_i
 --    );
-
+  STM_IO_MUL_RDY_OUT <= '0';
+  
   --
 	-- raize ready flag for STM32
   --

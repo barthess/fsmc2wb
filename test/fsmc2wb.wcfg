@@ -15,7 +15,7 @@
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="19" />
+   <WVObjectSize size="20" />
    <wvobject fp_name="/fsmc2wb_tb/clk_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">clk_i</obj_property>
       <obj_property name="ObjectShortName">clk_i</obj_property>
@@ -81,6 +81,10 @@
    <wvobject fp_name="/fsmc2wb_tb/uut/noe_reg" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">noe_reg[1:0]</obj_property>
       <obj_property name="ObjectShortName">noe_reg[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc2wb_tb/uut/nce_reg" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">nce_reg</obj_property>
+      <obj_property name="ObjectShortName">nce_reg</obj_property>
    </wvobject>
    <wvobject fp_name="/fsmc2wb_tb/uut/d_reg" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">d_reg[15:0]</obj_property>

@@ -96,10 +96,10 @@ ARCHITECTURE behavior OF fsmc2wb_tb IS
    constant clk_fsmc_period : time := 1 ns / 0.168;
    
    -- FSMC timings
-   constant T_BUSTURN_W : positive := 1; добавить в код для STM32 предупреждение о том, что это поле не должно быть нулевым
+   constant T_BUSTURN_W : positive := 1; -- this field must not be zero in STM32
    constant T_DATAST_W  : positive := 2;
    
-   constant T_BUSTURN_R : positive := 1;
+   constant T_BUSTURN_R : positive := 1; -- this field must not be zero in STM32
    constant T_DATAST_R  : positive := 8;
    
   type state_t is (DATAST, BUSTURN, IDLE);
@@ -154,108 +154,111 @@ BEGIN
       wait for 31 ns;	
       
       r_rst <= '0';
+      w_rst <= '0';
       wait for clk_i_period*20;
       r_rst <= '1';
+      w_rst <= '1';
       
       -- insert stimulus here 
 
       wait;
    end process;
 
-  fsmc_read : process(clk_fsmc)
-    variable datast_r  : integer := T_DATAST_R;
-    variable busturn_r : integer := T_BUSTURN_R;
-    variable a_cnt : std_logic_vector (22 downto 0) := std_logic_vector(to_unsigned(3, 23));
-    variable d_cnt : std_logic_vector (15 downto 0) := x"AD00";
-  begin
-    if rising_edge(clk_fsmc) then
-      if (r_rst = '1') then
-        NOE <= '1';
-        NCE <= '1';
-        state <= IDLE;
-        datast_r  := T_DATAST_R;
-        busturn_r := T_BUSTURN_R;
-      else
-        case state is
-        when IDLE =>
-          datast_r  := T_DATAST_R;
-          NOE <= '0';
-          NCE <= '0';
-          a_cnt(16) := '1';
-          a_cnt := a_cnt + 1;
-          A <= a_cnt;
-          state <= DATAST;
-          
-        when DATAST =>
-          datast_r := datast_r - 1;
-          if datast_r = 0 then
-            state <= BUSTURN;
-            NOE <= '1';
-          end if;
-          
-        when BUSTURN =>
-          busturn_r := busturn_r - 1;
-          if busturn_r = 0 then
-            state <= IDLE;
-            NCE <= '1';
-          end if;
-        end case;
-
-
-      end if;
-    end if;
-  end process;
-  
-  
-  
-  
-  
-
---  fsmc_write : process(clk_fsmc)
---    variable busturn_w : integer := T_BUSTURN_W;
---    variable datast_w  : integer := T_DATAST_W;
+--  fsmc_read : process(clk_fsmc)
+--    variable datast_r  : integer := T_DATAST_R;
+--    variable busturn_r : integer := T_BUSTURN_R;
 --    variable a_cnt : std_logic_vector (22 downto 0) := std_logic_vector(to_unsigned(3, 23));
 --    variable d_cnt : std_logic_vector (15 downto 0) := x"AD00";
 --  begin
 --    if rising_edge(clk_fsmc) then
---      if (w_rst = '1') then
---        NWE <= '1';
+--      if (r_rst = '1') then
+--        NOE <= '1';
 --        NCE <= '1';
 --        state <= IDLE;
---        busturn_w := T_BUSTURN_W;
---        datast_w  := T_DATAST_W;
+--        datast_r  := T_DATAST_R;
+--        busturn_r := T_BUSTURN_R;
 --      else
 --        case state is
 --        when IDLE =>
---          busturn_w := T_BUSTURN_W;
---          datast_w  := T_DATAST_W;
---          NWE <= '0';
+--          datast_r  := T_DATAST_R;
+--          busturn_r := T_BUSTURN_R;
+--          NOE <= '0';
 --          NCE <= '0';
 --          a_cnt(16) := '1';
 --          a_cnt := a_cnt + 1;
---          d_cnt := d_cnt + 1;
 --          A <= a_cnt;
---          D <= d_cnt;
 --          state <= DATAST;
 --          
 --        when DATAST =>
---          datast_w := datast_w - 1;
---          if datast_w = 0 then
+--          datast_r := datast_r - 1;
+--          if datast_r = 0 then
 --            state <= BUSTURN;
---            NWE <= '1';
+--            NOE <= '1';
 --          end if;
 --          
 --        when BUSTURN =>
---          busturn_w := busturn_w - 1;
---          if busturn_w = 0 then
+--          busturn_r := busturn_r - 1;
+--          if busturn_r = 0 then
 --            state <= IDLE;
 --            NCE <= '1';
 --          end if;
 --        end case;
---        
+--
+--
 --      end if;
 --    end if;
 --  end process;
+  
+  
+  
+  
+  
+
+  fsmc_write : process(clk_fsmc)
+    variable busturn_w : integer := T_BUSTURN_W;
+    variable datast_w  : integer := T_DATAST_W;
+    variable a_cnt : std_logic_vector (22 downto 0) := std_logic_vector(to_unsigned(3, 23));
+    variable d_cnt : std_logic_vector (15 downto 0) := x"AD00";
+  begin
+    if rising_edge(clk_fsmc) then
+      if (w_rst = '1') then
+        NWE <= '1';
+        NCE <= '1';
+        state <= IDLE;
+        busturn_w := T_BUSTURN_W;
+        datast_w  := T_DATAST_W;
+      else
+        case state is
+        when IDLE =>
+          busturn_w := T_BUSTURN_W;
+          datast_w  := T_DATAST_W;
+          NWE <= '0';
+          NCE <= '0';
+          a_cnt(16) := '1';
+          a_cnt := a_cnt + 1;
+          d_cnt := d_cnt + 1;
+          A <= a_cnt;
+          D <= d_cnt;
+          state <= DATAST;
+          
+        when DATAST =>
+          datast_w := datast_w - 1;
+          if datast_w = 0 then
+            state <= BUSTURN;
+            NWE <= '1';
+          end if;
+          
+        when BUSTURN =>
+          busturn_w := busturn_w - 1;
+          if busturn_w = 0 then
+            state <= IDLE;
+            NCE <= '1';
+          end if;
+        end case;
+        
+      end if;
+    end if;
+  end process;
   
 
   
