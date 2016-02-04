@@ -457,7 +457,6 @@ begin
   --
   --
   --
-  
   ack_o(SLAVES-1) <= ctl_ack_o;
   err_o(SLAVES-1) <= ctl_err_o;
   ctl_stb_i       <= stb_i(SLAVES-1);
