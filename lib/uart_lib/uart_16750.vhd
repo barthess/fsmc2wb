@@ -194,10 +194,6 @@ architecture rtl of uart_16750 is
     end component;
 
     -- Global device signals
-    signal iCSWR            : std_logic;                        -- Chipselect and write
-    signal iCSRD            : std_logic;                        -- Chipselect and read
-    signal iWriteFE         : std_logic;                        -- Write falling edge
-    signal iReadFE          : std_logic;                        -- Read falling edge
     signal iWrite           : std_logic;                        -- Write to UART
     signal iRead            : std_logic;                        -- Read from UART
     signal iA               : std_logic_vector(2 downto 0);     -- UART register address
@@ -376,12 +372,8 @@ architecture rtl of uart_16750 is
 begin
 
     -- Global device signals
-    iCSWR  <= '1' when CS = '1' and WR = '1' else '0';
-    iCSRD  <= '1' when CS = '1' and RD = '1' else '0';
-    UART_ED_WRITE: slib_edge_detect port map (CLK => CLK, RST => RST, D => iCSWR, FE => iWriteFE);
-    UART_ED_READ:  slib_edge_detect port map (CLK => CLK, RST => RST, D => iCSRD, FE => iReadFE);
-    iWrite <= '1' when iWriteFE = '1' else '0';
-    iRead  <= '1' when iReadFE  = '1' else '0';
+    iWrite <= '1' when CS = '1' and WR = '1' else '0';
+    iRead  <= '1' when CS = '1' and RD = '1' else '0';
 
     -- UART registers read/write signals
     iRBRRead  <= '1' when iRead  = '1' and iA = "000" and iLCR_DLAB = '0' else '0';
@@ -410,19 +402,9 @@ begin
     UART_IF_DCD: slib_input_filter generic map (SIZE => 2) port map (CLK, RST, iBaudtick2x, iDCDNs, iDCDn);
     UART_IF_RI:  slib_input_filter generic map (SIZE => 2) port map (CLK, RST, iBaudtick2x, iRINs, iRIn);
 
-    -- Sync. input synchronization
-    UART_SIS: process (CLK, RST)
-    begin
-        if (RST = '1') then
-            iA   <= (others => '0');
-            iDIN <= (others => '0');
-        elsif (CLK'event and CLK = '1') then
-            iA   <= A;
-            iDIN <= DIN;
-        end if;
-    end process;
-
-
+    iA <= A;
+    iDIN <= DIN;
+    
     -- Divisor latch register
     UART_DLR: process (CLK, RST)
     begin
