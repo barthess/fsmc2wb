@@ -29,7 +29,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity latency is
+entity delay is
   Generic (
     LAT   : positive := 5;
     WIDTH : positive := 1
@@ -37,22 +37,22 @@ entity latency is
   Port (
     clk : in  std_logic;
     ce  : in  std_logic;
-    i   : in  std_logic_vector(WIDTH-1 downto 0);
-    o   : out std_logic_vector(WIDTH-1 downto 0)
+    di  : in  std_logic_vector(WIDTH-1 downto 0);
+    do  : out std_logic_vector(WIDTH-1 downto 0)
   );
-end latency;
+end delay;
 
-architecture beh of latency is
+architecture beh of delay is
   signal pipe : std_logic_vector(WIDTH*LAT-1 downto 0);
 begin
 
-  o <= pipe(WIDTH*LAT-1 downto WIDTH*(LAT-1));
+  do <= pipe(WIDTH*LAT-1 downto WIDTH*(LAT-1));
 
   process(clk)
   begin
     if rising_edge(clk) then
       if ce = '1' then
-        pipe <= pipe(WIDTH*(LAT-1)-1 downto 0) & i;
+        pipe <= pipe(WIDTH*(LAT-1)-1 downto 0) & di;
       end if;
     end if;
   end process;
