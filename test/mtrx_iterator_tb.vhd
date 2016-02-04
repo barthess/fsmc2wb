@@ -46,8 +46,9 @@ ARCHITECTURE behavior OF mtrx_iterator_tb IS
    signal n_i : std_logic_vector(4 downto 0) := (others => '0');
 
  	--Outputs
-   signal rdy_o : std_logic;
+   signal end_o : std_logic;
    signal eye_o : std_logic;
+   signal dv_o  : std_logic;
    signal adr_o : std_logic_vector(9 downto 0);
 
    -- Clock period definitions
@@ -58,15 +59,16 @@ BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
    uut: entity work.mtrx_iter_eye
---   Generic map (
---    MTRX_AW => 5
---   )
+   Generic map (
+    MTRX_AW => 5
+   )
    PORT MAP (
           rst_i => rst_i,
           clk_i => clk_i,
           m_i => m_i,
           n_i => n_i,
-          rdy_o => rdy_o,
+          end_o => end_o,
+          dv_o  => dv_o,
           eye_o => eye_o,
           adr_o => adr_o
         );
@@ -86,8 +88,8 @@ BEGIN
    begin		
       -- hold reset state for 100 ns.
       wait for 100 ns;	
-      m_i <= "11111";
-      n_i <= "11111";
+      m_i <= "00000";
+      n_i <= "00000";
       ce <= '1';
       wait;
    end process;
