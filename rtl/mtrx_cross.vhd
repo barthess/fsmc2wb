@@ -15,7 +15,7 @@ use IEEE.NUMERIC_STD.ALL;
 --
 -- multiply matrix A(m x p) by  B(p x n), put result in C(m x n)
 --
-entity mtrx_mul is
+entity mtrx_cross is
   Generic (
     WB_AW   : positive := 16;
     WB_DW   : positive := 16;
@@ -54,12 +54,12 @@ entity mtrx_mul is
     bram_ce_c_o  : out std_logic;
     bram_we_o    : out std_logic -- for C bram
   );
-end mtrx_mul;
+end mtrx_cross;
 
 
 -----------------------------------------------------------------------------
 
-architecture beh of mtrx_mul is
+architecture beh of mtrx_cross is
   
   -- operand and result addresses registers
   signal A_adr : std_logic_vector(BRAM_AW-1 downto 0) := (others => '0');
