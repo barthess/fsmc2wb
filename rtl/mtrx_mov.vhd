@@ -32,10 +32,6 @@ entity mtrx_mov is
     err_o  : out std_logic := '0'; -- active high 1 clock
     rdy_o  : out std_logic := '0'; -- active high 1 clock
     -- operation select
-    -- 0 copy
-    -- 1 set
-    -- 2 transposition
-    -- 3 eye generate
     op_i : in std_logic_vector(1 downto 0);
 
     -- BRAM interface
@@ -80,13 +76,12 @@ architecture beh of mtrx_mov is
   signal stb_iter_eye : std_logic := '0';
 
   -- signals for routing between data_a, constant, one64
-  signal sel_dat_input : std_logic;
-  signal wire_tmp64  : std_logic_vector(BRAM_DW-1 downto 0);
+  signal wire_tmp64 : std_logic_vector(BRAM_DW-1 downto 0);
   -- input data for operators
   signal op_dat : std_logic_vector(BRAM_DW-1 downto 0);
 
-  constant ONE64  : std_logic_vector(BRAM_DW-1 downto 0) := x"3FF0000000000000"; -- 1.000000
-  signal result_buf : std_logic_vector(BRAM_DW-1 downto 0);
+  constant ONE64 : std_logic_vector(BRAM_DW-1 downto 0) := x"3FF0000000000000"; -- 1.000000
+  signal result_buf : std_logic_vector(BRAM_DW-1 downto 0) := (others => '0');
   signal result_we : std_logic := '0';
 
   -- state machine
@@ -129,35 +124,13 @@ begin
     do => c_adr
   );
 
-
   -- select data input for operation
   -- double BRAM must be connected only to TRN or CPY
-  sel_dat_input <= '1' when (op_i = OP_TRN or op_i = OP_CPY) else '0';
+  wire_tmp64 <= bram_dat_a_i when (op_i = OP_TRN or op_i = OP_CPY) else constant_i;
   
-  dat_constant_muxer : entity work.muxer
-  generic map (
-    AW => 1,
-    DW => BRAM_DW
-  )
-  port map (
-    A(0)=> sel_dat_input,
-    di  => bram_dat_a_i & constant_i,
-    do  => wire_tmp64
-  );
-
   -- connect one64 constant to data input 
   -- when eye strobe high
-  eye_dat_muxer : entity work.muxer
-  generic map (
-    AW => 1,
-    DW => BRAM_DW
-  )
-  port map (
-    A(0)=> stb_iter_eye,
-    di  => ONE64 & wire_tmp64,
-    do  => op_dat
-  );
-  
+  op_dat <= wire_tmp64 when (stb_iter_eye = '0') else ONE64;
   
   -- sequential address generator for 
   -- A address

@@ -3,23 +3,20 @@
    <wave_state>
    </wave_state>
    <db_ref_list>
-      <db_ref path="/home/barthess/projects/xilinx/fsmc2wb/mtrx_iterator_tb_isim_beh.wdb" id="1" type="auto">
+      <db_ref path="/home/barthess/projects/xilinx/fsmc2wb/mtrx_iterator_tb_isim_par.wdb" id="1" type="auto">
          <top_modules>
-            <top_module name="attributes" />
             <top_module name="mtrx_iterator_tb" />
             <top_module name="numeric_std" />
             <top_module name="std_logic_1164" />
-            <top_module name="std_logic_arith" />
-            <top_module name="std_logic_misc" />
-            <top_module name="std_logic_unsigned" />
+            <top_module name="textio" />
+            <top_module name="vcomponents" />
+            <top_module name="vital_primitives" />
+            <top_module name="vital_timing" />
+            <top_module name="vpackage" />
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="11" />
-   <wvobject fp_name="/mtrx_iterator_tb/ce" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">ce</obj_property>
-      <obj_property name="ObjectShortName">ce</obj_property>
-   </wvobject>
+   <WVObjectSize size="9" />
    <wvobject fp_name="/mtrx_iterator_tb/rst_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">rst_i</obj_property>
       <obj_property name="ObjectShortName">rst_i</obj_property>
@@ -31,23 +28,16 @@
    <wvobject fp_name="/mtrx_iterator_tb/m_i" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">m_i[4:0]</obj_property>
       <obj_property name="ObjectShortName">m_i[4:0]</obj_property>
-      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/mtrx_iterator_tb/n_i" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">n_i[4:0]</obj_property>
       <obj_property name="ObjectShortName">n_i[4:0]</obj_property>
-      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
-   </wvobject>
-   <wvobject fp_name="/mtrx_iterator_tb/uut/big_step" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">big_step[9:0]</obj_property>
-      <obj_property name="ObjectShortName">big_step[9:0]</obj_property>
-      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/mtrx_iterator_tb/rdy_o" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">rdy_o</obj_property>
       <obj_property name="ObjectShortName">rdy_o</obj_property>
    </wvobject>
-   <wvobject fp_name="/mtrx_iterator_tb/uut/eye_o" type="logic" db_ref_id="1">
+   <wvobject fp_name="/mtrx_iterator_tb/eye_o" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">eye_o</obj_property>
       <obj_property name="ObjectShortName">eye_o</obj_property>
    </wvobject>
@@ -56,14 +46,12 @@
       <obj_property name="ObjectShortName">adr_o[9:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/mtrx_iterator_tb/uut/comparator" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">comparator[9:0]</obj_property>
-      <obj_property name="ObjectShortName">comparator[9:0]</obj_property>
-      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   <wvobject fp_name="/mtrx_iterator_tb/ce" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ce</obj_property>
+      <obj_property name="ObjectShortName">ce</obj_property>
    </wvobject>
-   <wvobject fp_name="/mtrx_iterator_tb/uut/adr" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">adr[9:0]</obj_property>
-      <obj_property name="ObjectShortName">adr[9:0]</obj_property>
-      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   <wvobject fp_name="/mtrx_iterator_tb/clk_i_period" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_i_period</obj_property>
+      <obj_property name="ObjectShortName">clk_i_period</obj_property>
    </wvobject>
 </wave_config>

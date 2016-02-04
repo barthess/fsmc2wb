@@ -1,6 +1,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
+--use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -33,28 +33,29 @@ end mtrx_iter_seq;
 -----------------------------------------------------------------------------
 
 architecture sequent of mtrx_iter_seq is
-  constant ZERO  : std_logic_vector(MTRX_AW-1   downto 0) := (others => '0');
-  constant ZERO2 : std_logic_vector(2*MTRX_AW-1 downto 0) := (others => '0');
-  signal m, n : std_logic_vector(MTRX_AW-1 downto 0) := ZERO;
-  signal adr : std_logic_vector(2*MTRX_AW-1 downto 0) := ZERO2;
+  signal m, n : natural range 0 to 2**MTRX_AW-1   := 0;
+  signal i, j : natural range 0 to 2**MTRX_AW-1   := 0;
+  signal adr  : natural range 0 to 2**(2*MTRX_AW)-1 := 0;
 begin
+  m <= to_integer(unsigned(m_i));
+  n <= to_integer(unsigned(n_i));
   
-  rdy_o <= '1' when (m = m_i and n = n_i and rst_i = '0') else '0';
-  adr_o <= adr;
+  rdy_o <= '1' when (i = m and j = n and rst_i = '0') else '0';
+  adr_o <= std_logic_vector(to_unsigned(adr, 2*MTRX_AW));
   
   main : process(clk_i)
   begin
     if rising_edge(clk_i) then
       if (rst_i = '1') then
-        m   <= ZERO;
-        n   <= ZERO;
-        adr <= ZERO2;
+        i   <= 0;
+        j   <= 0;
+        adr <= 0;
       else
         adr <= adr + 1;
-        m <= m + 1;
-        if (m = m_i) then
-          m <= ZERO;
-          n <= n + 1;
+        i <= i + 1;
+        if (i = m) then
+          i <= 0;
+          j <= j + 1;
         end if;
       end if; -- rst
     end if; -- clk
