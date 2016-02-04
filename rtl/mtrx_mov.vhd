@@ -42,6 +42,8 @@ entity mtrx_mov is
     constant_i   : in  std_logic_vector(BRAM_DW-1 downto 0); -- external constant for memset and eye
     bram_dat_a_i : in  std_logic_vector(BRAM_DW-1 downto 0);
     bram_dat_c_o : out std_logic_vector(BRAM_DW-1 downto 0);
+    bram_ce_a_o  : out std_logic;
+    bram_ce_c_o  : out std_logic;
     bram_we_o    : out std_logic -- for C bram
   );
 end mtrx_mov;
@@ -71,6 +73,7 @@ architecture beh of mtrx_mov is
   signal rdy_o_iter : std_logic := '0';
   signal rdy_iter_trn : std_logic := '0';
   signal rdy_iter_eye : std_logic := '0';
+  signal ce_c_or1, ce_c_or2 : std_logic := '0';
   
   signal sel_iter : std_logic_vector (0 downto 0);
   signal stb_iter_eye : std_logic := '0';
@@ -85,7 +88,7 @@ architecture beh of mtrx_mov is
   signal result_we : std_logic := '0';
 
   -- state machine
-  type state_t is (IDLE, PRELOAD, ACTIVE, HALT);
+  type state_t is (IDLE, ADSET, PRELOAD, ACTIVE, FLUSH, HALT);
   signal state : state_t := IDLE;
   
   signal lat_i, lat_o : natural range 0 to 15 := DAT_LAT;
@@ -144,10 +147,15 @@ begin
     clk_i  => clk_i,
     m_i    => m_size,
     n_i    => n_size,
-    rdy_o  => rdy_i_iter,
+    end_o  => rdy_i_iter,
+    dv_o   => bram_ce_a_o,
     adr_o  => bram_adr_a_o
   );
-
+  
+  -- BRAM C CE line may be driven by both iteratorss
+  -- resulution function
+  bram_ce_c_o <= ce_c_or1 or ce_c_or2;
+  
   -- transposed address generator for 
   -- C address
   -- output must be connected via muxer
@@ -160,7 +168,8 @@ begin
     clk_i  => clk_i,
     m_i    => m_size,
     n_i    => n_size,
-    rdy_o  => rdy_iter_trn,
+    end_o  => rdy_iter_trn,
+    dv_o   => ce_c_or1,
     adr_o  => c_adr_trn
   );
 
@@ -178,7 +187,8 @@ begin
     clk_i  => clk_i,
     m_i    => m_size,
     n_i    => n_size,
-    rdy_o  => rdy_iter_eye,
+    end_o  => rdy_iter_eye,
+    dv_o   => ce_c_or2,
     eye_o  => stb_iter_eye,
     adr_o  => c_adr_eye
   );
@@ -203,13 +213,15 @@ begin
         err_o <= '0';
         rst_i_iter <= '1';
         rst_o_iter <= '1';
+        lat_i <= DAT_LAT;
+        lat_o <= DAT_LAT / 2;
       else        
         rdy_o <= '0';
         err_o <= '0';  
         
         case state is
         when IDLE =>
-          m_tmp := size_i(MTRX_AW-1   downto 0);
+          m_tmp := size_i(  MTRX_AW-1 downto 0);
           n_tmp := size_i(2*MTRX_AW-1 downto MTRX_AW);
           if (size_i(15 downto 2*MTRX_AW) > 0) -- overflow
           or ((n_tmp /= m_tmp) and (op_i = OP_EYE)) -- only square matices allowed for EYE
@@ -239,6 +251,12 @@ begin
             rst_o_iter <= '1';
             result_we <= '0';
             rdy_o <= '1';
+            state <= FLUSH;
+          end if;
+
+        when FLUSH =>
+          lat_o <= lat_o - 1;
+          if (lat_o = 0) then
             state <= HALT;
           end if;
 
