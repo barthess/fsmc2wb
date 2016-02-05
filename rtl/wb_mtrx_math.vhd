@@ -270,7 +270,9 @@ begin
   ----------------------------------------------------------------------------------
   -- Instantiate matrix math
   ----------------------------------------------------------------------------------
-  -- dot product multiplier
+  --
+  -- DOT
+  --
   mtrx_dot : entity work.mtrx_dot
   generic map (
     BRAM_AW => MUL_AW,
@@ -299,34 +301,8 @@ begin
   );
   
   -- 
-  mtrx_add_FIXME_STUB : entity work.mtrx_mov
-  generic map (
-    MTRX_AW => 5,
-    BRAM_DW => MUL_DW
-  )
-  port map (
-    rdy_o => math_rdy(MATH_HW_ADD),
-    
-    -- control interface
-    clk_i  => clk_mul_i,
-    rst_i  => math_rst(MATH_HW_ADD),
-    err_o  => math_err(MATH_HW_ADD),
-    size_i => math_sizes,
-    --sub_not_add_i => math_sub_not_add,
-    set_constant => double_constant,
-    op_i => "00",
-    
-    -- BRAM interface
-    bram_adr_a_o => math_adr_a((MATH_HW_ADD+1)*MUL_AW-1 downto MATH_HW_ADD*MUL_AW),
-    bram_adr_b_o => math_adr_b((MATH_HW_ADD+1)*MUL_AW-1 downto MATH_HW_ADD*MUL_AW),
-    bram_adr_c_o => math_adr_c((MATH_HW_ADD+1)*MUL_AW-1 downto MATH_HW_ADD*MUL_AW),
-    bram_dat_a_i => math_dat_a((MATH_HW_ADD+1)*MUL_DW-1 downto MATH_HW_ADD*MUL_DW),
-    bram_dat_b_i => math_dat_b((MATH_HW_ADD+1)*MUL_DW-1 downto MATH_HW_ADD*MUL_DW),
-    bram_dat_c_o => math_dat_c((MATH_HW_ADD+1)*MUL_DW-1 downto MATH_HW_ADD*MUL_DW),
-    bram_we_o    => math_we(MATH_HW_ADD)
-  );
-  
-  -- 
+  -- MOV
+  --
   mtrx_mov : entity work.mtrx_mov
   generic map (
     MTRX_AW => 5,
@@ -341,7 +317,7 @@ begin
     err_o  => math_err(MATH_HW_MOV),
     size_i => math_sizes,
     op_i   => math_mov_type,
-    set_constant => double_constant,
+    constant_i => double_constant,
     
     -- BRAM interface
     bram_adr_a_o => math_adr_a((MATH_HW_MOV+1)*MUL_AW-1 downto MATH_HW_MOV*MUL_AW),
@@ -353,8 +329,38 @@ begin
     bram_we_o    => math_we(MATH_HW_MOV)
   );
   
+  --
+  -- ADD
+  --
+  mtrx_add : entity work.mtrx_add
+  generic map (
+    MTRX_AW => 5,
+    BRAM_DW => MUL_DW
+  )
+  port map (
+    rdy_o => math_rdy(MATH_HW_ADD),
+    
+    -- control interface
+    clk_i  => clk_mul_i,
+    rst_i  => math_rst(MATH_HW_ADD),
+    err_o  => math_err(MATH_HW_ADD),
+    size_i => math_sizes,
+    sub_not_add_i => math_sub_not_add,
+    
+    -- BRAM interface
+    bram_adr_a_o => math_adr_a((MATH_HW_ADD+1)*MUL_AW-1 downto MATH_HW_ADD*MUL_AW),
+    bram_adr_b_o => math_adr_b((MATH_HW_ADD+1)*MUL_AW-1 downto MATH_HW_ADD*MUL_AW),
+    bram_adr_c_o => math_adr_c((MATH_HW_ADD+1)*MUL_AW-1 downto MATH_HW_ADD*MUL_AW),
+    bram_dat_a_i => math_dat_a((MATH_HW_ADD+1)*MUL_DW-1 downto MATH_HW_ADD*MUL_DW),
+    bram_dat_b_i => math_dat_b((MATH_HW_ADD+1)*MUL_DW-1 downto MATH_HW_ADD*MUL_DW),
+    bram_dat_c_o => math_dat_c((MATH_HW_ADD+1)*MUL_DW-1 downto MATH_HW_ADD*MUL_DW),
+    bram_we_o    => math_we(MATH_HW_ADD)
+  );
+  
+  --
+  -- CROSS
   -- 
-  mtrx_cross_STUB_FIXME : entity work.mtrx_mov
+  mtrx_cross_FIX_ME_STUB_ADD : entity work.mtrx_add
   generic map (
     MTRX_AW => 5,
     BRAM_DW => MUL_DW
@@ -367,8 +373,7 @@ begin
     rst_i   => math_rst(MATH_HW_CROSS),
     err_o   => math_err(MATH_HW_CROSS),
     size_i  => math_sizes,
-    set_constant => double_constant,
-    op_i => "00",
+    sub_not_add_i => math_sub_not_add,
 
     -- BRAM interface
     bram_adr_a_o => math_adr_a((MATH_HW_CROSS+1)*MUL_AW-1 downto MATH_HW_CROSS*MUL_AW),

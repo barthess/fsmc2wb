@@ -29,18 +29,20 @@ entity mtrx_mov is
     rst_i  : in  std_logic; -- active high. Must be used before every new calculation
     clk_i  : in  std_logic;
     size_i : in  std_logic_vector(15 downto 0); -- size of input operands
-    err_o  : out std_logic := '0'; -- active high 1 clock
-    rdy_o  : out std_logic := '0'; -- active high 1 clock
+    err_o  : out std_logic; -- active high 1 clock
+    rdy_o  : out std_logic; -- active high 1 clock
     -- operation select
     op_i : in std_logic_vector(1 downto 0);
 
     -- BRAM interface
     -- Note: there are no clocks for BRAMs. They are handle in higher level
     bram_adr_a_o : out std_logic_vector(2*MTRX_AW-1 downto 0);
+    bram_adr_b_o : out std_logic_vector(2*MTRX_AW-1 downto 0); -- unused
     bram_adr_c_o : out std_logic_vector(2*MTRX_AW-1 downto 0);
 
     constant_i   : in  std_logic_vector(BRAM_DW-1 downto 0); -- external constant for memset and eye
     bram_dat_a_i : in  std_logic_vector(BRAM_DW-1 downto 0);
+    bram_dat_b_i : in  std_logic_vector(BRAM_DW-1 downto 0); -- unused
     bram_dat_c_o : out std_logic_vector(BRAM_DW-1 downto 0);
     bram_ce_a_o  : out std_logic;
     bram_ce_c_o  : out std_logic;
@@ -80,7 +82,7 @@ architecture beh of mtrx_mov is
   constant ONE64 : std_logic_vector(BRAM_DW-1 downto 0) := x"3FF0000000000000"; -- 1.000000
 
   -- state machine
-  type state_t is (IDLE, ADR_WARMUP, DAT_PRELOAD, ACTIVE, FLUSH, HALT);
+  type state_t is (IDLE, ADR_PRELOAD, DAT_PRELOAD, ACTIVE, FLUSH, HALT);
   signal state : state_t := IDLE;
   
   signal lat_i, lat_o : natural range 0 to 15 := DAT_LAT;
@@ -165,10 +167,10 @@ begin
           else
             m_size <= m_tmp;
             n_size <= n_tmp;
-            state  <= ADR_WARMUP;
+            state  <= ADR_PRELOAD;
           end if;
           
-        when ADR_WARMUP =>
+        when ADR_PRELOAD =>
           rst_iter  <= '0';
           ce_a_iter <= '1';
           lat_i <= lat_i - 1;

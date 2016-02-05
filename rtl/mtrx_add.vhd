@@ -58,33 +58,25 @@ architecture beh of mtrx_add is
   signal AB_adr : std_logic_vector(2*MTRX_AW-1 downto 0):= (others => '0');
   signal AB_ce  : std_logic := '0';
   signal C_adr  : std_logic_vector(2*MTRX_AW-1 downto 0):= (others => '0');
-  signal C_ce   : std_logic := '0';
+  --signal C_ce   : std_logic := '0';
   signal m_size, n_size : std_logic_vector(MTRX_AW-1 downto 0):= (others => '0');
   signal lat_i, lat_o : natural range 0 to 15 := DAT_LAT;
 
-  signal rdy_ab_iter : std_logic := '0';
-  signal rdy_c_iter  : std_logic := '0';
-  signal rst_ab_iter : std_logic := '0';
-  signal rst_c_iter  : std_logic := '0';
+  --signal end_ab_iter : std_logic := '0';
+  signal end_c_iter  : std_logic := '0';
+  signal rst_iter    : std_logic := '1';
+  signal ce_ab_iter  : std_logic := '0';
+  signal add_rdy_bram_we_ce_c_iter : std_logic := '0';
   
   -- adder control signals
-  signal nd_delay: std_logic_vector(DAT_LAT-1 downto 0);
-  signal add_nd  : std_logic := '0';
-  signal add_ce  : std_logic := '0';
+  signal add_nd_ce : std_logic := '0';
   signal add_rdy : std_logic;
 
   -- state machine
-  type state_t is (IDLE, PRELOAD, ACTIVE, FLUSH, HALT);
+  type state_t is (IDLE, ADR_PRELOAD, DAT_PRELOAD, ACTIVE, FLUSH, HALT);
   signal state : state_t := IDLE;
 
 begin
-  
-  bram_adr_a_o <= AB_adr;
-  bram_adr_b_o <= AB_adr;
-  bram_adr_c_o <= C_adr;
-  bram_we_o    <= add_rdy;
-  bram_ce_a_o  <= AB_ce;
-  bram_ce_b_o  <= AB_ce;
   
   --
   -- address iterator for IN matrices
@@ -94,15 +86,16 @@ begin
     MTRX_AW => MTRX_AW
   )
   port map (
-    rst_i  => rst_ab_iter,
+    rst_i  => rst_iter,
     clk_i  => clk_i,
     m_i    => m_size,
     n_i    => n_size,
-    end_o  => rdy_ab_iter,
+    ce_i   => ce_ab_iter,
+    end_o  => open,
     dv_o   => AB_ce,
     adr_o  => AB_adr
   );
-  
+
   --
   -- address iterator for OUT matrix
   --
@@ -111,31 +104,54 @@ begin
     MTRX_AW => MTRX_AW
   )
   port map (
-    rst_i  => rst_c_iter,
+    rst_i  => rst_iter,
     clk_i  => clk_i,
     m_i    => m_size,
     n_i    => n_size,
-    end_o  => rdy_c_iter,
-    dv_o   => C_ce,
+    ce_i   => add_rdy_bram_we_ce_c_iter,
+    end_o  => end_c_iter,
+    dv_o   => open,
     adr_o  => C_adr
+  );
+  
+  --
+  -- delay line connecting data_valid signal from input address
+  -- iterator to operation_nd and ce of the adder
+  --
+  add_nd_delay : entity work.delay
+  generic map (
+    LAT => DAT_LAT,
+    WIDTH => 1
+  )
+  port map (
+    clk   => clk_i,
+    ce    => '1',
+    di(0) => AB_ce,
+    do(0) => add_nd_ce
   );
   
   --
   -- adder
   --
-  add_nd <= nd_delay(DAT_LAT-1);
   dadd : entity work.dadd
   port map (
     a      => bram_dat_a_i,
     b      => bram_dat_b_i,
     result => bram_dat_c_o,
     clk    => clk_i,
-    ce     => add_ce,
-    rdy    => add_rdy,
+    ce     => add_nd_ce,
+    rdy    => add_rdy_bram_we_ce_c_iter,
     operation(5 downto 1) => "00000",
     operation(0) => sub_not_add_i,
-    operation_nd => add_nd
+    operation_nd => add_nd_ce
   );
+  
+  bram_adr_a_o <= AB_adr;
+  bram_adr_b_o <= AB_adr;
+  bram_adr_c_o <= C_adr;
+  bram_we_o    <= add_rdy_bram_we_ce_c_iter;
+  bram_ce_a_o  <= AB_ce;
+  bram_ce_b_o  <= AB_ce;
   
   --
   -- Main state machine
@@ -146,60 +162,60 @@ begin
     if rising_edge(clk_i) then
       if (rst_i = '1') then
         state   <= IDLE;
-        add_nd  <= '0';
-        add_ce  <= '0';
         lat_i   <= DAT_LAT;
+        rst_iter  <= '1';
+        err_o <= '0';
+        rdy_o <= '0';
       else
+        err_o <= '0';
+        rdy_o <= '0';
         case state is
         when IDLE =>
-          m_tmp := size_i(MTRX_AW-1   downto 0);
+          m_tmp := size_i(  MTRX_AW-1 downto 0);
           n_tmp := size_i(2*MTRX_AW-1 downto MTRX_AW);
           if (size_i(15 downto 2*MTRX_AW) > 0) -- overflow
           then
             err_o <= '1';
             state <= HALT;
           else
-            m_size <= m_tmp;
-            n_size <= n_tmp;
-            rst_ab_iter <= '0';
-            lat_i <= lat_i - 1;
-            state <= PRELOAD;
+            m_size  <= m_tmp;
+            n_size  <= n_tmp;
+            state   <= ADR_PRELOAD;
           end if;
-
-        when PRELOAD =>
+          
+        when ADR_PRELOAD =>
+          rst_iter <= '0';
+          ce_ab_iter  <= '1';
+          lat_i <= lat_i - 1;
+          state <= DAT_PRELOAD;
+            
+        when DAT_PRELOAD =>
           lat_i <= lat_i - 1;
           if (lat_i = 0) then
-            state  <= ACTIVE;
-            add_ce <= '1';
-            add_nd <= '1';
+            state <= ACTIVE;
           end if;
 
         when ACTIVE =>
-          
-          A_adr <= A_adr - 1;
-          B_adr <= B_adr - 1;
-
-          if (nd_track /= 0) then
-            nd_track <= nd_track - 1;
-          else
-            add_nd <= '0';
+          if end_c_iter = '1' then
+            rst_iter    <= '1';
+            ce_ab_iter  <= '0';
+            state       <= FLUSH;
           end if;
-          
-          if (add_rdy = '1') then
-            C_adr <= C_adr - 1;
-            if (C_adr = 0) then
-              add_ce <= '0';
-              state  <= HALT;
-            end if;
+
+        when FLUSH =>
+          lat_o <= lat_o - 1;
+          if (lat_o = 0) then
+            state <= HALT;
+            rdy_o <= '1';
           end if;
 
         when HALT =>
           state <= HALT;
         end case;
-        
       end if; -- clk
     end if; -- rst
   end process;
 
 end beh;
+
 
