@@ -60,12 +60,12 @@ ARCHITECTURE behavior OF mtrx_mov_tb IS
     
 
    --Inputs
-   signal rst_i : std_logic := '0';
+   signal rst_i : std_logic := '1';
    signal clk_i : std_logic := '0';
    signal size_i : std_logic_vector(15 downto 0) := (others => '0');
    signal op_i : std_logic_vector(1 downto 0) := (others => '0');
-   signal constant_i : std_logic_vector(63 downto 0) := (others => '0');
-   signal bram_dat_a_i : std_logic_vector(63 downto 0) := (others => '0');
+   signal constant_i : std_logic_vector(63 downto 0) := x"aaaabbbbccccdddd";
+   signal bram_dat_a_i : std_logic_vector(63 downto 0) := x"1111222233334444";
 
  	--Outputs
    signal err_o : std_logic;
@@ -86,7 +86,13 @@ ARCHITECTURE behavior OF mtrx_mov_tb IS
 BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
-   uut: mtrx_mov PORT MAP (
+   uut: entity work.mtrx_mov 
+   Generic map (
+      MTRX_AW => 5,
+      BRAM_DW => 64,
+      DAT_LAT => 4
+   )
+   PORT MAP (
           rst_i => rst_i,
           clk_i => clk_i,
           size_i => size_i,
@@ -121,11 +127,11 @@ BEGIN
       case state is
 
       when IDLE =>
-        m := "00001";
-        n := "00001";
+        m := "00000";
+        n := "00000";
         size_i(9 downto 5) <= n;
         size_i(4 downto 0) <= m;
-        op_i <= "00";
+        op_i <= "01";
         rst_i <= '0';
         state <= ACTIVE;
         

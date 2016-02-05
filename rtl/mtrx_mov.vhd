@@ -61,6 +61,7 @@ architecture beh of mtrx_mov is
   constant OP_TRN : std_logic_vector (1 downto 0) := "10";
   constant OP_SET : std_logic_vector (1 downto 0) := "11";
   signal trn_not_eye : std_logic;
+  signal bram_ce_we_combined : std_logic := '0';
   
   signal m_size, n_size : std_logic_vector(MTRX_AW-1 downto 0) := ZERO;
 
@@ -77,11 +78,9 @@ architecture beh of mtrx_mov is
   signal op_dat : std_logic_vector(BRAM_DW-1 downto 0);
 
   constant ONE64 : std_logic_vector(BRAM_DW-1 downto 0) := x"3FF0000000000000"; -- 1.000000
-  signal result_buf : std_logic_vector(BRAM_DW-1 downto 0) := (others => '0');
-  signal result_we : std_logic := '0';
 
   -- state machine
-  type state_t is (IDLE, ADR_WARMUP, DI_PRELOAD, ACTIVE, FLUSH, HALT);
+  type state_t is (IDLE, ADR_WARMUP, DAT_PRELOAD, ACTIVE, FLUSH, HALT);
   signal state : state_t := IDLE;
   
   signal lat_i, lat_o : natural range 0 to 15 := DAT_LAT;
@@ -97,11 +96,13 @@ begin
   
   -- connect one64 constant to data input 
   -- when eye strobe high
-  op_dat <= wire_tmp64 when (eye_stb = '0') else ONE64;
+  op_dat <= ONE64 when (eye_stb = '1' and op_i = OP_EYE) else wire_tmp64;
   
   --
   -- Iterator for input and output addresses
   --
+  bram_ce_c_o <= bram_ce_we_combined;
+  bram_we_o   <= bram_ce_we_combined;
   iterator : entity work.mtrx_mov_iter
   generic map (
     MTRX_AW => MTRX_AW
@@ -117,7 +118,7 @@ begin
     adr_a_o   => bram_adr_a_o,
     adr_c_o   => bram_adr_c_o,
     valid_a_o => bram_ce_a_o,
-    valid_c_o => bram_ce_c_o,
+    valid_c_o => bram_ce_we_combined,
     end_a_o   => rdy_a_iter,
     end_c_o   => rdy_c_iter,
     ce_a_i    => ce_a_iter,
@@ -128,8 +129,8 @@ begin
   
   
   -- connect BRAM signals
-  bram_we_o    <= result_we;
-  bram_dat_c_o <= result_buf;
+  --bram_we_o    <= result_we;
+  bram_dat_c_o <= op_dat;--result_buf;
   
   
   --
@@ -141,7 +142,6 @@ begin
     if rising_edge(clk_i) then
       if (rst_i = '1') then
         state <= IDLE;
-        result_we <= '0';
         rdy_o <= '0';
         err_o <= '0';
         rst_iter  <= '1';
@@ -165,32 +165,28 @@ begin
           else
             m_size <= m_tmp;
             n_size <= n_tmp;
-            state <= ADR_WARMUP;
+            state  <= ADR_WARMUP;
           end if;
           
         when ADR_WARMUP =>
           rst_iter  <= '0';
           ce_a_iter <= '1';
           lat_i <= lat_i - 1;
-          state <= DI_PRELOAD;
+          state <= DAT_PRELOAD;
           
-        when DI_PRELOAD =>
+        when DAT_PRELOAD =>
           lat_i <= lat_i - 1;
           if (lat_i = 0) then
             state <= ACTIVE;
             ce_c_iter <= '1';
-            result_buf <= op_dat;
-            result_we  <= '1';
           end if;
          
         when ACTIVE =>
-          result_buf <= op_dat;
           if rdy_c_iter = '1' then
-            rst_iter <= '1';
+            rst_iter  <= '1';
             ce_a_iter <= '0';
             ce_c_iter <= '0';
-            result_we <= '0';
-            state <= FLUSH;
+            state     <= FLUSH;
           end if;
 
         when FLUSH =>
