@@ -32,16 +32,18 @@ end entity wb_uart;
 
 architecture rtl of wb_uart is
 
-  signal uart_cs          : std_logic_vector(UART_CHANNELS-1 downto 0);
-  signal uart_wr          : std_logic;  -- common for all uarts
-  signal uart_rd          : std_logic;  -- common for all uarts
-  signal uart_addr        : std_logic_vector(2 downto 0);
-  signal uart_di          : std_logic_vector(7 downto 0);
+  signal uart_cs           : std_logic_vector(UART_CHANNELS-1 downto 0);
+  signal uart_wr           : std_logic;  -- common for all uarts
+  signal uart_rd           : std_logic;  -- common for all uarts
+  signal uart_addr         : std_logic_vector(2 downto 0);
+  signal uart_di           : std_logic_vector(7 downto 0);
   type t_uart_do is array (0 to UART_CHANNELS-1) of std_logic_vector(7 downto 0);
-  signal uart_do          : t_uart_do;
-  signal uart_irqs        : std_logic_vector(UART_CHANNELS-1 downto 0);
-  signal uart_16x_baudclk : std_logic_vector(UART_CHANNELS-1 downto 0);
-  signal illegal_op       : std_logic;  -- illegal operation
+  signal uart_do           : t_uart_do;
+  signal uart_irqs         : std_logic_vector(UART_CHANNELS-1 downto 0);
+  signal uart_16x_baudclk  : std_logic_vector(UART_CHANNELS-1 downto 0);
+  signal irqs_to_wb        : std_logic;  -- wishbone requests irqs register
+  signal illegal_op        : std_logic;  -- illegal operation
+  shared variable uart_num : natural;
 
 begin
 
@@ -54,32 +56,30 @@ begin
   uart_di <= dat_i(7 downto 0);
 
   -- asynchronous generation of flags and signals for uart
-  process (sel_i, we_i, adr_i, uart_do, uart_irqs) is
-    variable uart_num : natural;
-    constant zeros    : std_logic_vector(15 downto 0) := X"0000";
+  process (sel_i, we_i, adr_i) is
   begin
     -- default values
     uart_cs    <= (others => '0');
     uart_wr    <= '0';
     uart_rd    <= '0';
     illegal_op <= '0';
+    irqs_to_wb <= '0';
     uart_addr  <= adr_i(2 downto 0);
-    dat_o      <= (others => 'Z');
 
-    uart_num := to_integer(unsigned(adr_i(15 downto 3)));  -- bits 2:0 are UART
-                                                           -- register address
+    uart_num := to_integer(unsigned(adr_i(15 downto 3)));
+    -- bits 2:0 of adr_i are UART register address
+
     if sel_i = '1' then
       if uart_num <= UART_CHANNELS-1 then  -- any UART channel
         uart_cs(uart_num) <= '1';
         if we_i = '0' then
           uart_rd <= '1';
-          dat_o   <= zeros(15 downto 8) & uart_do(uart_num);
         else
           uart_wr <= '1';
         end if;
       elsif uart_num = UART_CHANNELS then  -- irqs register (end of address space)
         if we_i = '0' then
-          dat_o <= zeros(15 downto UART_CHANNELS) & uart_irqs;
+          irqs_to_wb <= '1';
         else
           illegal_op <= '1';            -- write to irqs register illegal
         end if;
@@ -91,14 +91,23 @@ begin
 
   -- synchronous operations
   process (clk_i) is
+    constant zeros : std_logic_vector(15 downto 0) := X"0000";
   begin
     if rising_edge(clk_i) then
       if illegal_op = '1' then
         err_o <= '1';
         ack_o <= '0';
+        dat_o <= (others => 'Z');
       else
         err_o <= '0';
         ack_o <= '1';
+        if uart_rd = '1' then
+          dat_o <= zeros(15 downto 8) & uart_do(uart_num);
+        elsif irqs_to_wb = '1' then
+          dat_o <= zeros(15 downto UART_CHANNELS) & uart_irqs;
+        else
+          dat_o <= (others => 'Z');
+        end if;
       end if;
     end if;
   end process;

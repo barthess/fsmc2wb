@@ -6,7 +6,7 @@
 -- Author     : pilgrim  <pilgrim@pilgrim-x86>
 -- Company    : 
 -- Created    : 2016-02-03
--- Last update: 2016-02-04
+-- Last update: 2016-02-05
 -- Platform   : 
 -- Standard   : VHDL'93/02
 -------------------------------------------------------------------------------
@@ -94,14 +94,22 @@ begin
     adr_i <= X"0003";
     dat_i <= X"0003";
     wait for clk_period;
+    adr_i <= X"0002";
+    dat_i <= X"0001";
+    wait for clk_period*2;
     adr_i <= X"0000";
     dat_i <= X"0055";
     wait for clk_period;
-    dat_i <= X"0000";
+    dat_i <= X"0002";
     wait for clk_period;
-    dat_i <= X"0055";
+    we_i <= '0';
+    adr_i <= X"0002";
     wait for clk_period;
-    dat_i <= X"0000";
+    adr_i <= X"0000";
+    wait for clk_period;
+    adr_i <= X"0034";
+    wait for clk_period;
+    adr_i <= X"0015";
     wait for clk_period;
     sel_i <= '0';
     wait for clk_period*1000;
