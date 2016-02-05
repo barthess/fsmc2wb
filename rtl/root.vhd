@@ -34,7 +34,7 @@ use IEEE.NUMERIC_STD.ALL;
 use ieee.std_logic_misc.all;
 
 
-entity _root is
+entity AA_root is
   generic (
     FSMC_AW   : positive := 23;
     FSMC_DW   : positive := 16;
@@ -63,10 +63,10 @@ entity _root is
     DEV_NULL_BANK1 : out std_logic; -- warning suppressor
     DEV_NULL_BANK0 : out std_logic -- warning suppressor
 	);
-end _root;
+end AA_root;
 
 
-architecture Behavioral of _root is
+architecture Behavioral of AA_root is
 
 -- wires for memtest
 constant MEMTEST_BRAM_AW : integer := 12;
@@ -142,8 +142,8 @@ begin
 		CLK_OUT3 => clk_108mhz,
 		LOCKED   => clk_locked
 	);
-  clk_wb  <= clk_216mhz;
-  clk_mul <= clk_216mhz;
+  clk_wb  <= clk_108mhz;
+  clk_mul <= clk_108mhz;
 
   --
   -- connect stubs to unused wishbone slots
