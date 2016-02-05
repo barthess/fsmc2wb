@@ -31,7 +31,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity delay is
   Generic (
-    LAT   : positive := 5;
+    LAT   : positive := 1;
     WIDTH : positive := 1
   );
   Port (
@@ -52,7 +52,11 @@ begin
   begin
     if rising_edge(clk) then
       if ce = '1' then
-        pipe <= pipe(WIDTH*(LAT-1)-1 downto 0) & di;
+        if LAT = 1 then
+          pipe <= di;
+        else
+          pipe <= pipe(WIDTH*(LAT-1)-1 downto 0) & di;
+        end if;
       end if;
     end if;
   end process;
