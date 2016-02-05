@@ -34,7 +34,7 @@ use IEEE.NUMERIC_STD.ALL;
 use ieee.std_logic_misc.all;
 
 
-entity root is
+entity _root is
   generic (
     FSMC_AW   : positive := 23;
     FSMC_DW   : positive := 16;
@@ -63,10 +63,10 @@ entity root is
     DEV_NULL_BANK1 : out std_logic; -- warning suppressor
     DEV_NULL_BANK0 : out std_logic -- warning suppressor
 	);
-end root;
+end _root;
 
 
-architecture Behavioral of root is
+architecture Behavioral of _root is
 
 -- wires for memtest
 constant MEMTEST_BRAM_AW : integer := 12;
