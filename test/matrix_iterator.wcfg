@@ -11,7 +11,7 @@
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="9" />
+   <WVObjectSize size="10" />
    <wvobject fp_name="/mtrx_iterator_tb/rst_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">rst_i</obj_property>
       <obj_property name="ObjectShortName">rst_i</obj_property>
@@ -32,18 +32,22 @@
       <obj_property name="ElementShortName">end_o</obj_property>
       <obj_property name="ObjectShortName">end_o</obj_property>
    </wvobject>
-   <wvobject fp_name="/mtrx_iterator_tb/dv_o" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">dv_o</obj_property>
-      <obj_property name="ObjectShortName">dv_o</obj_property>
-   </wvobject>
    <wvobject fp_name="/mtrx_iterator_tb/eye_o" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">eye_o</obj_property>
       <obj_property name="ObjectShortName">eye_o</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iterator_tb/dv_o" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">dv_o</obj_property>
+      <obj_property name="ObjectShortName">dv_o</obj_property>
    </wvobject>
    <wvobject fp_name="/mtrx_iterator_tb/adr_o" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">adr_o[9:0]</obj_property>
       <obj_property name="ObjectShortName">adr_o[9:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iterator_tb/state" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">state</obj_property>
+      <obj_property name="ObjectShortName">state</obj_property>
    </wvobject>
    <wvobject fp_name="/mtrx_iterator_tb/clk_i_period" type="other" db_ref_id="1">
       <obj_property name="ElementShortName">clk_i_period</obj_property>

@@ -42,6 +42,7 @@ ARCHITECTURE behavior OF mtrx_iterator_tb IS
    --Inputs
    signal rst_i : std_logic := '1';
    signal clk_i : std_logic := '0';
+   signal ce_i : std_logic := '0';
    signal m_i : std_logic_vector(4 downto 0) := (others => '0');
    signal n_i : std_logic_vector(4 downto 0) := (others => '0');
 
@@ -53,23 +54,27 @@ ARCHITECTURE behavior OF mtrx_iterator_tb IS
 
    -- Clock period definitions
    constant clk_i_period : time := 10 ns;
-    signal ce : std_logic := '0';
-    
+    signal stim_ce : std_logic := '0';
+  
+  type state_t is (IDLE, ACTIVE, HALT);
+  signal state : state_t := IDLE;
+  
 BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
-   uut: entity work.mtrx_iter_eye
+   uut: entity work.mtrx_iter_trn
    Generic map (
     MTRX_AW => 5
    )
    PORT MAP (
           rst_i => rst_i,
           clk_i => clk_i,
+          --ce_i => ce_i,
           m_i => m_i,
           n_i => n_i,
           end_o => end_o,
           dv_o  => dv_o,
-          eye_o => eye_o,
+          --eye_o => eye_o,
           adr_o => adr_o
         );
 
@@ -90,7 +95,7 @@ BEGIN
       wait for 100 ns;	
       m_i <= "00000";
       n_i <= "00000";
-      ce <= '1';
+      stim_ce <= '1';
       wait;
    end process;
 
@@ -98,8 +103,21 @@ BEGIN
   stim_proc : process(clk_i)
   begin
     if rising_edge(clk_i) then
-      if (ce = '1') then
-        rst_i <= '0';
+      if (stim_ce = '1') then
+        case state is
+        when IDLE =>
+          rst_i <= '0';
+          state <= ACTIVE;
+          
+        when ACTIVE =>
+          ce_i <= '1';
+          if (end_o = '1') then
+            state <= HALT;
+          end if;
+          
+        when HALT =>
+          state <= HALT;
+        end case;
       end if;
     end if;
   end process;
