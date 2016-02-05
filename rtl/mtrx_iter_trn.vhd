@@ -22,6 +22,7 @@ entity mtrx_iter_trn is
     -- control interface
     rst_i  : in  std_logic; -- active high. Must be used before every new calculation
     clk_i  : in  std_logic;
+    ce_i   : in  std_logic;
     m_i    : in  std_logic_vector(MTRX_AW-1 downto 0); -- rows
     n_i    : in  std_logic_vector(MTRX_AW-1 downto 0); -- columns
     end_o  : out std_logic := '0'; -- active high 1 clock when last valid data presents on bus
@@ -65,19 +66,23 @@ begin
         adr <= 0;
         big_step <= m + 1;
       else
-        if (i = m and j = n) then
-          end_reg <= '1';
-        else 
-          end_reg <= '0';
-        end if;
-        adr_reg <= std_logic_vector(to_unsigned(adr, 2*MTRX_AW));
+        if ce_i = '1' then
+          
+          if (i = m and j = n) then
+            end_reg <= '1';
+          else 
+            end_reg <= '0';
+          end if;
+          adr_reg <= std_logic_vector(to_unsigned(adr, 2*MTRX_AW));
 
-        adr <= adr + big_step;
-        j <= j + 1;
-        if (j = n) then
-          j <= 0;
-          adr <= i + 1;
-          i   <= i + 1;
+          adr <= adr + big_step;
+          j <= j + 1;
+          if (j = n) then
+            j <= 0;
+            adr <= i + 1;
+            i   <= i + 1;
+          end if;
+          
         end if;
       end if; -- rst
     end if; -- clk
@@ -92,9 +97,11 @@ begin
         state <= IDLE;
       else
         case state is
-        when IDLE => 
-          dv_o <= '1';
-          state <= ACTIVE;
+        when IDLE =>
+          if ce_i = '1' then
+            dv_o <= '1';
+            state <= ACTIVE;
+          end if;
           
         when ACTIVE =>
           if (end_reg = '1') then

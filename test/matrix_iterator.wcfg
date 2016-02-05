@@ -11,10 +11,14 @@
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="10" />
+   <WVObjectSize size="11" />
    <wvobject fp_name="/mtrx_iterator_tb/rst_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">rst_i</obj_property>
       <obj_property name="ObjectShortName">rst_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iterator_tb/ce_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ce_i</obj_property>
+      <obj_property name="ObjectShortName">ce_i</obj_property>
    </wvobject>
    <wvobject fp_name="/mtrx_iterator_tb/clk_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">clk_i</obj_property>
@@ -45,7 +49,7 @@
       <obj_property name="ObjectShortName">adr_o[9:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/mtrx_iterator_tb/state" type="other" db_ref_id="1">
+   <wvobject fp_name="/mtrx_iterator_tb/uut/state" type="other" db_ref_id="1">
       <obj_property name="ElementShortName">state</obj_property>
       <obj_property name="ObjectShortName">state</obj_property>
    </wvobject>

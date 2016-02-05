@@ -62,19 +62,19 @@ ARCHITECTURE behavior OF mtrx_iterator_tb IS
 BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
-   uut: entity work.mtrx_iter_trn
+   uut: entity work.mtrx_iter_eye
    Generic map (
     MTRX_AW => 5
    )
    PORT MAP (
           rst_i => rst_i,
           clk_i => clk_i,
-          --ce_i => ce_i,
+          ce_i => ce_i,
           m_i => m_i,
           n_i => n_i,
           end_o => end_o,
           dv_o  => dv_o,
-          --eye_o => eye_o,
+          eye_o => eye_o,
           adr_o => adr_o
         );
 
@@ -93,8 +93,8 @@ BEGIN
    begin		
       -- hold reset state for 100 ns.
       wait for 100 ns;	
-      m_i <= "00000";
-      n_i <= "00000";
+      m_i <= "11111";
+      n_i <= "11111";
       stim_ce <= '1';
       wait;
    end process;
@@ -108,6 +108,7 @@ BEGIN
         when IDLE =>
           rst_i <= '0';
           state <= ACTIVE;
+          --ce_i <= '1';
           
         when ACTIVE =>
           ce_i <= '1';

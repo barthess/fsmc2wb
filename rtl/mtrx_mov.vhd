@@ -60,23 +60,16 @@ architecture beh of mtrx_mov is
   constant OP_EYE : std_logic_vector (1 downto 0) := "01";
   constant OP_TRN : std_logic_vector (1 downto 0) := "10";
   constant OP_SET : std_logic_vector (1 downto 0) := "11";
+  signal trn_not_eye : std_logic;
   
   signal m_size, n_size : std_logic_vector(MTRX_AW-1 downto 0) := ZERO;
 
-  signal c_adr : std_logic_vector(2*MTRX_AW-1 downto 0) := ZERO2;
-  signal c_adr_trn, c_adr_eye : std_logic_vector(2*MTRX_AW-1 downto 0) := (others => '0');
-  
-  signal rst_iter_eye, rst_iter_trn : std_logic := '1';
-  signal rst_i_iter : std_logic := '1';
-  signal rst_o_iter : std_logic := '1';
-  signal rdy_i_iter : std_logic := '0';
-  signal rdy_o_iter : std_logic := '0';
-  signal rdy_iter_trn : std_logic := '0';
-  signal rdy_iter_eye : std_logic := '0';
-  signal ce_c_or1, ce_c_or2 : std_logic := '0';
-  
-  signal sel_iter : std_logic_vector (0 downto 0);
-  signal stb_iter_eye : std_logic := '0';
+  signal rst_iter   : std_logic := '1'; -- single reset for all iterators
+  signal ce_a_iter  : std_logic := '0';
+  signal ce_c_iter  : std_logic := '0';
+  signal rdy_a_iter : std_logic := '0';
+  signal rdy_c_iter : std_logic := '0';
+  signal eye_stb    : std_logic := '0';
 
   -- signals for routing between data_a, constant, one64
   signal wire_tmp64 : std_logic_vector(BRAM_DW-1 downto 0);
@@ -88,7 +81,7 @@ architecture beh of mtrx_mov is
   signal result_we : std_logic := '0';
 
   -- state machine
-  type state_t is (IDLE, ADSET, PRELOAD, ACTIVE, FLUSH, HALT);
+  type state_t is (IDLE, ADR_WARMUP, DI_PRELOAD, ACTIVE, FLUSH, HALT);
   signal state : state_t := IDLE;
   
   signal lat_i, lat_o : natural range 0 to 15 := DAT_LAT;
@@ -96,109 +89,49 @@ architecture beh of mtrx_mov is
 begin
   
   -- switch iterator between transpose and eye
-  sel_iter <= "0" when (op_i = OP_TRN) else "1";
+  trn_not_eye <= '1' when (op_i = OP_TRN) else '0';
   
-  -- resolution function for 2 ready signals
-  rdy_o_iter <= '1' when (rdy_iter_eye = '1' or rdy_iter_trn = '1') else '0';
-  
-  -- switch between iteratos
-  rst_o_demuxer : entity work.demuxer
-  generic map(
-    AW => 1,
-    DW => 1,
-    default => '1'
-  )
-  port map(
-    A     => sel_iter,
-    di(0) => rst_o_iter,
-    do(1) => rst_iter_eye,
-    do(0) => rst_iter_trn
-  );
-  
-  -- switch between iteratos
-  c_adr_muxer : entity work.muxer
-  generic map(
-    AW => 1,
-    DW => 2*MTRX_AW
-  )
-  port map(
-    A  => sel_iter,
-    di => c_adr_eye & c_adr_trn,
-    do => c_adr
-  );
-
   -- select data input for operation
   -- double BRAM must be connected only to TRN or CPY
   wire_tmp64 <= bram_dat_a_i when (op_i = OP_TRN or op_i = OP_CPY) else constant_i;
   
   -- connect one64 constant to data input 
   -- when eye strobe high
-  op_dat <= wire_tmp64 when (stb_iter_eye = '0') else ONE64;
+  op_dat <= wire_tmp64 when (eye_stb = '0') else ONE64;
   
-  -- sequential address generator for 
-  -- A address
-  -- connected directly to output without muxers
-  iter_seq : entity work.mtrx_iter_seq
+  --
+  -- Iterator for input and output addresses
+  --
+  iterator : entity work.mtrx_mov_iter
   generic map (
     MTRX_AW => MTRX_AW
   )
   port map (
-    rst_i  => rst_i_iter,
     clk_i  => clk_i,
-    m_i    => m_size,
-    n_i    => n_size,
-    end_o  => rdy_i_iter,
-    dv_o   => bram_ce_a_o,
-    adr_o  => bram_adr_a_o
-  );
-  
-  -- BRAM C CE line may be driven by both iteratorss
-  -- resulution function
-  bram_ce_c_o <= ce_c_or1 or ce_c_or2;
-  
-  -- transposed address generator for 
-  -- C address
-  -- output must be connected via muxer
-  iter_trn : entity work.mtrx_iter_trn
-  generic map (
-    MTRX_AW => MTRX_AW
-  )
-  port map (
-    rst_i  => rst_iter_trn,
-    clk_i  => clk_i,
-    m_i    => m_size,
-    n_i    => n_size,
-    end_o  => rdy_iter_trn,
-    dv_o   => ce_c_or1,
-    adr_o  => c_adr_trn
-  );
+    rst_i  => rst_iter,
+    m_size => m_size,
+    n_size => n_size,
 
-  -- transposed address generator for 
-  -- C address
-  -- output must be connected via muxer
-  -- Suitable for:
-  -- CPY, EYE, SET
-  iter_eye : entity work.mtrx_iter_eye
-  generic map (
-    MTRX_AW => MTRX_AW
-  )
-  port map (
-    rst_i  => rst_iter_eye,
-    clk_i  => clk_i,
-    m_i    => m_size,
-    n_i    => n_size,
-    end_o  => rdy_iter_eye,
-    dv_o   => ce_c_or2,
-    eye_o  => stb_iter_eye,
-    adr_o  => c_adr_eye
+    trn_not_eye => trn_not_eye,
+
+    adr_a_o   => bram_adr_a_o,
+    adr_c_o   => bram_adr_c_o,
+    valid_a_o => bram_ce_a_o,
+    valid_c_o => bram_ce_c_o,
+    end_a_o   => rdy_a_iter,
+    end_c_o   => rdy_c_iter,
+    ce_a_i    => ce_a_iter,
+    ce_c_i    => ce_c_iter,
+
+    eye_stb_o => eye_stb
   );
+  
   
   -- connect BRAM signals
-  bram_adr_c_o <= c_adr;
   bram_we_o    <= result_we;
   bram_dat_c_o <= result_buf;
-
-
+  
+  
   --
   -- Main state machine
   --
@@ -211,8 +144,9 @@ begin
         result_we <= '0';
         rdy_o <= '0';
         err_o <= '0';
-        rst_i_iter <= '1';
-        rst_o_iter <= '1';
+        rst_iter  <= '1';
+        ce_a_iter <= '0';
+        ce_c_iter <= '0';
         lat_i <= DAT_LAT;
         lat_o <= DAT_LAT / 2;
       else        
@@ -231,26 +165,31 @@ begin
           else
             m_size <= m_tmp;
             n_size <= n_tmp;
-            rst_i_iter <= '0';
-            lat_i <= lat_i - 1;
-            state <= PRELOAD;
+            state <= ADR_WARMUP;
           end if;
-
-        when PRELOAD =>
+          
+        when ADR_WARMUP =>
+          rst_iter  <= '0';
+          ce_a_iter <= '1';
+          lat_i <= lat_i - 1;
+          state <= DI_PRELOAD;
+          
+        when DI_PRELOAD =>
           lat_i <= lat_i - 1;
           if (lat_i = 0) then
             state <= ACTIVE;
-            rst_o_iter <= '0';
-            result_we <= '1';
+            ce_c_iter <= '1';
             result_buf <= op_dat;
+            result_we  <= '1';
           end if;
          
         when ACTIVE =>
-          if rdy_o_iter = '1' then
-            rst_i_iter <= '1';
-            rst_o_iter <= '1';
+          result_buf <= op_dat;
+          if rdy_c_iter = '1' then
+            rst_iter <= '1';
+            ce_a_iter <= '0';
+            ce_c_iter <= '0';
             result_we <= '0';
-            rdy_o <= '1';
             state <= FLUSH;
           end if;
 
@@ -258,6 +197,7 @@ begin
           lat_o <= lat_o - 1;
           if (lat_o = 0) then
             state <= HALT;
+            rdy_o <= '1';
           end if;
 
         when HALT =>
