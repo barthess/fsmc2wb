@@ -53,8 +53,8 @@ architecture beh of adr4mul is
   signal a_tmp  : std_logic_vector (2*WIDTH-1 downto 0) := ZERO2;
   signal b_tmp  : std_logic_vector (2*WIDTH-1 downto 0) := ZERO2;
   
-  signal big_step_a : std_logic_vector(2*WIDTH-1 downto 0) := ZERO2;
-  signal big_step_b : std_logic_vector(2*WIDTH-1 downto 0) := ZERO2;
+  signal big_step_a : std_logic_vector(WIDTH downto 0) := (others => '0');
+  signal big_step_b : std_logic_vector(WIDTH downto 0) := (others => '0');
   
   type state_t is (IDLE, ACTIVE);
   signal state : state_t := IDLE;
@@ -68,8 +68,8 @@ begin
   begin
     if rising_edge(clk_i) then
       if (rst_i = '1') then
-        big_step_a <= (ZERO & p_i) + 1;
-        big_step_b <= (ZERO & n_i) + 1;
+        big_step_a <= ('0' & p_i) + 1;
+        big_step_b <= ('0' & n_i) + 1;
       end if;
     end if;
   end process;
