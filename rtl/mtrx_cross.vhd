@@ -106,7 +106,7 @@ begin
   --
   -- addres incrementer
   --
-  adr_calc : entity work.adr4mul
+  adr_iterator : entity work.mtrx_iter_cross
     generic map (
       WIDTH => 5
     )
