@@ -121,7 +121,8 @@ begin
   add_nd_delay : entity work.delay
   generic map (
     LAT => DAT_LAT,
-    WIDTH => 1
+    WIDTH => 1,
+    default => '0'
   )
   port map (
     clk   => clk_i,
@@ -163,6 +164,7 @@ begin
       if (rst_i = '1') then
         state   <= IDLE;
         lat_i   <= DAT_LAT;
+        lat_o   <= DAT_LAT / 2;
         rst_iter  <= '1';
         err_o <= '0';
         rdy_o <= '0';
@@ -197,9 +199,9 @@ begin
 
         when ACTIVE =>
           if end_c_iter = '1' then
-            rst_iter    <= '1';
-            ce_ab_iter  <= '0';
-            state       <= FLUSH;
+            rst_iter   <= '1';
+            ce_ab_iter <= '0';
+            state      <= FLUSH;
           end if;
 
         when FLUSH =>

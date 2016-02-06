@@ -16,35 +16,35 @@ use IEEE.NUMERIC_STD.ALL;
 --
 --
 entity mtrx_dot is
-  Generic (
-    BRAM_AW : positive := 10;
-    BRAM_DW : positive := 64;
-    -- Data latency. Contains
-    -- 1) address path to BRAM
-    -- 2) BRAM data latency (generally 1 cycle)
-    -- 3) data path from BRAM to device
-    DAT_LAT : positive range 1 to 15 := 1
-  );
-  Port (
-    -- control interface
-    rst_i  : in  std_logic; -- active high. Must be used before every new calculation
-    clk_i  : in  std_logic;
-    size_i : in  std_logic_vector(15 downto 0); -- size of input operands
-    rdy_o  : out std_logic := '0'; -- active high 1 cycle
-    err_o  : out std_logic := '0';
-    scale_not_dot_i : in std_logic;
+Generic (
+  BRAM_AW : positive := 10;
+  BRAM_DW : positive := 64;
+  -- Data latency. Contains
+  -- 1) address path to BRAM
+  -- 2) BRAM data latency (generally 1 cycle)
+  -- 3) data path from BRAM to device
+  DAT_LAT : positive range 1 to 15 := 1
+);
+Port (
+  -- control interface
+  rst_i  : in  std_logic; -- active high. Must be used before every new calculation
+  clk_i  : in  std_logic;
+  size_i : in  std_logic_vector(15 downto 0); -- size of input operands
+  rdy_o  : out std_logic := '0'; -- active high 1 cycle
+  err_o  : out std_logic := '0';
+  scale_not_dot_i : in std_logic;
 
-    -- BRAM interface
-    -- Note: there are no clocks for BRAMs. They are handle in higher level
-    bram_adr_a_o : out std_logic_vector(BRAM_AW-1 downto 0);
-    bram_adr_b_o : out std_logic_vector(BRAM_AW-1 downto 0);
-    bram_adr_c_o : out std_logic_vector(BRAM_AW-1 downto 0);
-    bram_dat_a_i : in  std_logic_vector(BRAM_DW-1 downto 0);
-    bram_dat_b_i : in  std_logic_vector(BRAM_DW-1 downto 0);
-    bram_dat_c_o : out std_logic_vector(BRAM_DW-1 downto 0);
-    scale_factor_i : in  std_logic_vector(BRAM_DW-1 downto 0);
-    bram_we_o    : out std_logic -- for C bram
-  );
+  -- BRAM interface
+  -- Note: there are no clocks for BRAMs. They are handle in higher level
+  bram_adr_a_o : out std_logic_vector(BRAM_AW-1 downto 0);
+  bram_adr_b_o : out std_logic_vector(BRAM_AW-1 downto 0);
+  bram_adr_c_o : out std_logic_vector(BRAM_AW-1 downto 0);
+  bram_dat_a_i : in  std_logic_vector(BRAM_DW-1 downto 0);
+  bram_dat_b_i : in  std_logic_vector(BRAM_DW-1 downto 0);
+  bram_dat_c_o : out std_logic_vector(BRAM_DW-1 downto 0);
+  scale_factor_i : in  std_logic_vector(BRAM_DW-1 downto 0);
+  bram_we_o    : out std_logic -- for C bram
+);
 end mtrx_dot;
 
 

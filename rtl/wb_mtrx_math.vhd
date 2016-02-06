@@ -119,7 +119,7 @@ architecture beh of mtrx_math is
   -- swithc for scale/dot operations
   signal math_scale_not_dot : std_logic := '0';
   -- swithc for substract/add operations
-  signal math_sub_not_add : std_logic := '0';
+  signal math_sub_not_add : std_logic;
   -- switch for move operation sybtypes
   signal math_mov_type : std_logic_vector (1 downto 0) := "00";
   signal common_we : std_logic;
@@ -306,7 +306,8 @@ begin
   mtrx_mov : entity work.mtrx_mov
   generic map (
     MTRX_AW => 5,
-    BRAM_DW => MUL_DW
+    BRAM_DW => MUL_DW,
+    DAT_LAT => DAT_LAT
   )
   port map (
     rdy_o => math_rdy(MATH_HW_MOV),
@@ -335,7 +336,8 @@ begin
   mtrx_add : entity work.mtrx_add
   generic map (
     MTRX_AW => 5,
-    BRAM_DW => MUL_DW
+    BRAM_DW => MUL_DW,
+    DAT_LAT => DAT_LAT
   )
   port map (
     rdy_o => math_rdy(MATH_HW_ADD),
@@ -360,10 +362,11 @@ begin
   --
   -- CROSS
   -- 
-  mtrx_cross_FIX_ME_STUB_ADD : entity work.mtrx_add
+  mtrx_cross : entity work.mtrx_cross
   generic map (
     MTRX_AW => 5,
-    BRAM_DW => MUL_DW
+    BRAM_DW => MUL_DW,
+    DAT_LAT => DAT_LAT
   )
   port map (
     rdy_o => math_rdy(MATH_HW_CROSS),
@@ -373,7 +376,6 @@ begin
     rst_i   => math_rst(MATH_HW_CROSS),
     err_o   => math_err(MATH_HW_CROSS),
     size_i  => math_sizes,
-    sub_not_add_i => math_sub_not_add,
 
     -- BRAM interface
     bram_adr_a_o => math_adr_a((MATH_HW_CROSS+1)*MUL_AW-1 downto MATH_HW_CROSS*MUL_AW),
@@ -587,6 +589,47 @@ begin
           math_rst(hw_sel_i) <= '0';
           math_mov_type <= "11";
           state <= EXEC;    
+
+
+
+
+
+
+
+          
+        when MATH_OP_ADD =>
+          hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_ADD, 2));
+          hw_sel_i := MATH_HW_ADD;
+          
+          math_hw_select <= hw_sel_v;
+          math_rst(hw_sel_i) <= '0';
+          math_sub_not_add <= '0';
+          state <= EXEC;   
+          
+        when MATH_OP_SUB =>
+          hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_ADD, 2));
+          hw_sel_i := MATH_HW_ADD;
+          
+          math_hw_select <= hw_sel_v;
+          math_rst(hw_sel_i) <= '0';
+          math_sub_not_add <= '1';
+          state <= EXEC;   
+          
+        when MATH_OP_CROSS =>
+          hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_CROSS, 2));
+          hw_sel_i := MATH_HW_CROSS;
+          
+          math_hw_select <= hw_sel_v;
+          math_rst(hw_sel_i) <= '0';
+          state <= EXEC;   
+          
+          
+          
+          
+          
+          
+          
+          
           
         when others =>
           state <= IDLE;
