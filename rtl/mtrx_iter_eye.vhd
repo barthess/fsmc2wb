@@ -19,8 +19,9 @@ entity mtrx_iter_eye is
     MTRX_AW : positive := 5 -- 2**MTRX_AW = max matrix index
   );
   Port (
-    -- control interface
-    rst_i  : in  std_logic; -- active high. Must be used before every new calculation
+    -- active high. Must be used before every new calculation
+    -- data sizes must be valid 1 clock before reset low
+    rst_i  : in  std_logic;
     clk_i  : in  std_logic;
     ce_i   : in  std_logic;
     m_i    : in  std_logic_vector(MTRX_AW-1 downto 0); -- rows

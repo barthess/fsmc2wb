@@ -14,10 +14,14 @@
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="14" />
+   <WVObjectSize size="15" />
    <wvobject fp_name="/adr4mul_tb/clk_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">clk_i</obj_property>
       <obj_property name="ObjectShortName">clk_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/adr4mul_tb/ce_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ce_i</obj_property>
+      <obj_property name="ObjectShortName">ce_i</obj_property>
    </wvobject>
    <wvobject fp_name="/adr4mul_tb/rst_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">rst_i</obj_property>

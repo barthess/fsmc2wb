@@ -32,7 +32,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity delay is
   Generic (
     LAT   : positive := 1;
-    WIDTH : positive := 1
+    WIDTH : positive := 1;
+    default : std_logic
   );
   Port (
     clk : in  std_logic;
@@ -43,7 +44,7 @@ entity delay is
 end delay;
 
 architecture beh of delay is
-  signal pipe : std_logic_vector(WIDTH*LAT-1 downto 0);
+  signal pipe : std_logic_vector(WIDTH*LAT-1 downto 0) := (others => default);
 begin
 
   do <= pipe(WIDTH*LAT-1 downto WIDTH*(LAT-1));
