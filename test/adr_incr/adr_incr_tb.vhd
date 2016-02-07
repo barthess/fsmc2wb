@@ -176,7 +176,7 @@ BEGIN
    begin		
    
       file_rst <= '1';
-      wait for 3 ns;	
+      wait for 30 ns;	
       file_rst <= '0';
       
       wait until end_o = '1';

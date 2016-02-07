@@ -33,7 +33,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity bram_file_in is
   Generic (
-    LATENCY : positive := 2;
+    LATENCY : positive := 1;
     PREFIX  : string (1 to 1) := "e"
   );
   Port (

@@ -70,7 +70,7 @@ ARCHITECTURE behavior OF mtrx_iter_cross_tb IS
    signal b_adr_o : std_logic_vector(9 downto 0);
 
    -- Clock period definitions
-   constant clk_i_period : time := 10 ns;
+   constant clk_i_period : time := 5 ns;
    
   type state_t is (IDLE, PRELOAD, ACTIVE, HALT);
   signal state : state_t := IDLE;
@@ -100,9 +100,10 @@ BEGIN
 		wait for clk_i_period/2;
    end process;
  
-
+  
   -- Stimulus process
   stim_proc: process(clk_i)
+    variable delay : integer := 20;
   begin
     if rising_edge(clk_i) then
       case state is
@@ -111,10 +112,15 @@ BEGIN
         p_i <= "00010";
         n_i <= "00010";
         state <= PRELOAD;
+        delay := 20;
         
       when PRELOAD =>
-        rst_i <= '0';
-        state <= ACTIVE;
+        if delay = 0 then
+          rst_i <= '0';
+          state <= ACTIVE;
+        else
+          delay := delay - 1;
+        end if;
         
       when ACTIVE =>
         ce_i <= '1';

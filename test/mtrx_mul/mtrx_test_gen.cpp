@@ -222,8 +222,9 @@ int main(void) {
   srand (static_cast <unsigned> (time(0)));
 
   // first generate corner sizes
-  generate(4, 4, 4, map_file);
-  generate(2, 2, 2, map_file);
+  //generate(4, 4, 4, map_file);
+  generate(3, 3, 3, map_file);
+  //generate(2, 2, 2, map_file);
   // generate(MAX_MTRX, MAX_MTRX, MAX_MTRX, map_file);
 
   // generate(1, MAX_MTRX, MAX_MTRX, map_file);

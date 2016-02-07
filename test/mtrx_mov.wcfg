@@ -53,24 +53,25 @@
       <obj_property name="ObjectShortName">bram_adr_a_o[9:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
+   <wvobject fp_name="/mtrx_mov_tb/bram_adr_b_o" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">bram_adr_b_o[9:0]</obj_property>
+      <obj_property name="ObjectShortName">bram_adr_b_o[9:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
    <wvobject fp_name="/mtrx_mov_tb/bram_adr_c_o" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">bram_adr_c_o[9:0]</obj_property>
       <obj_property name="ObjectShortName">bram_adr_c_o[9:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
+   <wvobject fp_name="/mtrx_mov_tb/bram_dat_b_i" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">bram_dat_b_i[63:0]</obj_property>
+      <obj_property name="ObjectShortName">bram_dat_b_i[63:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
    <wvobject fp_name="/mtrx_mov_tb/bram_dat_c_o" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">bram_dat_c_o[63:0]</obj_property>
       <obj_property name="ObjectShortName">bram_dat_c_o[63:0]</obj_property>
       <obj_property name="Radix">HEXRADIX</obj_property>
-   </wvobject>
-   <wvobject fp_name="/mtrx_mov_tb/uut/op_dat" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">op_dat[63:0]</obj_property>
-      <obj_property name="ObjectShortName">op_dat[63:0]</obj_property>
-      <obj_property name="Radix">HEXRADIX</obj_property>
-   </wvobject>
-   <wvobject fp_name="/mtrx_mov_tb/uut/eye_stb" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">eye_stb</obj_property>
-      <obj_property name="ObjectShortName">eye_stb</obj_property>
    </wvobject>
    <wvobject fp_name="/mtrx_mov_tb/bram_ce_a_o" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">bram_ce_a_o</obj_property>
@@ -84,7 +85,7 @@
       <obj_property name="ElementShortName">bram_we_o</obj_property>
       <obj_property name="ObjectShortName">bram_we_o</obj_property>
    </wvobject>
-   <wvobject fp_name="/mtrx_mov_tb/uut/state" type="other" db_ref_id="1">
+   <wvobject fp_name="/mtrx_mov_tb/state" type="other" db_ref_id="1">
       <obj_property name="ElementShortName">state</obj_property>
       <obj_property name="ObjectShortName">state</obj_property>
    </wvobject>

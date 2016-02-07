@@ -38,26 +38,6 @@ END mtrx_mov_tb;
 ARCHITECTURE behavior OF mtrx_mov_tb IS 
  
     -- Component Declaration for the Unit Under Test (UUT)
- 
-    COMPONENT mtrx_mov
-    PORT(
-         rst_i : IN  std_logic;
-         clk_i : IN  std_logic;
-         size_i : IN  std_logic_vector(15 downto 0);
-         err_o : OUT  std_logic;
-         rdy_o : OUT  std_logic;
-         op_i : IN  std_logic_vector(1 downto 0);
-         bram_adr_a_o : OUT  std_logic_vector(9 downto 0);
-         bram_adr_c_o : OUT  std_logic_vector(9 downto 0);
-         constant_i : IN  std_logic_vector(63 downto 0);
-         bram_dat_a_i : IN  std_logic_vector(63 downto 0);
-         bram_dat_c_o : OUT  std_logic_vector(63 downto 0);
-         bram_ce_a_o : OUT  std_logic;
-         bram_ce_c_o : OUT  std_logic;
-         bram_we_o : OUT  std_logic
-        );
-    END COMPONENT;
-    
 
    --Inputs
    signal rst_i : std_logic := '1';
@@ -71,7 +51,9 @@ ARCHITECTURE behavior OF mtrx_mov_tb IS
    signal err_o : std_logic;
    signal rdy_o : std_logic;
    signal bram_adr_a_o : std_logic_vector(9 downto 0);
+   signal bram_adr_b_o : std_logic_vector(9 downto 0);
    signal bram_adr_c_o : std_logic_vector(9 downto 0);
+   signal bram_dat_b_i : std_logic_vector(63 downto 0);
    signal bram_dat_c_o : std_logic_vector(63 downto 0);
    signal bram_ce_a_o : std_logic;
    signal bram_ce_c_o : std_logic;
@@ -90,7 +72,7 @@ BEGIN
    Generic map (
       MTRX_AW => 5,
       BRAM_DW => 64,
-      DAT_LAT => 4
+      DAT_LAT => 1
    )
    PORT MAP (
           rst_i => rst_i,
@@ -100,9 +82,11 @@ BEGIN
           rdy_o => rdy_o,
           op_i => op_i,
           bram_adr_a_o => bram_adr_a_o,
+          bram_adr_b_o => bram_adr_b_o,
           bram_adr_c_o => bram_adr_c_o,
           constant_i => constant_i,
           bram_dat_a_i => bram_dat_a_i,
+          bram_dat_b_i => bram_dat_b_i,
           bram_dat_c_o => bram_dat_c_o,
           bram_ce_a_o => bram_ce_a_o,
           bram_ce_c_o => bram_ce_c_o,
@@ -127,8 +111,8 @@ BEGIN
       case state is
 
       when IDLE =>
-        m := "00000";
-        n := "00000";
+        m := "00010";
+        n := "00010";
         size_i(9 downto 5) <= n;
         size_i(4 downto 0) <= m;
         op_i <= "01";

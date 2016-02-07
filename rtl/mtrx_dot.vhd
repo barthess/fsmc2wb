@@ -73,6 +73,8 @@ architecture beh of mtrx_dot is
   type rdy_state_t is (RDY_IDLE, RDY_ACTIVE, RDY_HALT);
   signal rdy_state : rdy_state_t := RDY_IDLE;
 
+  signal tmp1 : std_logic_vector(2*BRAM_DW-1 downto 0);
+  
 begin
   
   bram_adr_a_o <= A_adr;
@@ -84,6 +86,8 @@ begin
   --
   -- selector between scale factor and B input
   --
+  tmp1 <= scale_factor_i & 
+          bram_dat_b_i;
   dat_b_or_scale : entity work.muxer
   generic map (
     AW => 1,
@@ -92,8 +96,7 @@ begin
   port map (
     A(0)  => scale_not_dot_i,
     do => mul_b_input,
-    di => scale_factor_i &
-          bram_dat_b_i
+    di => tmp1
   );
   
   --

@@ -147,11 +147,9 @@ begin
     clk   => clk_i,
     ce    => '1',
     di(0) => bram_ce_ab,
-    do(0) => mul_nd_ce
+    do(0) => mul_nd
   );
-  mul_ce <= mul_nd_ce;
-  mul_nd <= mul_nd_ce;
-  
+
   --
   -- multiplicator
   --
@@ -161,7 +159,7 @@ begin
     b      => bram_dat_b_i,
     result => accum_dat_i, -- connected directly to accumulator
     clk    => clk_i,
-    ce     => mul_ce,
+    ce     => '1',
     rdy    => mul_rdy, -- connect to accumulator nd
     operation_nd => mul_nd
   );

@@ -258,7 +258,10 @@ begin
   port map (
     --clk_i => clk_mul_i,
     A  => crossbar_adr_select,
-    di => "0000000000" & crossbar_adr_c  & crossbar_adr_b & crossbar_adr_a,
+    di => "0000000000" & 
+          crossbar_adr_c & 
+          crossbar_adr_b & 
+          crossbar_adr_a,
     do => wire_bram2mul_adr
   );
 
@@ -372,30 +375,30 @@ begin
   --
   -- CROSS
   -- 
---  mtrx_cross : entity work.mtrx_cross
---  generic map (
---    MTRX_AW => 5,
---    BRAM_DW => MUL_DW,
---    DAT_LAT => DAT_LAT
---  )
---  port map (
---    rdy_o => math_rdy(MATH_HW_CROSS),
---    
---    -- control interface
---    clk_i   => clk_mul_i,
---    rst_i   => math_rst(MATH_HW_CROSS),
---    err_o   => math_err(MATH_HW_CROSS),
---    size_i  => math_sizes,
---
---    -- BRAM interface
---    bram_adr_a_o => math_adr_a((MATH_HW_CROSS+1)*MUL_AW-1 downto MATH_HW_CROSS*MUL_AW),
---    bram_adr_b_o => math_adr_b((MATH_HW_CROSS+1)*MUL_AW-1 downto MATH_HW_CROSS*MUL_AW),
---    bram_adr_c_o => math_adr_c((MATH_HW_CROSS+1)*MUL_AW-1 downto MATH_HW_CROSS*MUL_AW),
---    bram_dat_a_i => math_dat_a((MATH_HW_CROSS+1)*MUL_DW-1 downto MATH_HW_CROSS*MUL_DW),
---    bram_dat_b_i => math_dat_b((MATH_HW_CROSS+1)*MUL_DW-1 downto MATH_HW_CROSS*MUL_DW),
---    bram_dat_c_o => math_dat_c((MATH_HW_CROSS+1)*MUL_DW-1 downto MATH_HW_CROSS*MUL_DW),
---    bram_we_o    => math_we(MATH_HW_CROSS)
---  );
+  mtrx_cross : entity work.mtrx_cross
+  generic map (
+    MTRX_AW => 5,
+    BRAM_DW => MUL_DW,
+    DAT_LAT => DAT_LAT
+  )
+  port map (
+    rdy_o => math_rdy(MATH_HW_CROSS),
+    
+    -- control interface
+    clk_i   => clk_mul_i,
+    rst_i   => math_rst(MATH_HW_CROSS),
+    err_o   => math_err(MATH_HW_CROSS),
+    size_i  => math_sizes,
+
+    -- BRAM interface
+    bram_adr_a_o => math_adr_a((MATH_HW_CROSS+1)*MUL_AW-1 downto MATH_HW_CROSS*MUL_AW),
+    bram_adr_b_o => math_adr_b((MATH_HW_CROSS+1)*MUL_AW-1 downto MATH_HW_CROSS*MUL_AW),
+    bram_adr_c_o => math_adr_c((MATH_HW_CROSS+1)*MUL_AW-1 downto MATH_HW_CROSS*MUL_AW),
+    bram_dat_a_i => math_dat_a((MATH_HW_CROSS+1)*MUL_DW-1 downto MATH_HW_CROSS*MUL_DW),
+    bram_dat_b_i => math_dat_b((MATH_HW_CROSS+1)*MUL_DW-1 downto MATH_HW_CROSS*MUL_DW),
+    bram_dat_c_o => math_dat_c((MATH_HW_CROSS+1)*MUL_DW-1 downto MATH_HW_CROSS*MUL_DW),
+    bram_we_o    => math_we(MATH_HW_CROSS)
+  );
 
   ----------------------------------------------------------------------------------
   -- Wishbone interconnect
