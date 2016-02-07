@@ -83,7 +83,7 @@ begin
           end loop;
 
           -- check and compare
-          --assert (dat_read = dat_i) report "Result incorrect!" severity failure;
+          assert (dat_read = dat_i) report "Result incorrect!" severity failure;
         end if;
         
       end if;
