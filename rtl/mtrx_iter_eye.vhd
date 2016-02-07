@@ -44,81 +44,54 @@ architecture eye of mtrx_iter_eye is
   signal adr        : natural range 0 to 2**(2*MTRX_AW)-1 := 0;
   signal big_step   : natural range 0 to 2**(1+MTRX_AW)-1 := 0;
   signal comparator : natural range 0 to 2**(2*MTRX_AW)-1 := 0;
-  signal end_reg    : std_logic := '0';
-  signal eye_reg    : std_logic := '0';
-  signal adr_reg    : std_logic_vector(2*MTRX_AW-1 downto 0);
   
   -- data valid tracker state
-  type state_t is (IDLE, ACTIVE, HALT);
-  signal state : state_t := IDLE;
+  type state_t is (ACTIVE, HALT);
+  signal state : state_t := ACTIVE;
   
 begin
   m <= to_integer(unsigned(m_i));
   n <= to_integer(unsigned(n_i));
-  
-  end_o <= end_reg;
-  eye_o <= eye_reg;
-  adr_o <= adr_reg;
-  
-  main : process(clk_i)
+
+ main : process(clk_i)
   begin
     if rising_edge(clk_i) then
       if (rst_i = '1') then
         i   <= 0;
         j   <= 0;
         adr <= 0;
+        end_o <= '0';
+        state <= ACTIVE;
         big_step <= m + 2;
         comparator <= 0;
       else
-        if ce_i = '1' then
-          
-          if (comparator = adr) then
-            eye_reg <= '1';
-          else 
-            eye_reg <= '0';
-          end if;
-          if (i = m and j = n) then
-            end_reg <= '1';
-          else 
-            end_reg <= '0';
-          end if;
-          adr_reg <= std_logic_vector(to_unsigned(adr, 2*MTRX_AW));
-          
-          adr <= adr + 1;
-          j <= j + 1;
-          if (j = n) then
-            j <= 0;
-            comparator <= comparator + big_step;
-            i <= i + 1;
-          end if;
-          
-        end if; -- ce
-      end if; -- rst
-    end if; -- clk
-  end process;
-
-
-  dv_tracker : process(clk_i)
-  begin
-    if rising_edge(clk_i) then
-      if (rst_i = '1') then
-        dv_o <= '0';
-        state <= IDLE;
-      else
+        adr_o <= std_logic_vector(to_unsigned(adr, 2*MTRX_AW));
+        dv_o  <= '1';
+        end_o <= '0';
+        if (comparator = adr) then
+          eye_o <= '1';
+        else 
+          eye_o <= '0';
+        end if;
+        
         case state is
-        when IDLE =>
-          if ce_i = '1' then
-            dv_o <= '1';
-            state <= ACTIVE;
-          end if;
-          
         when ACTIVE =>
-          if (end_reg = '1') then
-            dv_o <= '0';
-            state <= HALT;
-          end if;
+          if ce_i = '1' then
+            if (i = m and j = n) then
+              end_o <= '1';
+              state <= HALT;
+            end if;
+            adr <= adr + 1;
+            j <= j + 1;
+            if (j = n) then
+              j <= 0;
+              comparator <= comparator + big_step;
+              i <= i + 1;
+            end if;
+          end if; -- ce
           
         when HALT =>
+          dv_o <= '0';
           state <= HALT;
         end case;
       end if; -- rst

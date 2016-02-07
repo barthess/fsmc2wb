@@ -93,14 +93,16 @@ BEGIN
    begin		
       -- hold reset state for 100 ns.
       wait for 100 ns;	
-      m_i <= "11111";
-      n_i <= "11111";
+      m_i <= "00011";
+      n_i <= "00011";
       stim_ce <= '1';
       wait;
    end process;
 
 
   stim_proc : process(clk_i)
+    constant DROP : integer := 2;
+    variable ce_drop : integer := DROP;
   begin
     if rising_edge(clk_i) then
       if (stim_ce = '1') then
@@ -108,10 +110,17 @@ BEGIN
         when IDLE =>
           rst_i <= '0';
           state <= ACTIVE;
-          --ce_i <= '1';
+          ce_i <= '1';
           
         when ACTIVE =>
-          ce_i <= '1';
+--          if ce_drop = 0 then
+--            ce_i <= '0';
+--            ce_drop := DROP;
+--          else
+--            ce_i <= '1';
+--            ce_drop := ce_drop - 1;
+--          end if;
+          
           if (end_o = '1') then
             state <= HALT;
           end if;
