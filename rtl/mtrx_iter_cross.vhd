@@ -61,8 +61,8 @@ architecture beh of mtrx_iter_cross is
   type state_t is (IDLE, ACTIVE, HALT);
   signal state : state_t := IDLE;
   
-  signal a_adr_reg, b_adr_reg : std_logic_vector(2*WIDTH-1 downto 0);
-  signal end_reg, dv_reg : std_logic;
+  signal a_adr_reg, b_adr_reg : std_logic_vector(2*WIDTH-1 downto 0) := (others => '0');
+  signal end_reg, dv_reg : std_logic := '0';
   
 begin
 

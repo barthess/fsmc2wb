@@ -53,32 +53,26 @@ begin
   m <= to_integer(unsigned(m_i));
   n <= to_integer(unsigned(n_i));
 
- main : process(clk_i)
+  adr_o <= std_logic_vector(to_unsigned(adr, 2*MTRX_AW));
+  end_o <= '1' when (rst_i = '0' and ce_i = '1' and i = m and j = n) else '0';
+  dv_o  <= '1' when (rst_i = '0' and ce_i = '1' and state /= HALT) else '0';
+  eye_o <= '1' when (rst_i = '0' and ce_i = '1' and comparator = adr) else '0';
+
+  main : process(clk_i)
   begin
     if rising_edge(clk_i) then
       if (rst_i = '1') then
         i   <= 0;
         j   <= 0;
         adr <= 0;
-        end_o <= '0';
         state <= ACTIVE;
         big_step <= m + 2;
         comparator <= 0;
       else
-        adr_o <= std_logic_vector(to_unsigned(adr, 2*MTRX_AW));
-        dv_o  <= '1';
-        end_o <= '0';
-        if (comparator = adr) then
-          eye_o <= '1';
-        else 
-          eye_o <= '0';
-        end if;
-        
         case state is
         when ACTIVE =>
           if ce_i = '1' then
             if (i = m and j = n) then
-              end_o <= '1';
               state <= HALT;
             end if;
             adr <= adr + 1;
@@ -91,7 +85,6 @@ begin
           end if; -- ce
           
         when HALT =>
-          dv_o <= '0';
           state <= HALT;
         end case;
       end if; -- rst

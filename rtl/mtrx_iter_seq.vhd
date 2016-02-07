@@ -37,16 +37,21 @@ end mtrx_iter_seq;
 
 architecture sequent of mtrx_iter_seq is
   
-  signal m, n : natural range 0 to 2**MTRX_AW-1   := 0;
-  signal i, j : natural range 0 to 2**MTRX_AW-1   := 0;
-  signal adr  : natural range 0 to 2**(2*MTRX_AW)-1 := 0;
+  signal m, n : natural range 0 to 2**MTRX_AW-1;
+  signal i, j : natural range 0 to 2**MTRX_AW-1;
+  signal adr  : natural range 0 to 2**(2*MTRX_AW)-1;
   
   type state_t is (ACTIVE, HALT);
   signal state : state_t := ACTIVE;
   
 begin
+
   m <= to_integer(unsigned(m_i));
   n <= to_integer(unsigned(n_i));
+  
+  adr_o <= std_logic_vector(to_unsigned(adr, 2*MTRX_AW));
+  end_o <= '1' when (rst_i = '0' and ce_i = '1' and i = m and j = n) else '0';
+  dv_o  <= '1' when (rst_i = '0' and ce_i = '1' and state /= HALT) else '0';
   
   main : process(clk_i)
   begin
@@ -55,18 +60,12 @@ begin
         i   <= 0;
         j   <= 0;
         adr <= 0;
-        end_o <= '0';
         state <= ACTIVE;
       else
-        adr_o <= std_logic_vector(to_unsigned(adr, 2*MTRX_AW));
-        dv_o  <= '1';
-        end_o <= '0';
-        
         case state is
         when ACTIVE =>
           if ce_i = '1' then
             if (i = m and j = n) then
-              end_o <= '1';
               state <= HALT;
             end if;
             adr <= adr + 1;
@@ -78,7 +77,6 @@ begin
           end if; -- ce
           
         when HALT =>
-          dv_o <= '0';
           state <= HALT;
         end case;
       end if; -- rst
