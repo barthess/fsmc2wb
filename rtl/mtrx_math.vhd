@@ -289,7 +289,7 @@ begin
   --
   mtrx_dot : entity work.mtrx_dot
   generic map (
-    BRAM_AW => MUL_AW,
+    MTRX_AW => 5,
     BRAM_DW => MUL_DW,
     DAT_LAT => DAT_LAT
   )

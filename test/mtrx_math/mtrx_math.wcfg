@@ -20,7 +20,7 @@
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="25" />
+   <WVObjectSize size="24" />
    <wvobject fp_name="/mtrx_math_tb/clk_mul_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">clk_mul_i</obj_property>
       <obj_property name="ObjectShortName">clk_mul_i</obj_property>
@@ -97,14 +97,17 @@
    <wvobject fp_name="/mtrx_math_tb/uut/mtrx_dot/bram_adr_a_o" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">bram_adr_a_o[9:0]</obj_property>
       <obj_property name="ObjectShortName">bram_adr_a_o[9:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/mtrx_math_tb/uut/mtrx_dot/bram_adr_b_o" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">bram_adr_b_o[9:0]</obj_property>
       <obj_property name="ObjectShortName">bram_adr_b_o[9:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/mtrx_math_tb/uut/mtrx_dot/bram_adr_c_o" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">bram_adr_c_o[9:0]</obj_property>
       <obj_property name="ObjectShortName">bram_adr_c_o[9:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/mtrx_math_tb/uut/mtrx_dot/bram_we_o" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">bram_we_o</obj_property>
@@ -113,10 +116,6 @@
    <wvobject fp_name="/mtrx_math_tb/uut/mtrx_dot/mul_nd" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">mul_nd</obj_property>
       <obj_property name="ObjectShortName">mul_nd</obj_property>
-   </wvobject>
-   <wvobject fp_name="/mtrx_math_tb/uut/mtrx_dot/mul_ce" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">mul_ce</obj_property>
-      <obj_property name="ObjectShortName">mul_ce</obj_property>
    </wvobject>
    <wvobject fp_name="/mtrx_math_tb/uut/mtrx_dot/mul_rdy" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">mul_rdy</obj_property>

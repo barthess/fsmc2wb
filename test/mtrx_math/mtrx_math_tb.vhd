@@ -127,7 +127,7 @@ BEGIN
    
   -- Stimulus process
   stim_proc: process(clk_wb_i(8))
-    variable m,p,n : std_logic_vector(4 downto 0) := "00011";
+    variable m,p,n : std_logic_vector(4 downto 0) := "11111";
   begin
     if rising_edge(clk_wb_i(8)) then
       if stim_rst = '1' then
