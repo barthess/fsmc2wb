@@ -80,7 +80,7 @@ architecture beh of mtrx_math is
   constant SCALE_REG2  : integer := 6;
   constant SCALE_REG3  : integer := 7;
   
-  type state_t is (IDLE, DECODE, EXEC);
+  type state_t is (IDLE, FETCH, DECODE, EXEC);
   signal state : state_t := IDLE;
   
   -- wires to connect BRAMs to wishbone adapters
@@ -101,6 +101,7 @@ architecture beh of mtrx_math is
 
   signal crossbar_dat_a_select : std_logic_vector(2 downto 0);
   signal crossbar_dat_b_select : std_logic_vector(2 downto 0);
+  signal crossbar_dat_select_stack : std_logic_vector(5 downto 0);
   signal crossbar_we_select    : std_logic_vector(2 downto 0);
   -- select input for address bus matrix (8 muxers with 2-bit address)
   signal crossbar_adr_select   : std_logic_vector(2*BRAMS-1 downto 0) := (others => '1');
@@ -108,7 +109,8 @@ architecture beh of mtrx_math is
   -- wires between BRAMs and matrix math
   signal crossbar_dat_a, crossbar_dat_b, crossbar_dat_c : std_logic_vector(MUL_DW-1 downto 0);
   signal crossbar_adr_a, crossbar_adr_b, crossbar_adr_c : std_logic_vector(MUL_AW-1 downto 0);
-
+  signal crossbar_adr_stack : std_logic_vector(4*MUL_AW-1 downto 0);
+  
   -- wires with data from differnt matrix math
   signal math_dat_a, math_dat_b, math_dat_c : std_logic_vector(MATHs*MUL_DW-1 downto 0);
   signal math_adr_a, math_adr_b, math_adr_c : std_logic_vector(MATHs*MUL_AW-1 downto 0);
@@ -249,6 +251,7 @@ begin
   );
 
   -- Addres router from math to brams
+  crossbar_adr_stack <= "0000000000" & crossbar_adr_c & crossbar_adr_b & crossbar_adr_a;
   adr_abc_router : entity work.bus_matrix
   generic map (
     AW   => 2, -- address width in bits
@@ -258,14 +261,12 @@ begin
   port map (
     --clk_i => clk_mul_i,
     A  => crossbar_adr_select,
-    di => "0000000000" & 
-          crossbar_adr_c & 
-          crossbar_adr_b & 
-          crossbar_adr_a,
+    di => crossbar_adr_stack,
     do => wire_bram2mul_adr
   );
 
   -- connects BRAMs outputs to A or B input of multiplier
+  crossbar_dat_select_stack <= crossbar_dat_b_select & crossbar_dat_a_select;
   dat_ab_router : entity work.bus_matrix
   generic map (
     AW   => 3, -- address width in bits
@@ -274,7 +275,7 @@ begin
   )
   port map (
     --clk_i => clk_mul_i,
-    A  => crossbar_dat_b_select & crossbar_dat_a_select,
+    A  => crossbar_dat_select_stack,
     di => wire_bram2mul_dat_o,
     do(127 downto 64) => crossbar_dat_b,
     do(63  downto 0)  => crossbar_dat_a
@@ -526,10 +527,10 @@ begin
         
         if dv = '1' then
           math_ctl_array(CONTROL_REG)(DV_BIT) <= '0';
-          state <= DECODE;
+          state <= FETCH;
         end if;
-
-      when DECODE =>
+        
+      when FETCH =>
         -- select apropriate BRAMS via crossbar
         crossbar_dat_a_select <= a_num;
         crossbar_dat_b_select <= b_num;
@@ -543,10 +544,11 @@ begin
         crossbar_adr_select((a+1)*2-1 downto a*2) <= "00";
         crossbar_adr_select((b+1)*2-1 downto b*2) <= "01";
         crossbar_adr_select((c+1)*2-1 downto c*2) <= "10";
-
-        -- copy math operands' sized from control array
-        math_sizes <= math_ctl_array(SIZES_REG);
         
+        math_sizes <= math_ctl_array(SIZES_REG);
+        state <= DECODE;
+
+      when DECODE =>
         -- parse command
         case cmd_raw is
         when MATH_OP_DOT =>
@@ -633,13 +635,7 @@ begin
           math_rst(hw_sel_i) <= '0';
           state <= EXEC;   
           
-          
-          
-          
-          
-          
-          
-          
+
           
         when others =>
           state <= IDLE;
