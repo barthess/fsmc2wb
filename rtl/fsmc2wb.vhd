@@ -115,7 +115,7 @@ begin
   ------------------------------------------------------------------------------
 
   -- data muxer from multiple wishbone slaves to data bus
-  wb2fsmc_dat_muxer : entity work.muxer_reg(reg_i)
+  wb2fsmc_dat_muxer : entity work.muxer_reg(i)
   generic map (
     AW => AWSEL,
     DW => DW
@@ -128,7 +128,7 @@ begin
   );
 
   -- error muxer from multiple wishbone slaves
-  wb2fsmc_err_muxer : entity work.muxer_reg(reg_i)
+  wb2fsmc_err_muxer : entity work.muxer_reg(i)
   generic map (
     AW => AWSEL,
     DW => 1
@@ -141,7 +141,7 @@ begin
   );
 
   -- ACK muxer from multiple wishbone slaves
-  wb2fsmc_ack_muxer : entity work.muxer_reg(reg_i)
+  wb2fsmc_ack_muxer : entity work.muxer_reg(i)
   generic map (
     AW => AWSEL,
     DW => 1
@@ -158,7 +158,7 @@ begin
   ------------------------------------------------------------------------------
 
   -- demuxer for chip select line
-  fsmc2wb_select_demux : entity work.demuxer_reg(reg_o)
+  fsmc2wb_select_demux : entity work.demuxer_reg(o)
   generic map (
     AW => AWSEL,
     DW => 1,
@@ -172,7 +172,7 @@ begin
   );
 
   -- fanout bus outputs to all slaves without muxers
-  fsmc2wb_stb_fork : entity work.fork_reg(reg_o)
+  fsmc2wb_stb_fork : entity work.fork_reg(o)
   generic map (
     ocnt => 2**AWSEL,
     DW   => 1
@@ -184,7 +184,7 @@ begin
   );
   
   -- 
-  fsmc2wb_we_fork : entity work.fork_reg(reg_o)
+  fsmc2wb_we_fork : entity work.fork_reg(o)
   generic map (
     ocnt => 2**AWSEL,
     DW   => 1
@@ -196,7 +196,7 @@ begin
   );
   
   --
-  fsmc2wb_adr_fork : entity work.fork_reg(reg_o)
+  fsmc2wb_adr_fork : entity work.fork_reg(o)
   generic map (
     ocnt => 2**AWSEL,
     DW   => AWSLAVE
@@ -208,7 +208,7 @@ begin
   );
   
   -- 
-  fsmc2wb_dat_fork : entity work.fork_reg(reg_o)
+  fsmc2wb_dat_fork : entity work.fork_reg(o)
   generic map (
     ocnt => 2**AWSEL,
     DW   => DW

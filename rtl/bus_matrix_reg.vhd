@@ -27,7 +27,7 @@ entity bus_matrix_reg is
 end bus_matrix_reg;
 
 
-architecture Behavioral of bus_matrix_reg is
+architecture io of bus_matrix_reg is
   signal a_reg  : STD_LOGIC_VECTOR(AW*ocnt-1  downto 0);
   signal di_reg : STD_LOGIC_VECTOR(2**AW*DW-1 downto 0);
   signal do_reg : STD_LOGIC_VECTOR(ocnt*DW-1  downto 0);
@@ -54,10 +54,60 @@ begin
     end if;
   end process;
 
-end Behavioral;
+end io;
 
 
+architecture i of bus_matrix_reg is
+  signal a_reg  : STD_LOGIC_VECTOR(AW*ocnt-1  downto 0);
+  signal di_reg : STD_LOGIC_VECTOR(2**AW*DW-1 downto 0);
+begin
+
+  bus_matrix_e : entity work.bus_matrix
+  generic map (
+    AW => AW,
+    DW => DW, 
+    ocnt => ocnt
+  )
+  port map(
+    A  => a_reg,
+    di => di_reg,
+    do => do
+  );
+  
+  main : process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      a_reg  <= A;
+      di_reg <= di;
+    end if;
+  end process;
+
+end i;
 
 
+architecture o of bus_matrix_reg is
+  signal a_reg  : STD_LOGIC_VECTOR(AW*ocnt-1  downto 0);
+  signal do_reg : STD_LOGIC_VECTOR(ocnt*DW-1  downto 0);
+begin
 
+  bus_matrix_e : entity work.bus_matrix
+  generic map (
+    AW => AW,
+    DW => DW, 
+    ocnt => ocnt
+  )
+  port map(
+    A  => a_reg,
+    di => di,
+    do => do_reg
+  );
+  
+  main : process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      a_reg  <= A;
+      do     <= do_reg;
+    end if;
+  end process;
 
+end o;

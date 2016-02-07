@@ -51,16 +51,16 @@ begin
   
   muxer_assign : for n in 0 to ocnt-1 generate 
   begin
-    muxer_array : entity work.muxer
-    generic map (
-      AW => AW,
-      DW => DW
-    )
-    PORT MAP (
-      di => di,
-      do => do((n+1)*DW-1 downto n*DW),
-      A  => A ((n+1)*AW-1 downto n*AW)
-    );
+  muxer_array : entity work.muxer
+  generic map (
+    AW => AW,
+    DW => DW
+  )
+  PORT MAP (
+    di => di,
+    do => do((n+1)*DW-1 downto n*DW),
+    A  => A ((n+1)*AW-1 downto n*AW)
+  );
   end generate;
 
 end Behavioral;

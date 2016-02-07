@@ -121,7 +121,7 @@ begin
     adr_c_o   => bram_adr_c_o,
     valid_a_o => bram_ce_a_o,
     valid_c_o => bram_ce_we_combined,
-    end_a_o   => rdy_a_iter,
+    end_a_o   => open, -- rdy_a_iter,
     end_c_o   => rdy_c_iter,
     ce_a_i    => ce_a_iter,
     ce_c_i    => ce_c_iter,

@@ -48,7 +48,7 @@ end demuxer_reg;
 --
 --
 --
-architecture reg_io of demuxer_reg is
+architecture io of demuxer_reg is
   signal a_reg  : STD_LOGIC_VECTOR(AW-1 downto 0) := (others => '0');
   signal di_reg : STD_LOGIC_VECTOR(DW-1 downto 0);
   signal do_reg : STD_LOGIC_VECTOR(2**AW*DW-1 downto 0) := (others => default);
@@ -75,12 +75,12 @@ begin
     end if;
   end process;
   
-end reg_io;
+end io;
 
 --
 --
 --
-architecture reg_i of demuxer_reg is
+architecture i of demuxer_reg is
   signal a_reg  : STD_LOGIC_VECTOR(AW-1 downto 0) := (others => '0');
   signal di_reg : STD_LOGIC_VECTOR(DW-1 downto 0);
 begin
@@ -105,12 +105,12 @@ begin
     end if;
   end process;
   
-end reg_i;
+end i;
 
 --
 --
 --
-architecture reg_o of demuxer_reg is
+architecture o of demuxer_reg is
   signal do_reg : STD_LOGIC_VECTOR(2**AW*DW-1 downto 0) := (others => default);
 begin
   
@@ -129,10 +129,10 @@ begin
   main : process(clk_i)
   begin
     if rising_edge(clk_i) then
-      do     <= do_reg;
+      do <= do_reg;
     end if;
   end process;
   
-end reg_o;
+end o;
 
 

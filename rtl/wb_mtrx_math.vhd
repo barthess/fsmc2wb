@@ -146,6 +146,7 @@ begin
     DW   => MUL_DW
   )
   port map (
+    --clk_i => clk_mul_i,
     di => crossbar_dat_a,
     do => math_dat_a
   );
@@ -157,6 +158,7 @@ begin
     DW   => MUL_DW
   )
   port map (
+    --clk_i => clk_mul_i,
     di => crossbar_dat_b,
     do => math_dat_b
   );
@@ -168,6 +170,7 @@ begin
     DW => MUL_DW
   )
   port map (
+    --clk_i => clk_mul_i,
     A  => math_hw_select,
     do => crossbar_dat_c,
     di => math_dat_c
@@ -180,6 +183,7 @@ begin
     DW => MUL_AW
   )
   port map (
+    --clk_i => clk_mul_i,
     A  => math_hw_select,
     do => crossbar_adr_a,
     di => math_adr_a
@@ -192,6 +196,7 @@ begin
     DW => MUL_AW
   )
   port map (
+    --clk_i => clk_mul_i,
     A  => math_hw_select,
     do => crossbar_adr_b,
     di => math_adr_b
@@ -204,6 +209,7 @@ begin
     DW => MUL_AW
   )
   port map (
+    --clk_i => clk_mul_i,
     A  => math_hw_select,
     do => crossbar_adr_c,
     di => math_adr_c
@@ -223,6 +229,7 @@ begin
     DW   => MUL_DW
   )
   port map (
+    --clk_i => clk_mul_i,
     di => crossbar_dat_c,
     do => wire_bram2mul_dat_i
   );
@@ -235,6 +242,7 @@ begin
     default => '0'
   )
   port map (
+    --clk_i => clk_mul_i,
     A     => crossbar_we_select,
     di(0) => common_we,
     do    => wire_bram2mul_we
@@ -248,6 +256,7 @@ begin
     DW   => MUL_AW -- data bus width 
   )
   port map (
+    --clk_i => clk_mul_i,
     A  => crossbar_adr_select,
     di => "0000000000" & crossbar_adr_c  & crossbar_adr_b & crossbar_adr_a,
     do => wire_bram2mul_adr
@@ -261,6 +270,7 @@ begin
     DW   => 64 -- data bus width 
   )
   port map (
+    --clk_i => clk_mul_i,
     A  => crossbar_dat_b_select & crossbar_dat_a_select,
     di => wire_bram2mul_dat_o,
     do(127 downto 64) => crossbar_dat_b,
@@ -362,30 +372,30 @@ begin
   --
   -- CROSS
   -- 
-  mtrx_cross : entity work.mtrx_cross
-  generic map (
-    MTRX_AW => 5,
-    BRAM_DW => MUL_DW,
-    DAT_LAT => DAT_LAT
-  )
-  port map (
-    rdy_o => math_rdy(MATH_HW_CROSS),
-    
-    -- control interface
-    clk_i   => clk_mul_i,
-    rst_i   => math_rst(MATH_HW_CROSS),
-    err_o   => math_err(MATH_HW_CROSS),
-    size_i  => math_sizes,
-
-    -- BRAM interface
-    bram_adr_a_o => math_adr_a((MATH_HW_CROSS+1)*MUL_AW-1 downto MATH_HW_CROSS*MUL_AW),
-    bram_adr_b_o => math_adr_b((MATH_HW_CROSS+1)*MUL_AW-1 downto MATH_HW_CROSS*MUL_AW),
-    bram_adr_c_o => math_adr_c((MATH_HW_CROSS+1)*MUL_AW-1 downto MATH_HW_CROSS*MUL_AW),
-    bram_dat_a_i => math_dat_a((MATH_HW_CROSS+1)*MUL_DW-1 downto MATH_HW_CROSS*MUL_DW),
-    bram_dat_b_i => math_dat_b((MATH_HW_CROSS+1)*MUL_DW-1 downto MATH_HW_CROSS*MUL_DW),
-    bram_dat_c_o => math_dat_c((MATH_HW_CROSS+1)*MUL_DW-1 downto MATH_HW_CROSS*MUL_DW),
-    bram_we_o    => math_we(MATH_HW_CROSS)
-  );
+--  mtrx_cross : entity work.mtrx_cross
+--  generic map (
+--    MTRX_AW => 5,
+--    BRAM_DW => MUL_DW,
+--    DAT_LAT => DAT_LAT
+--  )
+--  port map (
+--    rdy_o => math_rdy(MATH_HW_CROSS),
+--    
+--    -- control interface
+--    clk_i   => clk_mul_i,
+--    rst_i   => math_rst(MATH_HW_CROSS),
+--    err_o   => math_err(MATH_HW_CROSS),
+--    size_i  => math_sizes,
+--
+--    -- BRAM interface
+--    bram_adr_a_o => math_adr_a((MATH_HW_CROSS+1)*MUL_AW-1 downto MATH_HW_CROSS*MUL_AW),
+--    bram_adr_b_o => math_adr_b((MATH_HW_CROSS+1)*MUL_AW-1 downto MATH_HW_CROSS*MUL_AW),
+--    bram_adr_c_o => math_adr_c((MATH_HW_CROSS+1)*MUL_AW-1 downto MATH_HW_CROSS*MUL_AW),
+--    bram_dat_a_i => math_dat_a((MATH_HW_CROSS+1)*MUL_DW-1 downto MATH_HW_CROSS*MUL_DW),
+--    bram_dat_b_i => math_dat_b((MATH_HW_CROSS+1)*MUL_DW-1 downto MATH_HW_CROSS*MUL_DW),
+--    bram_dat_c_o => math_dat_c((MATH_HW_CROSS+1)*MUL_DW-1 downto MATH_HW_CROSS*MUL_DW),
+--    bram_we_o    => math_we(MATH_HW_CROSS)
+--  );
 
   ----------------------------------------------------------------------------------
   -- Wishbone interconnect
@@ -482,7 +492,7 @@ begin
     variable a, b, c : integer := 0;
     variable cmd_raw : natural range 0 to 15;
     variable hw_sel_v : std_logic_vector(1 downto 0); -- same as hw_sel_i
-    variable hw_sel_i : natural range 0 to 7;         -- same as hw_sel_v
+    variable hw_sel_i : natural range 0 to 3;         -- same as hw_sel_v
     constant DV_BIT : integer := 15;
   begin
 
@@ -493,7 +503,7 @@ begin
       case state is
       when IDLE =>
         if (ctl_stb_i = '1' and ctl_sel_i = '1') then
-          if (ctl_adr_i > x"0007") then
+          if (ctl_adr_i > 7) then
             ctl_err_o <= '1';
           else
             ctl_ack_o <= '1';
@@ -562,6 +572,15 @@ begin
           math_rst(hw_sel_i) <= '0';
           math_mov_type <= "00";
           state <= EXEC;
+
+        when MATH_OP_EYE =>
+          hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_MOV, 2));
+          hw_sel_i := MATH_HW_MOV;
+          
+          math_hw_select <= hw_sel_v;
+          math_rst(hw_sel_i) <= '0';
+          math_mov_type <= "01";
+          state <= EXEC;   
           
         when MATH_OP_TRN =>
           hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_MOV, 2));
@@ -569,7 +588,7 @@ begin
           
           math_hw_select <= hw_sel_v;
           math_rst(hw_sel_i) <= '0';
-          math_mov_type <= "01";
+          math_mov_type <= "10";
           state <= EXEC;
 
         when MATH_OP_SET =>
@@ -578,24 +597,10 @@ begin
           
           math_hw_select <= hw_sel_v;
           math_rst(hw_sel_i) <= '0';
-          math_mov_type <= "10";
+          math_mov_type <= "11";
           state <= EXEC;          
           
-        when MATH_OP_EYE =>
-          hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_MOV, 2));
-          hw_sel_i := MATH_HW_MOV;
-          
-          math_hw_select <= hw_sel_v;
-          math_rst(hw_sel_i) <= '0';
-          math_mov_type <= "11";
-          state <= EXEC;    
-
-
-
-
-
-
-
+ 
           
         when MATH_OP_ADD =>
           hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_ADD, 2));
@@ -614,6 +619,8 @@ begin
           math_rst(hw_sel_i) <= '0';
           math_sub_not_add <= '1';
           state <= EXEC;   
+          
+          
           
         when MATH_OP_CROSS =>
           hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_CROSS, 2));

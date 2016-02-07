@@ -27,7 +27,7 @@ end muxer_reg;
 --
 --
 --
-architecture reg_io of muxer_reg is
+architecture io of muxer_reg is
   signal a_reg  : STD_LOGIC_VECTOR(AW-1       downto 0);
   signal di_reg : STD_LOGIC_VECTOR(2**AW*DW-1 downto 0);
   signal do_reg : STD_LOGIC_VECTOR(DW-1       downto 0);
@@ -53,12 +53,12 @@ begin
     end if;
   end process;
 
-end reg_io;
+end io;
 
 --
 --
 --
-architecture reg_i of muxer_reg is
+architecture i of muxer_reg is
   signal a_reg  : STD_LOGIC_VECTOR(AW-1       downto 0);
   signal di_reg : STD_LOGIC_VECTOR(2**AW*DW-1 downto 0);
 begin
@@ -82,13 +82,13 @@ begin
     end if;
   end process;
 
-end reg_i;
+end i;
 
 --
 --
 --
-architecture reg_o of muxer_reg is
-  signal do_reg : STD_LOGIC_VECTOR(DW-1       downto 0);
+architecture o of muxer_reg is
+  signal do_reg : STD_LOGIC_VECTOR(DW-1 downto 0);
 begin
 
   muxer_e : entity work.muxer
@@ -109,4 +109,4 @@ begin
     end if;
   end process;
 
-end reg_o;
+end o;

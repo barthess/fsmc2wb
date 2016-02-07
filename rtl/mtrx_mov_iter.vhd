@@ -51,8 +51,8 @@ architecture beh of mtrx_mov_iter is
   constant ZERO2 : std_logic_vector(2*MTRX_AW-1 downto 0) := (others => '0');
   signal adr_trn, adr_eye : std_logic_vector(2*MTRX_AW-1 downto 0) := (others => '0');
   signal end_trn, end_eye : std_logic := '0';
-  signal dv_trn,  dv_eye : std_logic := '0';
-  signal ce_trn,  ce_eye : std_logic := '0';
+  signal dv_trn,  dv_eye  : std_logic := '0';
+  signal ce_trn,  ce_eye  : std_logic := '0';
 
 begin
   

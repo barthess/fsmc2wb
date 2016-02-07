@@ -57,20 +57,18 @@ architecture beh of mtrx_add is
   -- operand and result addresses registers
   signal AB_adr : std_logic_vector(2*MTRX_AW-1 downto 0):= (others => '0');
   signal AB_ce  : std_logic := '0';
+  signal C_ce   : std_logic := '0';
   signal C_adr  : std_logic_vector(2*MTRX_AW-1 downto 0):= (others => '0');
-  --signal C_ce   : std_logic := '0';
   signal m_size, n_size : std_logic_vector(MTRX_AW-1 downto 0):= (others => '0');
   signal lat_i, lat_o : natural range 0 to 15 := DAT_LAT;
 
-  --signal end_ab_iter : std_logic := '0';
   signal end_c_iter  : std_logic := '0';
   signal rst_iter    : std_logic := '1';
   signal ce_ab_iter  : std_logic := '0';
-  signal add_rdy_bram_we_ce_c_iter : std_logic := '0';
+  signal add_rdy : std_logic := '0';
   
   -- adder control signals
   signal add_nd_ce : std_logic := '0';
-  signal add_rdy : std_logic;
 
   -- state machine
   type state_t is (IDLE, ADR_PRELOAD, DAT_PRELOAD, ACTIVE, FLUSH, HALT);
@@ -108,9 +106,9 @@ begin
     clk_i  => clk_i,
     m_i    => m_size,
     n_i    => n_size,
-    ce_i   => add_rdy_bram_we_ce_c_iter,
+    ce_i   => add_rdy,
     end_o  => end_c_iter,
-    dv_o   => open,
+    dv_o   => C_ce,
     adr_o  => C_adr
   );
   
@@ -141,7 +139,7 @@ begin
     result => bram_dat_c_o,
     clk    => clk_i,
     ce     => add_nd_ce,
-    rdy    => add_rdy_bram_we_ce_c_iter,
+    rdy    => add_rdy,
     operation(5 downto 1) => "00000",
     operation(0) => sub_not_add_i,
     operation_nd => add_nd_ce
@@ -150,9 +148,10 @@ begin
   bram_adr_a_o <= AB_adr;
   bram_adr_b_o <= AB_adr;
   bram_adr_c_o <= C_adr;
-  bram_we_o    <= add_rdy_bram_we_ce_c_iter;
   bram_ce_a_o  <= AB_ce;
   bram_ce_b_o  <= AB_ce;
+  bram_ce_c_o  <= C_ce;
+  bram_we_o    <= add_rdy;
   
   --
   -- Main state machine
