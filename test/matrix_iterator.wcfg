@@ -8,10 +8,12 @@
             <top_module name="mtrx_iterator_tb" />
             <top_module name="numeric_std" />
             <top_module name="std_logic_1164" />
+            <top_module name="std_logic_arith" />
+            <top_module name="std_logic_unsigned" />
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="11" />
+   <WVObjectSize size="10" />
    <wvobject fp_name="/mtrx_iterator_tb/rst_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">rst_i</obj_property>
       <obj_property name="ObjectShortName">rst_i</obj_property>
@@ -52,9 +54,5 @@
    <wvobject fp_name="/mtrx_iterator_tb/uut/state" type="other" db_ref_id="1">
       <obj_property name="ElementShortName">state</obj_property>
       <obj_property name="ObjectShortName">state</obj_property>
-   </wvobject>
-   <wvobject fp_name="/mtrx_iterator_tb/clk_i_period" type="other" db_ref_id="1">
-      <obj_property name="ElementShortName">clk_i_period</obj_property>
-      <obj_property name="ObjectShortName">clk_i_period</obj_property>
    </wvobject>
 </wave_config>

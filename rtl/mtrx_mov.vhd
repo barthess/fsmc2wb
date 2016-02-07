@@ -37,12 +37,12 @@ entity mtrx_mov is
     -- BRAM interface
     -- Note: there are no clocks for BRAMs. They are handle in higher level
     bram_adr_a_o : out std_logic_vector(2*MTRX_AW-1 downto 0);
-    bram_adr_b_o : out std_logic_vector(2*MTRX_AW-1 downto 0); -- unused
+    bram_adr_b_o : out std_logic_vector(2*MTRX_AW-1 downto 0) := (others => '0'); -- unused
     bram_adr_c_o : out std_logic_vector(2*MTRX_AW-1 downto 0);
 
     constant_i   : in  std_logic_vector(BRAM_DW-1 downto 0); -- external constant for memset and eye
     bram_dat_a_i : in  std_logic_vector(BRAM_DW-1 downto 0);
-    bram_dat_b_i : in  std_logic_vector(BRAM_DW-1 downto 0); -- unused
+    bram_dat_b_i : in  std_logic_vector(BRAM_DW-1 downto 0) := (others => '0'); -- unused
     bram_dat_c_o : out std_logic_vector(BRAM_DW-1 downto 0);
     bram_ce_a_o  : out std_logic;
     bram_ce_c_o  : out std_logic;

@@ -58,7 +58,7 @@ architecture beh of mtrx_cross is
 
   -- multiplicator control signals
   signal mul_nd : std_logic := '0';
-  signal mul_ce : std_logic := '0';
+  --signal mul_ce : std_logic := '0';
   signal mul_rdy : std_logic; -- connected to accumulator nd
 
   -- matrices size registers
@@ -73,7 +73,7 @@ architecture beh of mtrx_cross is
   signal c_iter_rst  : std_logic := '1';
   signal c_iter_ce   : std_logic := '0';
   signal c_iter_end  : std_logic;
-  signal mul_nd_ce   : std_logic := '0';
+  --signal mul_nd_ce   : std_logic := '0';
   
   -- accumulator control signals
   signal accum_rst : std_logic := '1';

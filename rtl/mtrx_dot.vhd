@@ -64,7 +64,6 @@ architecture beh of mtrx_dot is
   
   -- multiplicator control signals
   signal mul_nd  : std_logic := '0';
-  signal mul_ce  : std_logic := '0';
   signal mul_rdy : std_logic;
 
   -- state machine
@@ -95,8 +94,8 @@ begin
   )
   port map (
     A(0)  => scale_not_dot_i,
-    do => mul_b_input,
-    di => tmp1
+    do    => mul_b_input,
+    di    => tmp1
   );
   
   --
@@ -108,7 +107,7 @@ begin
     b      => mul_b_input,
     result => mul_result,
     clk    => clk_i,
-    ce     => mul_ce,
+    ce     => '1',
     rdy    => mul_rdy,
     operation_nd => mul_nd
   );

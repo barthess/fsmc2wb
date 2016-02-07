@@ -68,7 +68,7 @@ architecture beh of mtrx_add is
   signal add_rdy : std_logic := '0';
   
   -- adder control signals
-  signal add_nd_ce : std_logic := '0';
+  signal add_nd : std_logic := '0';
 
   -- state machine
   type state_t is (IDLE, ADR_PRELOAD, DAT_PRELOAD, ACTIVE, FLUSH, HALT);
@@ -126,7 +126,7 @@ begin
     clk   => clk_i,
     ce    => '1',
     di(0) => AB_ce,
-    do(0) => add_nd_ce
+    do(0) => add_nd
   );
   
   --
@@ -138,11 +138,11 @@ begin
     b      => bram_dat_b_i,
     result => bram_dat_c_o,
     clk    => clk_i,
-    ce     => add_nd_ce,
+    ce     => '1',
     rdy    => add_rdy,
     operation(5 downto 1) => "00000",
     operation(0) => sub_not_add_i,
-    operation_nd => add_nd_ce
+    operation_nd => add_nd
   );
   
   bram_adr_a_o <= AB_adr;
