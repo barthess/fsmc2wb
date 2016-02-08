@@ -16,37 +16,37 @@ use IEEE.NUMERIC_STD.ALL;
 --
 --
 entity mtrx_add is
-  Generic (
-    MTRX_AW : positive := 5;  -- 2**MTRX_AW = max matrix index
-    BRAM_DW : positive := 64;
-    -- Data latency. Consist of:
-    -- 1) address path to BRAM
-    -- 2) BRAM data latency (generally 1 cycle)
-    -- 3) data path from BRAM to device
-    DAT_LAT : positive range 1 to 15 := 1
-  );
-  Port (
-    -- control interface
-    rst_i  : in  std_logic; -- active high. Must be used before every new calculation
-    clk_i  : in  std_logic;
-    size_i : in  std_logic_vector(15 downto 0); -- size of input operands
-    rdy_o  : out std_logic := '0'; -- active high 1 cycle
-    err_o  : out std_logic := '0';
-    sub_not_add_i : in std_logic;
-    
-    -- BRAM interface
-    -- Note: there are no clocks for BRAMs. They are handle in higher level
-    bram_adr_a_o : out std_logic_vector(2*MTRX_AW-1 downto 0);
-    bram_adr_b_o : out std_logic_vector(2*MTRX_AW-1 downto 0);
-    bram_adr_c_o : out std_logic_vector(2*MTRX_AW-1 downto 0);
-    bram_dat_a_i : in  std_logic_vector(BRAM_DW-1 downto 0);
-    bram_dat_b_i : in  std_logic_vector(BRAM_DW-1 downto 0);
-    bram_dat_c_o : out std_logic_vector(BRAM_DW-1 downto 0);
-    bram_ce_a_o  : out std_logic;
-    bram_ce_b_o  : out std_logic;
-    bram_ce_c_o  : out std_logic;
-    bram_we_o    : out std_logic -- for C bram
-  );
+Generic (
+  MTRX_AW : positive := 5;  -- 2**MTRX_AW = max matrix index
+  BRAM_DW : positive := 64;
+  -- Data latency. Consist of:
+  -- 1) address path to BRAM
+  -- 2) BRAM data latency (generally 1 cycle)
+  -- 3) data path from BRAM to device
+  DAT_LAT : positive range 1 to 15 := 1
+);
+Port (
+  -- control interface
+  rst_i  : in  std_logic; -- active high. Must be used before every new calculation
+  clk_i  : in  std_logic;
+  m_size_i, p_size_i, n_size_i : in  std_logic_vector(MTRX_AW-1 downto 0);
+  rdy_o  : out std_logic := '0'; -- active high 1 cycle
+  err_o  : out std_logic := '0';
+  sub_not_add_i : in std_logic;
+  
+  -- BRAM interface
+  -- Note: there are no clocks for BRAMs. They are handle in higher level
+  bram_adr_a_o : out std_logic_vector(2*MTRX_AW-1 downto 0);
+  bram_adr_b_o : out std_logic_vector(2*MTRX_AW-1 downto 0);
+  bram_adr_c_o : out std_logic_vector(2*MTRX_AW-1 downto 0);
+  bram_dat_a_i : in  std_logic_vector(BRAM_DW-1 downto 0);
+  bram_dat_b_i : in  std_logic_vector(BRAM_DW-1 downto 0);
+  bram_dat_c_o : out std_logic_vector(BRAM_DW-1 downto 0);
+  bram_ce_a_o  : out std_logic;
+  bram_ce_b_o  : out std_logic;
+  bram_ce_c_o  : out std_logic;
+  bram_we_o    : out std_logic -- for C bram
+);
 end mtrx_add;
 
 
@@ -157,7 +157,6 @@ begin
   -- Main state machine
   -- 
   main : process(clk_i)
-    variable m_tmp, n_tmp : std_logic_vector(MTRX_AW-1 downto 0);
   begin
     if rising_edge(clk_i) then
       if (rst_i = '1') then
@@ -172,15 +171,13 @@ begin
         rdy_o <= '0';
         case state is
         when IDLE =>
-          m_tmp := size_i(  MTRX_AW-1 downto 0);
-          n_tmp := size_i(2*MTRX_AW-1 downto MTRX_AW);
-          if (size_i(15 downto 2*MTRX_AW) > 0) -- overflow
+          if (p_size_i > 0) -- error
           then
             err_o <= '1';
             state <= HALT;
           else
-            m_size  <= m_tmp;
-            n_size  <= n_tmp;
+            m_size  <= m_size_i;
+            n_size  <= n_size_i;
             state   <= ADR_PRELOAD;
           end if;
           

@@ -31,7 +31,7 @@ Port (
   -- control interface
   rst_i  : in  std_logic; -- active high. Must be used before every new calculation
   clk_i  : in  std_logic;
-  size_i : in  std_logic_vector(15 downto 0); -- size of input operands
+  m_size_i, p_size_i, n_size_i : in  std_logic_vector(MTRX_AW-1 downto 0);
   err_o  : out std_logic; -- active high 1 clock
   rdy_o  : out std_logic; -- active high 1 clock
 
@@ -198,23 +198,19 @@ begin
         state <= IDLE;
         lat_i <= DAT_LAT;
         lat_o <= DAT_LAT / 2;
+        err_o <= '0';
+        rdy_o <= '0';
       else
         case state is
         when IDLE =>
           accum_rst   <= '1';
           ab_iter_rst <= '1';
           c_iter_rst  <= '1';
-          
-          if size_i(15) = '1' then
-            err_o <= '1';
-            state <= HALT;
-          else
-            mtrx_m    <= size_i(4 downto 0);
-            mtrx_p    <= size_i(9 downto 5);
-            mtrx_n    <= size_i(14 downto 10);
-            accum_len <= size_i(9 downto 5);
-            state     <= ADR_PRELOAD;
-          end if;
+          mtrx_m      <= m_size_i;
+          mtrx_p      <= n_size_i;
+          mtrx_n      <= p_size_i;
+          accum_len   <= p_size_i;
+          state       <= ADR_PRELOAD;
         
         when ADR_PRELOAD =>
           ab_iter_rst <= '0';

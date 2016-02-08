@@ -29,7 +29,7 @@ Port (
   -- control interface
   rst_i  : in  std_logic; -- active high. Must be used before every new calculation
   clk_i  : in  std_logic;
-  size_i : in  std_logic_vector(15 downto 0); -- size of input operands
+  m_size_i, p_size_i, n_size_i : in  std_logic_vector(MTRX_AW-1 downto 0);
   rdy_o  : out std_logic := '0'; -- active high 1 cycle
   err_o  : out std_logic := '0';
   scale_not_dot_i : in std_logic;
@@ -178,7 +178,6 @@ begin
   -- Main state machine
   -- 
   main : process(clk_i)
-    variable m_tmp, n_tmp : std_logic_vector(MTRX_AW-1 downto 0);
   begin
     if rising_edge(clk_i) then
       if (rst_i = '1') then
@@ -193,15 +192,13 @@ begin
         rdy_o <= '0';
         case state is
         when IDLE =>
-          m_tmp := size_i(  MTRX_AW-1 downto 0);
-          n_tmp := size_i(2*MTRX_AW-1 downto MTRX_AW);
-          if (size_i(15 downto 2*MTRX_AW) > 0) -- overflow
+          if (p_size_i > 0) -- error
           then
             err_o <= '1';
             state <= HALT;
           else
-            m_size  <= m_tmp;
-            n_size  <= n_tmp;
+            m_size  <= m_size_i;
+            n_size  <= n_size_i;
             state   <= ADR_PRELOAD;
           end if;
           

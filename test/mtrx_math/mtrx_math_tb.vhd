@@ -27,10 +27,11 @@
 --------------------------------------------------------------------------------
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
+USE ieee.std_logic_unsigned.ALL;
  
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
---USE ieee.numeric_std.ALL;
+USE ieee.numeric_std.ALL;
  
 ENTITY mtrx_math_tb IS
 END mtrx_math_tb;
@@ -43,8 +44,8 @@ ARCHITECTURE behavior OF mtrx_math_tb IS
   signal sel_wb_i : std_logic_vector(8 downto 0) := (others => '0');
   signal stb_wb_i : std_logic_vector(8 downto 0) := (others => '0');
   signal we_wb_i  : std_logic_vector(8 downto 0) := (others => '0');
-  signal adr_wb_i : std_logic_vector(143 downto 0) := (others => '0');
-  signal dat_wb_i : std_logic_vector(143 downto 0) := (others => '0');
+  signal adr_wb_i : std_logic_vector(143 downto 0);
+  signal dat_wb_i : std_logic_vector(143 downto 0);
 
   --Outputs
   signal rdy_o : std_logic;
@@ -57,15 +58,18 @@ ARCHITECTURE behavior OF mtrx_math_tb IS
   constant clk_wb_i_period  : time := 1 ns;
 
   -- slices for convenience
-  signal dat_i : std_logic_vector(15 downto 0);
-  signal dat_o : std_logic_vector(15 downto 0);
-  signal adr_i : std_logic_vector(15 downto 0);
+  signal dat_i : std_logic_vector(15 downto 0) := (others => '0');
+  signal dat_o : std_logic_vector(15 downto 0) := (others => '0');
+  signal adr_i : std_logic_vector(15 downto 0) := (others => '0');
   signal stb_i, sel_i, we_i : std_logic := '0';
   signal err_o, ack_o : std_logic;
   signal stim_rst : std_logic := '1';
   
-  type state_t is (SIZES, OP_N, ACTIVE, HALT);
-  signal state : state_t := SIZES;
+  signal rdy_pattern : std_logic := '0';
+  signal ce_pattern : std_logic := '0';
+
+  type state_t is (IDLE, SIZES1, SIZES2, OP_N, ACTIVE, HALT);
+  signal state : state_t := IDLE;
   
 BEGIN
 
@@ -80,7 +84,7 @@ BEGIN
   ack_o <= ack_wb_o(8);
   
   -- Instantiate the Unit Under Test (UUT)
-  uut: entity work.mtrx_math 
+  uut: entity work.wb_mtrx
   PORT MAP (
     rdy_o => rdy_o,
     clk_mul_i => clk_mul_i,
@@ -95,39 +99,75 @@ BEGIN
     dat_i => dat_wb_i
   );
 
-   -- Clock process definitions
-   clk_mul_i_process :process
-   begin
-		clk_mul_i <= '0';
-		wait for clk_mul_i_period/2;
-		clk_mul_i <= '1';
-		wait for clk_mul_i_period/2;
-   end process;
- 
-   clk_wb_i_process :process
-   begin
-		clk_wb_i <= (others => '0');
-		wait for clk_wb_i_period/2;
-		clk_wb_i <= (others => '1');
-		wait for clk_wb_i_period/2;
-   end process;
+  -- Clock process definitions
+  clk_mul_i_process :process
+  begin
+    clk_mul_i <= '0';
+    wait for clk_mul_i_period/2;
+    clk_mul_i <= '1';
+    wait for clk_mul_i_period/2;
+  end process;
 
-   wait_proc: process
-   begin		
-      -- hold reset state for 100 ns.
-      wait for 10 ns;	
+  clk_wb_i_process :process
+  begin
+    clk_wb_i <= (others => '0');
+    wait for clk_wb_i_period/2;
+    clk_wb_i <= (others => '1');
+    wait for clk_wb_i_period/2;
+  end process;
 
-      wait for clk_mul_i_period*3;
-        stim_rst <= '0';
-      -- insert stimulus here 
+  wait_proc: process
+  begin		
+    -- hold reset state for 100 ns.
+    wait for 10 ns;	
+    wait for clk_mul_i_period*3;
+    stim_rst <= '0';
+    -- insert stimulus here 
+    wait;
+  end process;
+  
 
-      wait;
-   end process;
-   
-   
+
+  -- Fill brams with recognizable patterns
+--  watermark_proc : process(clk_wb_i(8))
+--    variable cnt : std_logic_vector(7 downto 0) := (others => '0');
+--    variable tmp : std_logic_vector(2 downto 0);
+--  begin
+--    if rising_edge(clk_wb_i(8)) then
+--      if (ce_pattern = '1') then
+--        if (cnt /= "11111111") then
+--          rdy_pattern <= '0';
+--          sel_wb_i(7 downto 0) <= (others => '1');
+--          stb_wb_i(7 downto 0) <= (others => '1');
+--          we_wb_i(7 downto 0)  <= (others => '1');
+--          
+--          for n in 0 to 7 loop
+--            tmp := std_logic_vector(to_unsigned(n, 3));
+--            dat_wb_i((n+1)*16-1 downto n*16) <= tmp & "00000" & cnt;
+--            adr_wb_i((n+1)*16-1 downto n*16) <= "00000000" & cnt;
+--          end loop;
+--
+--          cnt := cnt + 1;
+--        else
+--          rdy_pattern <= '1';
+--          sel_wb_i(7 downto 0) <= (others => '0');
+--          stb_wb_i(7 downto 0) <= (others => '0');
+--          we_wb_i(7 downto 0)  <= (others => '0');
+--        end if;
+--      else
+--        sel_wb_i(7 downto 0) <= (others => '0');
+--        stb_wb_i(7 downto 0) <= (others => '0');
+--        we_wb_i(7 downto 0)  <= (others => '0');
+--        rdy_pattern <= '0';
+--      end if;
+--    end if; -- clk
+--  end process;
+
+
+
   -- Stimulus process
   stim_proc: process(clk_wb_i(8))
-    variable m,p,n : std_logic_vector(4 downto 0) := "11111";
+    variable m,p,n : std_logic_vector(4 downto 0) := "00010";
   begin
     if rising_edge(clk_wb_i(8)) then
       if stim_rst = '1' then
@@ -136,12 +176,23 @@ BEGIN
         stb_i <= '0';
         sel_i <= '0';
         we_i  <= '0';
-        state <= SIZES;
+        state <= IDLE;
+        rdy_pattern <= '1';
       else
         case state is
-        when SIZES =>
-          --dat_i <= '0' & n & p & m;
-          dat_i <= '0' & "00000" & p & m;
+        when IDLE =>
+          ce_pattern<= '1';
+          if rdy_pattern = '1' then
+            ce_pattern <= '0';
+            state <= SIZES1;
+          end if;
+          
+        when SIZES1 =>
+          state <= SIZES2;
+          
+        when SIZES2 =>
+          dat_i <= '0' & n & p & m;
+          --dat_i <= '0' & n & "00000" & m;
           adr_i <= x"0001";
           stb_i <= '1';
           sel_i <= '1';
@@ -149,7 +200,7 @@ BEGIN
           state <= OP_N;
 
         when OP_N =>
-          dat_i <= '1' & "00" & "0000" & "010" & "001" & "000";
+          dat_i <= '1' & "00" & "1000" & "010" & "001" & "000";
           adr_i <= x"0000";
           state <= ACTIVE;
         

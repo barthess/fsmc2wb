@@ -20,7 +20,7 @@
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="24" />
+   <WVObjectSize size="26" />
    <wvobject fp_name="/mtrx_math_tb/clk_mul_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">clk_mul_i</obj_property>
       <obj_property name="ObjectShortName">clk_mul_i</obj_property>
@@ -44,10 +44,6 @@
       <obj_property name="ObjectShortName">adr_i[15:0]</obj_property>
       <obj_property name="Radix">HEXRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/mtrx_math_tb/uut/state" type="other" db_ref_id="1">
-      <obj_property name="ElementShortName">state</obj_property>
-      <obj_property name="ObjectShortName">state</obj_property>
-   </wvobject>
    <wvobject fp_name="/mtrx_math_tb/stb_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">stb_i</obj_property>
       <obj_property name="ObjectShortName">stb_i</obj_property>
@@ -68,21 +64,45 @@
       <obj_property name="ElementShortName">ack_o</obj_property>
       <obj_property name="ObjectShortName">ack_o</obj_property>
    </wvobject>
-   <wvobject fp_name="/mtrx_math_tb/uut/math_we" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">math_we[3:0]</obj_property>
-      <obj_property name="ObjectShortName">math_we[3:0]</obj_property>
+   <wvobject fp_name="/mtrx_math_tb/uut/math_we" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">math_we</obj_property>
+      <obj_property name="ObjectShortName">math_we</obj_property>
    </wvobject>
-   <wvobject fp_name="/mtrx_math_tb/uut/common_we" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">common_we</obj_property>
-      <obj_property name="ObjectShortName">common_we</obj_property>
+   <wvobject fp_name="/mtrx_math_tb/uut/state" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">state</obj_property>
+      <obj_property name="ObjectShortName">state</obj_property>
    </wvobject>
-   <wvobject fp_name="/mtrx_math_tb/uut/wire_bram2mul_we" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">wire_bram2mul_we[7:0]</obj_property>
-      <obj_property name="ObjectShortName">wire_bram2mul_we[7:0]</obj_property>
+   <wvobject fp_name="/mtrx_math_tb/state" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">state</obj_property>
+      <obj_property name="ObjectShortName">state</obj_property>
    </wvobject>
-   <wvobject fp_name="/mtrx_math_tb/uut/wire_bram2mul_adr" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">wire_bram2mul_adr[79:0]</obj_property>
-      <obj_property name="ObjectShortName">wire_bram2mul_adr[79:0]</obj_property>
+   <wvobject fp_name="/mtrx_math_tb/rdy_pattern" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">rdy_pattern</obj_property>
+      <obj_property name="ObjectShortName">rdy_pattern</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/ce_pattern" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ce_pattern</obj_property>
+      <obj_property name="ObjectShortName">ce_pattern</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/uut/ctl_ack_o" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ctl_ack_o</obj_property>
+      <obj_property name="ObjectShortName">ctl_ack_o</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/uut/ctl_err_o" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ctl_err_o</obj_property>
+      <obj_property name="ObjectShortName">ctl_err_o</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/uut/ctl_stb_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ctl_stb_i</obj_property>
+      <obj_property name="ObjectShortName">ctl_stb_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/uut/ctl_we_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ctl_we_i</obj_property>
+      <obj_property name="ObjectShortName">ctl_we_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/uut/ctl_sel_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ctl_sel_i</obj_property>
+      <obj_property name="ObjectShortName">ctl_sel_i</obj_property>
    </wvobject>
    <wvobject fp_name="divider127" type="divider">
       <obj_property name="label">mtrx_sum</obj_property>
@@ -90,39 +110,28 @@
       <obj_property name="BkColor">128 128 255</obj_property>
       <obj_property name="TextColor">230 230 230</obj_property>
    </wvobject>
-   <wvobject fp_name="/mtrx_math_tb/uut/mtrx_dot/rst_i" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">rst_i</obj_property>
-      <obj_property name="ObjectShortName">rst_i</obj_property>
-   </wvobject>
-   <wvobject fp_name="/mtrx_math_tb/uut/mtrx_dot/bram_adr_a_o" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">bram_adr_a_o[9:0]</obj_property>
-      <obj_property name="ObjectShortName">bram_adr_a_o[9:0]</obj_property>
+   <wvobject fp_name="/mtrx_math_tb/uut/\brams2mul(0)\/bram_mtrx/addrb" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">addrb[9:0]</obj_property>
+      <obj_property name="ObjectShortName">addrb[9:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/mtrx_math_tb/uut/mtrx_dot/bram_adr_b_o" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">bram_adr_b_o[9:0]</obj_property>
-      <obj_property name="ObjectShortName">bram_adr_b_o[9:0]</obj_property>
+   <wvobject fp_name="/mtrx_math_tb/uut/\brams2mul(1)\/bram_mtrx/addrb" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">addrb[9:0]</obj_property>
+      <obj_property name="ObjectShortName">addrb[9:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/mtrx_math_tb/uut/mtrx_dot/bram_adr_c_o" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">bram_adr_c_o[9:0]</obj_property>
-      <obj_property name="ObjectShortName">bram_adr_c_o[9:0]</obj_property>
+   <wvobject fp_name="/mtrx_math_tb/uut/\brams2mul(2)\/bram_mtrx/addrb" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">addrb[9:0]</obj_property>
+      <obj_property name="ObjectShortName">addrb[9:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/mtrx_math_tb/uut/mtrx_dot/bram_we_o" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">bram_we_o</obj_property>
-      <obj_property name="ObjectShortName">bram_we_o</obj_property>
+   <wvobject fp_name="/mtrx_math_tb/uut/\brams2mul(2)\/bram_mtrx/web" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">web[0:0]</obj_property>
+      <obj_property name="ObjectShortName">web[0:0]</obj_property>
+      <obj_property name="Radix">BINARYRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/mtrx_math_tb/uut/mtrx_dot/mul_nd" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">mul_nd</obj_property>
-      <obj_property name="ObjectShortName">mul_nd</obj_property>
-   </wvobject>
-   <wvobject fp_name="/mtrx_math_tb/uut/mtrx_dot/mul_rdy" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">mul_rdy</obj_property>
-      <obj_property name="ObjectShortName">mul_rdy</obj_property>
-   </wvobject>
-   <wvobject fp_name="/mtrx_math_tb/uut/mtrx_dot/state" type="other" db_ref_id="1">
-      <obj_property name="ElementShortName">state</obj_property>
-      <obj_property name="ObjectShortName">state</obj_property>
+   <wvobject fp_name="/mtrx_math_tb/uut/mtrx_math_inst/mtrx_add/sub_not_add_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">sub_not_add_i</obj_property>
+      <obj_property name="ObjectShortName">sub_not_add_i</obj_property>
    </wvobject>
 </wave_config>
