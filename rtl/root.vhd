@@ -39,7 +39,7 @@ entity root is
     FSMC_AW   : positive := 23;
     FSMC_DW   : positive := 16;
     WB_AW     : positive := 16;
-    WBSTUBS   : positive := 4
+    WBSTUBS   : positive := 3
   );
   port ( 
     CLK_IN_27MHZ : in std_logic;
@@ -140,15 +140,24 @@ signal wb_led_adr   : std_logic_vector(WB_AW-1   downto 0);
 signal wb_led_dat_i : std_logic_vector(FSMC_DW-1 downto 0);
 signal wb_led_dat_o : std_logic_vector(FSMC_DW-1 downto 0);
 
--- wires for wishbone_to_gtp module
-signal wb_gtp_sel   : std_logic;
-signal wb_gtp_stb   : std_logic;
-signal wb_gtp_we    : std_logic;
-signal wb_gtp_err   : std_logic;
-signal wb_gtp_ack   : std_logic;
-signal wb_gtp_adr   : std_logic_vector(WB_AW-1 downto 0);
-signal wb_gtp_dat_i : std_logic_vector(FSMC_DW-1 downto 0);
-signal wb_gtp_dat_o : std_logic_vector(FSMC_DW-1 downto 0);
+-- wires for wishbone_to_gtp module (pwm & uart)
+signal wb_pwm_sel   : std_logic;
+signal wb_pwm_stb   : std_logic;
+signal wb_pwm_we    : std_logic;
+signal wb_pwm_err   : std_logic;
+signal wb_pwm_ack   : std_logic;
+signal wb_pwm_adr   : std_logic_vector(WB_AW-1 downto 0);
+signal wb_pwm_dat_i : std_logic_vector(FSMC_DW-1 downto 0);
+signal wb_pwm_dat_o : std_logic_vector(FSMC_DW-1 downto 0);
+
+signal wb_uart_sel   : std_logic;
+signal wb_uart_stb   : std_logic;
+signal wb_uart_we    : std_logic;
+signal wb_uart_err   : std_logic;
+signal wb_uart_ack   : std_logic;
+signal wb_uart_adr   : std_logic_vector(WB_AW-1 downto 0);
+signal wb_uart_dat_i : std_logic_vector(FSMC_DW-1 downto 0);
+signal wb_uart_dat_o : std_logic_vector(FSMC_DW-1 downto 0);
 
 -- clock wires
 signal clk_216mhz : std_logic;
@@ -214,15 +223,24 @@ begin
         UART6_RTS       => UART6_RTS,
         UART6_CTS       => UART6_CTS,
         MODTELEM_RX_MNU => open,
-        clk_i           => clk_wb,
-        sel_i           => wb_gtp_sel,
-        stb_i           => wb_gtp_stb,
-        we_i            => wb_gtp_we,
-        err_o           => wb_gtp_err,
-        ack_o           => wb_gtp_ack,
-        adr_i           => wb_gtp_adr,
-        dat_o           => wb_gtp_dat_o,
-        dat_i           => wb_gtp_dat_i);
+        pwm_clk_i       => clk_wb,
+        pwm_sel_i       => wb_pwm_sel,
+        pwm_stb_i       => wb_pwm_stb,
+        pwm_we_i        => wb_pwm_we,
+        pwm_err_o       => wb_pwm_err,
+        pwm_ack_o       => wb_pwm_ack,
+        pwm_adr_i       => wb_pwm_adr,
+        pwm_dat_o       => wb_pwm_dat_o,
+        pwm_dat_i       => wb_pwm_dat_i,
+        uart_clk_i      => clk_wb,
+        uart_sel_i      => wb_uart_sel,
+        uart_stb_i      => wb_uart_stb,
+        uart_we_i       => wb_uart_we,
+        uart_err_o      => wb_uart_err,
+        uart_ack_o      => wb_uart_ack,
+        uart_adr_i      => wb_uart_adr,
+        uart_dat_o      => wb_uart_dat_o,
+        uart_dat_i      => wb_uart_dat_i);            
   --
   -- connect wishbone based LED strip
   --
@@ -278,49 +296,57 @@ begin
 --      dat_i => wb_stub_dat_o
       
       sel_o(15 downto 16-WBSTUBS)         => wb_stub_sel,
-      sel_o(11)                           => wb_gtp_sel,
+      sel_o(12)                           => wb_uart_sel,
+      sel_o(11)                           => wb_pwm_sel,
       sel_o(10 downto 2)                  => wire_mul2wb_sel,
       sel_o(1)                            => wb_led_sel,
       sel_o(0)                            => wire_memtest_wb_sel,
       
       stb_o(15 downto 16-WBSTUBS)         => wb_stub_stb,
-      stb_o(11)                           => wb_gtp_stb,
+      stb_o(12)                           => wb_uart_stb,
+      stb_o(11)                           => wb_pwm_stb,
       stb_o(10 downto 2)                  => wire_mul2wb_stb,
       stb_o(1)                            => wb_led_stb,
       stb_o(0)                            => wire_memtest_wb_stb,
       
       we_o(15 downto 16-WBSTUBS)          => wb_stub_we,
-      we_o(11)                            => wb_gtp_we,
+      we_o(12)                            => wb_uart_we,
+      we_o(11)                            => wb_pwm_we,
       we_o(10 downto 2)                   => wire_mul2wb_we,
       we_o(1)                             => wb_led_we,
       we_o(0)                             => wire_memtest_wb_we,
       
-      adr_o(WB_AW*16-1 downto WB_AW*12)     => wb_stub_adr,
-      adr_o(WB_AW*12-1 downto WB_AW*11)     => wb_gtp_adr,
+      adr_o(WB_AW*16-1 downto WB_AW*13)     => wb_stub_adr,
+      adr_o(WB_AW*13-1 downto WB_AW*12)     => wb_uart_adr,
+      adr_o(WB_AW*12-1 downto WB_AW*11)     => wb_pwm_adr,
       adr_o(WB_AW*11-1 downto WB_AW*2)      => wire_mul2wb_adr,
       adr_o(WB_AW*2-1 downto WB_AW)         => wb_led_adr,
       adr_o(WB_AW-1   downto 0)             => wire_memtest_wb_adr,
       
-      dat_o(FSMC_DW*16-1 downto FSMC_DW*12) => wb_stub_dat_i,
-      dat_o(FSMC_DW*12-1 downto FSMC_DW*11) => wb_gtp_dat_i,
+      dat_o(FSMC_DW*16-1 downto FSMC_DW*13) => wb_stub_dat_i,
+      dat_o(FSMC_DW*13-1 downto FSMC_DW*12) => wb_uart_dat_i,
+      dat_o(FSMC_DW*12-1 downto FSMC_DW*11) => wb_pwm_dat_i,
       dat_o(FSMC_DW*11-1 downto FSMC_DW*2)  => wire_mul2wb_dat_i,
       dat_o(FSMC_DW*2-1 downto FSMC_DW)     => wb_led_dat_i,
       dat_o(FSMC_DW-1   downto 0)           => wire_memtest_wb_dat_i,
       
       err_i(15 downto 16-WBSTUBS)           => wb_stub_err,
-      err_i(11)                             => wb_gtp_err,
+      err_i(12)                             => wb_uart_err,
+      err_i(11)                             => wb_pwm_err,
       err_i(10 downto 2)                    => wire_mul2wb_err,
       err_i(1)                              => wb_led_err,
       err_i(0)                              => wire_memtest_wb_err,
       
       ack_i(15 downto 16-WBSTUBS)           => wb_stub_ack,
-      ack_i(11)                             => wb_gtp_ack,
+      ack_i(12)                             => wb_uart_ack,
+      ack_i(11)                             => wb_pwm_ack,
       ack_i(10 downto 2)                    => wire_mul2wb_ack,
       ack_i(1)                              => wb_led_ack,
       ack_i(0)                              => wire_memtest_wb_ack,
       
-      dat_i(FSMC_DW*16-1 downto FSMC_DW*12) => wb_stub_dat_o,
-      dat_i(FSMC_DW*12-1 downto FSMC_DW*11) => wb_gtp_dat_o,
+      dat_i(FSMC_DW*16-1 downto FSMC_DW*13) => wb_stub_dat_o,
+      dat_i(FSMC_DW*13-1 downto FSMC_DW*12) => wb_uart_dat_o,
+      dat_i(FSMC_DW*12-1 downto FSMC_DW*11) => wb_pwm_dat_o,
       dat_i(FSMC_DW*11-1 downto FSMC_DW*2)  => wire_mul2wb_dat_o,
       dat_i(FSMC_DW*2-1 downto FSMC_DW)     => wb_led_dat_o,
       dat_i(FSMC_DW-1   downto 0)           => wire_memtest_wb_dat_o
@@ -335,7 +361,7 @@ begin
     DW => FSMC_DW
   )
   port map (
-    clk_i     => clk_100mhz,
+    clk_i     => clk_108mhz,
 
     BRAM_FILL => STM_IO_BRAM_AUTO_FILL,
     BRAM_DBG  => STM_IO_BRAM_DBG_OUT,
