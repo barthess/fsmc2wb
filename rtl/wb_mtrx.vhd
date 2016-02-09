@@ -46,9 +46,6 @@ architecture beh of wb_mtrx is
   
   constant BRAMs : integer := SLAVES-1;
   
-  -- data latency on dot bar. Set it to 1 (BRAM latency) if no buffering used
-  constant DAT_LAT : positive := 1; 
-  
   -- wires for control interface connection to WB
   signal ctl_ack_o, ctl_err_o, ctl_stb_i, ctl_we_i, ctl_sel_i, ctl_clk_i : std_logic;
   signal ctl_dat_i, ctl_dat_o : std_logic_vector(WB_DW-1 downto 0);
@@ -159,14 +156,14 @@ begin
 
   -- Addres router from math to brams
   crossbar_adr_stack <= "0000000000" & math_adr_c & math_adr_b & math_adr_a;
-  adr_abc_router : entity work.bus_matrix
+  adr_abc_router : entity work.bus_matrix_reg(io)
   generic map (
     AW   => 2, -- address width in bits
     ocnt => BRAMS, -- output ports count
     DW   => MUL_AW -- data bus width 
   )
   port map (
-    --clk_i => clk_mul_i,
+    clk_i => clk_mul_i,
     A  => crossbar_adr_select,
     di => crossbar_adr_stack,
     do => wire_bram2mul_adr
@@ -196,7 +193,8 @@ begin
   mtrx_math_inst : entity work.mtrx_math
   generic map (
     MTRX_AW => 5,
-    BRAM_DW => MUL_DW
+    BRAM_DW => MUL_DW,
+    DAT_LAT => 4
   )
   port map (
     clk_i => clk_mul_i,
@@ -285,8 +283,6 @@ begin
   -- Math control logic
   ----------------------------------------------------------------------------------
 
-  rdy_o  <= '1' when (state = IDLE) else '0';
-
   math_ctl_proc : process(clk_mul_i)
     -- delay need for slow WB part able to sample ERR and RDY lines
     constant DELAY : std_logic_vector(1 downto 0) := "10";
@@ -345,6 +341,8 @@ begin
   -- Math control logic
   ----------------------------------------------------------------------------------
 
+  rdy_o  <= '1' when (wb_state = WB_IDLE) else '0';
+
   ack_o(SLAVES-1) <= ctl_ack_o;
   err_o(SLAVES-1) <= ctl_err_o;
   ctl_stb_i       <= stb_i(SLAVES-1);
@@ -354,7 +352,6 @@ begin
   ctl_adr_i       <= adr_i(WB_AW*SLAVES-1 downto WB_AW*(SLAVES-1));
   ctl_clk_i       <= clk_wb_i(SLAVES-1);
   dat_o(WB_DW*SLAVES-1 downto WB_DW*(SLAVES-1)) <= ctl_dat_o;
-
   
   control_logic : process(ctl_clk_i)
     variable a_num, b_num, c_num : std_logic_vector(2 downto 0) := "000";

@@ -16,7 +16,8 @@ use work.mtrx_math_constants.all;
 entity mtrx_math is
 Generic (
   MTRX_AW : positive := 5;
-  BRAM_DW : positive := 64
+  BRAM_DW : positive := 64;
+  DAT_LAT : positive range 1 to 15 := 1
 );
 Port (
   clk_i : in  std_logic;
@@ -46,7 +47,6 @@ end mtrx_math;
 -----------------------------------------------------------------------------
 
 architecture beh of mtrx_math is
-  constant DAT_LAT : positive range 1 to 15 := 1;
 
   -- wires with data from differnt matrix math
   constant BRAM_AW : positive := 2*MTRX_AW;

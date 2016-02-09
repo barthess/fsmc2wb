@@ -9,6 +9,7 @@
             <top_module name="bip_utils_pkg_v2_0" />
             <top_module name="floating_point_pkg_v5_0" />
             <top_module name="floating_point_v5_0_consts" />
+            <top_module name="mtrx_math_constants" />
             <top_module name="mtrx_math_tb" />
             <top_module name="numeric_std" />
             <top_module name="std_logic_1164" />
@@ -20,10 +21,14 @@
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="26" />
+   <WVObjectSize size="29" />
    <wvobject fp_name="/mtrx_math_tb/clk_mul_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">clk_mul_i</obj_property>
       <obj_property name="ObjectShortName">clk_mul_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/clk_wb_i" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_wb_i[8:0]</obj_property>
+      <obj_property name="ObjectShortName">clk_wb_i[8:0]</obj_property>
    </wvobject>
    <wvobject fp_name="/mtrx_math_tb/rdy_o" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">rdy_o</obj_property>
@@ -72,9 +77,17 @@
       <obj_property name="ElementShortName">state</obj_property>
       <obj_property name="ObjectShortName">state</obj_property>
    </wvobject>
-   <wvobject fp_name="/mtrx_math_tb/state" type="other" db_ref_id="1">
-      <obj_property name="ElementShortName">state</obj_property>
-      <obj_property name="ObjectShortName">state</obj_property>
+   <wvobject fp_name="/mtrx_math_tb/uut/wb_state" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">wb_state</obj_property>
+      <obj_property name="ObjectShortName">wb_state</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/uut/math_rdy" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">math_rdy</obj_property>
+      <obj_property name="ObjectShortName">math_rdy</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/uut/math_rdy_wb" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">math_rdy_wb</obj_property>
+      <obj_property name="ObjectShortName">math_rdy_wb</obj_property>
    </wvobject>
    <wvobject fp_name="/mtrx_math_tb/rdy_pattern" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">rdy_pattern</obj_property>

@@ -53,10 +53,6 @@ ARCHITECTURE behavior OF mtrx_math_tb IS
   signal ack_wb_o : std_logic_vector(8 downto 0);
   signal dat_wb_o : std_logic_vector(143 downto 0);
 
-  -- Clock period definitions
-  constant clk_mul_i_period : time := 1 ns;
-  constant clk_wb_i_period  : time := 1 ns;
-
   -- slices for convenience
   signal dat_i : std_logic_vector(15 downto 0) := (others => '0');
   signal dat_o : std_logic_vector(15 downto 0) := (others => '0');
@@ -70,6 +66,10 @@ ARCHITECTURE behavior OF mtrx_math_tb IS
 
   type state_t is (IDLE, SIZES1, SIZES2, OP_N, ACTIVE, HALT);
   signal state : state_t := IDLE;
+
+  -- Clock period definitions
+  constant clk_mul_i_period : time := 1 ns;
+  constant clk_wb_i_period  : time := 2 ns;
   
 BEGIN
 
