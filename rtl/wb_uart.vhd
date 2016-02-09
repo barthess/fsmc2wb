@@ -41,7 +41,7 @@ architecture rtl of wb_uart is
   signal uart_do           : t_uart_do;
   signal uart_irqs         : std_logic_vector(UART_CHANNELS-1 downto 0);
   signal uart_16x_baudclk  : std_logic_vector(UART_CHANNELS-1 downto 0);
-  signal irqs_to_wb        : std_logic;  -- wishbone requests irqs register
+  signal irqs_rd           : std_logic;  -- wishbone reads irqs register
   signal illegal_op        : std_logic;  -- illegal operation
   shared variable uart_num : natural;
 
@@ -63,7 +63,7 @@ begin
     uart_wr    <= '0';
     uart_rd    <= '0';
     illegal_op <= '0';
-    irqs_to_wb <= '0';
+    irqs_rd    <= '0';
     uart_addr  <= adr_i(2 downto 0);
 
     uart_num := to_integer(unsigned(adr_i(15 downto 3)));
@@ -79,7 +79,7 @@ begin
         end if;
       elsif uart_num = UART_CHANNELS then  -- irqs register (end of address space)
         if we_i = '0' then
-          irqs_to_wb <= '1';
+          irqs_rd <= '1';
         else
           illegal_op <= '1';            -- write to irqs register illegal
         end if;
@@ -103,7 +103,7 @@ begin
         ack_o <= '1';
         if uart_rd = '1' then
           dat_o <= zeros(15 downto 8) & uart_do(uart_num);
-        elsif irqs_to_wb = '1' then
+        elsif irqs_rd = '1' then
           dat_o <= zeros(15 downto UART_CHANNELS) & uart_irqs;
         else
           dat_o <= (others => 'Z');
