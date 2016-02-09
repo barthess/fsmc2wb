@@ -5,6 +5,8 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 use IEEE.NUMERIC_STD.ALL;
+  
+use work.mtrx_math_const.all;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx primitives in this code.
@@ -45,31 +47,13 @@ end mtrx_math;
 
 architecture beh of mtrx_math is
   constant DAT_LAT : positive range 1 to 15 := 1;
-  
-  -- supported math operations. Note: some of them share single hardware block
-  constant MATHs         : integer := 4; -- total number of slots on bus matrix
-  -- hardware blocks
-  constant MATH_HW_MUL   : integer := 0;
-  constant MATH_HW_ADD   : integer := 1;
-  constant MATH_HW_MOV   : integer := 2;
-  constant MATH_HW_DOT   : integer := 3; -- classical matrix multiplication
-  -- (pseudo)operations codes
-  constant MATH_OP_MUL   : natural := 0; -- uses mtrx_mul
-  constant MATH_OP_SCALE : natural := 1; -- uses mtrx_mul
-  constant MATH_OP_TRN   : natural := 2; -- uses mtrx_mov
-  constant MATH_OP_CPY   : natural := 3; -- uses mtrx_mov
-  constant MATH_OP_SET   : natural := 4; -- uses mtrx_mov
-  constant MATH_OP_EYE   : natural := 5; -- uses mtrx_mov
-  constant MATH_OP_ADD   : natural := 6; -- uses mtrx_add
-  constant MATH_OP_SUB   : natural := 7; -- uses mtrx_add
-  constant MATH_OP_DOT   : natural := 8; -- uses mtrx_dot
 
   -- wires with data from differnt matrix math
   constant BRAM_AW : positive := 2*MTRX_AW;
-  signal math_dat_a, math_dat_b, math_dat_c : std_logic_vector(MATHs*BRAM_DW-1 downto 0);
-  signal math_adr_a, math_adr_b, math_adr_c : std_logic_vector(MATHs*BRAM_AW-1 downto 0);
-  signal math_we, math_rdy, math_err, math_rst : std_logic_vector(MATHs-1 downto 0) := (others => '0');
-  signal math_m_size, math_p_size, math_n_size : std_logic_vector(MATHs*MTRX_AW-1 downto 0);
+  signal math_dat_a, math_dat_b, math_dat_c : std_logic_vector(MATH_HW_TOTAL*BRAM_DW-1 downto 0);
+  signal math_adr_a, math_adr_b, math_adr_c : std_logic_vector(MATH_HW_TOTAL*BRAM_AW-1 downto 0);
+  signal math_we, math_rdy, math_err, math_rst : std_logic_vector(MATH_HW_TOTAL-1 downto 0) := (others => '0');
+  signal math_m_size, math_p_size, math_n_size : std_logic_vector(MATH_HW_TOTAL*MTRX_AW-1 downto 0);
   signal math_constant : std_logic_vector(2*BRAM_DW-1 downto 0);
 
   -- control signals. Used to switch between direct/buffered connection
@@ -130,7 +114,7 @@ begin
   -- fan out DAT bus A
   fork_dat_a : entity work.fork
   generic map (
-    ocnt => MATHs,
+    ocnt => MATH_HW_TOTAL,
     DW   => BRAM_DW
   )
   port map (
@@ -142,7 +126,7 @@ begin
   -- fan out DAT bus B
   fork_dat_b : entity work.fork
   generic map (
-    ocnt => MATHs,
+    ocnt => MATH_HW_TOTAL,
     DW   => BRAM_DW
   )
   port map (
@@ -259,7 +243,7 @@ begin
   -- fanout M size to all math
   fork_m_size : entity work.fork
   generic map (
-    ocnt => MATHs,
+    ocnt => MATH_HW_TOTAL,
     DW   => MTRX_AW
   )
   port map (
@@ -271,7 +255,7 @@ begin
   -- fanout P size to all math
   fork_p_size : entity work.fork
   generic map (
-    ocnt => MATHs,
+    ocnt => MATH_HW_TOTAL,
     DW   => MTRX_AW
   )
   port map (
@@ -283,7 +267,7 @@ begin
   -- fanout N size to all math
   fork_n_size : entity work.fork
   generic map (
-    ocnt => MATHs,
+    ocnt => MATH_HW_TOTAL,
     DW   => MTRX_AW
   )
   port map (

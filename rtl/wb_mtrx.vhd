@@ -6,6 +6,8 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 -- arithmetic functions with Signed or Unsigned values
 use IEEE.NUMERIC_STD.ALL;
 
+use work.mtrx_math_const.all;
+
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx primitives in this code.
 --library UNISIM;
@@ -44,25 +46,6 @@ architecture beh of wb_mtrx is
   
   constant BRAMs : integer := SLAVES-1;
   
-  -- supported math operations. Note: some of them share single hardware block
-  constant MATHs         : integer := 4; -- total number of slots on bus matrix
-  -- hardware blocks
-  constant MATH_HW_MUL   : integer := 0;
-  constant MATH_HW_ADD   : integer := 1;
-  constant MATH_HW_MOV   : integer := 2;
-  constant MATH_HW_DOT : integer := 3;
-  -- (pseudo)operations codes
-  constant MATH_OP_MUL   : natural := 0; -- uses mtrx_mul
-  constant MATH_OP_SCALE : natural := 1; -- uses mtrx_mul
-  constant MATH_OP_TRN   : natural := 2; -- uses mtrx_mov
-  constant MATH_OP_CPY   : natural := 3; -- uses mtrx_mov
-  constant MATH_OP_SET   : natural := 4; -- uses mtrx_mov
-  constant MATH_OP_EYE   : natural := 5; -- uses mtrx_mov
-  constant MATH_OP_ADD   : natural := 6; -- uses mtrx_add
-  constant MATH_OP_SUB   : natural := 7; -- uses mtrx_add
-  constant MATH_OP_DOT : natural := 8; -- uses mtrx_dot
-  constant MATH_OP_INV   : natural := 9; -- unrealised
-
   -- data latency on dot bar. Set it to 1 (BRAM latency) if no buffering used
   constant DAT_LAT : positive := 1; 
   
