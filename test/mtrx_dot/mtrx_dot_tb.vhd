@@ -74,7 +74,7 @@ ARCHITECTURE behavior OF mtrx_mul_tb IS
 BEGIN
  
   -- Instantiate the Unit Under Test (UUT)
-  uut: entity work.mtrx_cross
+  uut: entity work.mtrx_dot
   generic map (
     BRAM_DW => 64,
     MTRX_AW => 5,

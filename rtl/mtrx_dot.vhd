@@ -13,13 +13,15 @@ use IEEE.NUMERIC_STD.ALL;
 --use UNISIM.VComponents.all;
 
 --
---
+-- multiply matrix A(m x p) by  B(p x n), put result in C(m x n)
 --
 entity mtrx_dot is
 Generic (
-  MTRX_AW : positive := 5;  -- 2**MTRX_AW = max matrix index
   BRAM_DW : positive := 64;
-  -- Data latency. Contains
+  -- 2**MTRX_AW is maximum allowable index of matrices
+  -- need for correct adder chain instantiation
+  MTRX_AW : positive := 5;
+  -- Data latency. Consist of:
   -- 1) address path to BRAM
   -- 2) BRAM data latency (generally 1 cycle)
   -- 3) data path from BRAM to device
@@ -30,9 +32,8 @@ Port (
   rst_i  : in  std_logic; -- active high. Must be used before every new calculation
   clk_i  : in  std_logic;
   m_size_i, p_size_i, n_size_i : in  std_logic_vector(MTRX_AW-1 downto 0);
-  rdy_o  : out std_logic := '0'; -- active high 1 cycle
-  err_o  : out std_logic := '0';
-  scale_not_dot_i : in std_logic;
+  err_o  : out std_logic; -- active high 1 clock
+  rdy_o  : out std_logic; -- active high 1 clock
 
   -- BRAM interface
   -- Note: there are no clocks for BRAMs. They are handle in higher level
@@ -43,12 +44,9 @@ Port (
   bram_dat_a_i : in  std_logic_vector(BRAM_DW-1 downto 0);
   bram_dat_b_i : in  std_logic_vector(BRAM_DW-1 downto 0);
   bram_dat_c_o : out std_logic_vector(BRAM_DW-1 downto 0);
-  
   bram_ce_a_o  : out std_logic;
   bram_ce_b_o  : out std_logic;
   bram_ce_c_o  : out std_logic;
-  
-  scale_factor_i : in  std_logic_vector(BRAM_DW-1 downto 0);
   bram_we_o    : out std_logic -- for C bram
 );
 end mtrx_dot;
@@ -57,87 +55,87 @@ end mtrx_dot;
 -----------------------------------------------------------------------------
 
 architecture beh of mtrx_dot is
-  
-  -- operand and result addresses registers
-  signal AB_adr : std_logic_vector(2*MTRX_AW-1 downto 0):= (others => '0');
-  signal AB_ce  : std_logic := '0';
-  signal C_ce   : std_logic := '0';
-  signal C_adr  : std_logic_vector(2*MTRX_AW-1 downto 0):= (others => '0');
-  signal m_size, n_size : std_logic_vector(MTRX_AW-1 downto 0):= (others => '0');
-  signal lat_i, lat_o : natural range 0 to 15 := DAT_LAT;
 
-  signal end_c_iter  : std_logic := '0';
-  signal rst_iter    : std_logic := '1';
-  signal ce_ab_iter  : std_logic := '0';
-  signal mul_rdy : std_logic := '0';
-  signal mul_b_input : std_logic_vector(BRAM_DW-1 downto 0);
-
-  -- adder control signals
+  -- multiplicator control signals
   signal mul_nd : std_logic := '0';
+  --signal mul_ce : std_logic := '0';
+  signal mul_rdy : std_logic; -- connected to accumulator nd
 
+  -- matrices size registers
+  signal mtrx_m : std_logic_vector (MTRX_AW-1 downto 0) := (others => '0');
+  signal mtrx_p : std_logic_vector (MTRX_AW-1 downto 0) := (others => '0');
+  signal mtrx_n : std_logic_vector (MTRX_AW-1 downto 0) := (others => '0');
+  
+  signal bram_ce_ab  : std_logic := '0';
+  signal ab_iter_rst : std_logic := '1';
+  signal ab_iter_ce  : std_logic := '0';
+  signal ab_iter_end : std_logic;
+  signal c_iter_rst  : std_logic := '1';
+  signal c_iter_ce   : std_logic := '0';
+  signal c_iter_end  : std_logic;
+  --signal mul_nd_ce   : std_logic := '0';
+  
+  -- accumulator control signals
+  signal accum_rst : std_logic := '1';
+  signal accum_len : STD_LOGIC_VECTOR (MTRX_AW-1 downto 0) := (others => '0');
+  signal accum_dat_i : std_logic_vector(BRAM_DW-1 downto 0); -- to multiplicator output
+  signal accum_rdy : std_logic := '0'; -- used to increment overall operation count
+  
   -- state machine
   type state_t is (IDLE, ADR_PRELOAD, DAT_PRELOAD, ACTIVE, FLUSH, HALT);
   signal state : state_t := IDLE;
-
-  signal tmp1 : std_logic_vector(2*BRAM_DW-1 downto 0);
+  
+  signal lat_i, lat_o : natural range 0 to 15 := DAT_LAT;
   
 begin
-
+  
+  -- ce for input brams driven together
+  bram_ce_a_o <= bram_ce_ab;
+  bram_ce_b_o <= bram_ce_ab;
+  
   --
-  -- selector between scale factor and B input
+  -- addres incrementer for input matrices
   --
-  tmp1 <= scale_factor_i & 
-          bram_dat_b_i;
-  dat_b_or_scale : entity work.muxer
+  ab_iterator : entity work.mtrx_iter_dot
   generic map (
-    AW => 1,
-    DW => BRAM_DW
+    WIDTH => 5
   )
   port map (
-    A(0)  => scale_not_dot_i,
-    do    => mul_b_input,
-    di    => tmp1
+    clk_i => clk_i,
+    rst_i => ab_iter_rst,
+    ce_i  => ab_iter_ce,
+    end_o => ab_iter_end,
+    dv_o  => bram_ce_ab,
+    
+    m_i => mtrx_m,
+    p_i => mtrx_p,
+    n_i => mtrx_n,
+    
+    a_adr_o => bram_adr_a_o,
+    b_adr_o => bram_adr_b_o
   );
   
   --
-  -- address iterator for IN matrices
+  -- output address iterator
   --
-  iter_ab : entity work.mtrx_iter_seq
+  c_iterator : entity work.mtrx_iter_seq
   generic map (
-    MTRX_AW => MTRX_AW
+    MTRX_AW => 5
   )
   port map (
-    rst_i  => rst_iter,
-    clk_i  => clk_i,
-    m_i    => m_size,
-    n_i    => n_size,
-    ce_i   => ce_ab_iter,
-    end_o  => open,
-    dv_o   => AB_ce,
-    adr_o  => AB_adr
+    clk_i => clk_i,
+    rst_i => c_iter_rst,
+    ce_i  => c_iter_ce,
+    m_i   => mtrx_m,
+    n_i   => mtrx_n,
+    end_o => c_iter_end,
+    dv_o  => bram_ce_c_o,
+    adr_o => bram_adr_c_o
   );
 
-  --
-  -- address iterator for OUT matrix
-  --
-  iter_c : entity work.mtrx_iter_seq
-  generic map (
-    MTRX_AW => MTRX_AW
-  )
-  port map (
-    rst_i  => rst_iter,
-    clk_i  => clk_i,
-    m_i    => m_size,
-    n_i    => n_size,
-    ce_i   => mul_rdy,
-    end_o  => end_c_iter,
-    dv_o   => C_ce,
-    adr_o  => C_adr
-  );
-  
   --
   -- delay line connecting data_valid signal from input address
-  -- iterator to operation_nd and ce of the adder
+  -- iterator to operation_nd and ce of the multiplier
   --
   add_nd_delay : entity work.delay
   generic map (
@@ -148,7 +146,7 @@ begin
   port map (
     clk   => clk_i,
     ce    => '1',
-    di(0) => AB_ce,
+    di(0) => bram_ce_ab,
     do(0) => mul_nd
   );
 
@@ -158,67 +156,84 @@ begin
   dmul : entity work.dmul
   port map (
     a      => bram_dat_a_i,
-    b      => mul_b_input,
-    result => bram_dat_c_o,
+    b      => bram_dat_b_i,
+    result => accum_dat_i, -- connected directly to accumulator
     clk    => clk_i,
     ce     => '1',
-    rdy    => mul_rdy,
+    rdy    => mul_rdy, -- connect to accumulator nd
     operation_nd => mul_nd
   );
-  
-  bram_adr_a_o <= AB_adr;
-  bram_adr_b_o <= AB_adr;
-  bram_adr_c_o <= C_adr;
-  bram_ce_a_o  <= AB_ce;
-  bram_ce_b_o  <= AB_ce;
-  bram_ce_c_o  <= C_ce;
-  bram_we_o    <= mul_rdy;
-  
+
+  -- 
+  -- data accumulator
+  --
+  accumulator : entity work.dadd_chain
+  generic map (
+    LEN => MTRX_AW
+  )
+  port map (
+    clk_i => clk_i,
+    rst_i => accum_rst,
+    nd_i  => mul_rdy,
+    cnt_i => accum_len,
+    dat_i => accum_dat_i,
+    dat_o => bram_dat_c_o,
+    rdy_o => accum_rdy
+  );
+
+  -- bram WE and C iterator CE driven together
+  bram_we_o <= accum_rdy;
+  c_iter_ce <= accum_rdy;
+
   --
   -- Main state machine
-  -- 
+  --
   main : process(clk_i)
   begin
     if rising_edge(clk_i) then
-      if (rst_i = '1') then
-        state   <= IDLE;
-        lat_i   <= DAT_LAT;
-        lat_o   <= DAT_LAT / 2;
-        rst_iter  <= '1';
+      if rst_i = '1' then
+        accum_rst   <= '1';
+        ab_iter_rst <= '1';
+        c_iter_rst  <= '1';
+        state <= IDLE;
+        lat_i <= DAT_LAT;
+        lat_o <= DAT_LAT / 2;
         err_o <= '0';
         rdy_o <= '0';
       else
-        err_o <= '0';
-        rdy_o <= '0';
         case state is
         when IDLE =>
-          if (p_size_i > 0) -- error
-          then
-            err_o <= '1';
-            state <= HALT;
-          else
-            m_size  <= m_size_i;
-            n_size  <= n_size_i;
-            state   <= ADR_PRELOAD;
-          end if;
-          
+          accum_rst   <= '1';
+          ab_iter_rst <= '1';
+          c_iter_rst  <= '1';
+          mtrx_m      <= m_size_i;
+          mtrx_p      <= n_size_i;
+          mtrx_n      <= p_size_i;
+          accum_len   <= p_size_i;
+          state       <= ADR_PRELOAD;
+        
         when ADR_PRELOAD =>
-          rst_iter <= '0';
-          ce_ab_iter  <= '1';
-          lat_i <= lat_i - 1;
-          state <= DAT_PRELOAD;
-            
-        when DAT_PRELOAD =>
+          ab_iter_rst <= '0';
+          c_iter_rst  <= '0';
+          accum_rst   <= '0';
+          ab_iter_ce  <= '1';
+          if bram_ce_ab = '1' then
+            lat_i <= lat_i - 1;
+            state <= DAT_PRELOAD;
+          end if;
+        
+        when DAT_PRELOAD => 
           lat_i <= lat_i - 1;
           if (lat_i = 0) then
             state <= ACTIVE;
           end if;
-
-        when ACTIVE =>
-          if end_c_iter = '1' then
-            rst_iter   <= '1';
-            ce_ab_iter <= '0';
-            state      <= FLUSH;
+          
+         when ACTIVE =>
+          if c_iter_end = '1' then
+            ab_iter_rst <= '1';
+            c_iter_rst  <= '1';
+            ab_iter_ce  <= '0';
+            state       <= FLUSH;
           end if;
 
         when FLUSH =>
@@ -229,12 +244,12 @@ begin
           end if;
 
         when HALT =>
-          state <= HALT;
+          state <= HALT; 
         end case;
-      end if; -- clk
-    end if; -- rst
-  end process;
 
+      end if; -- rst
+    end if; -- clk
+  end process;
 
 end beh;
 

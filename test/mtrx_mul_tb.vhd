@@ -4,13 +4,13 @@
 --
 -- Create Date:   20:22:48 02/01/2016
 -- Design Name:   
--- Module Name:   /home/barthess/projects/xilinx/fsmc2wb/test/mtrx_dot_tb.vhd
+-- Module Name:   /home/barthess/projects/xilinx/fsmc2wb/test/mtrx_mul_tb.vhd
 -- Project Name:  fsmc2wb
 -- Target Device:  
 -- Tool versions:  
 -- Description:   
 -- 
--- VHDL Test Bench Created by ISE for module: mtrx_dot
+-- VHDL Test Bench Created by ISE for module: mtrx_mul
 -- 
 -- Dependencies:
 -- 
@@ -32,14 +32,14 @@ USE ieee.std_logic_1164.ALL;
 -- arithmetic functions with Signed or Unsigned values
 --USE ieee.numeric_std.ALL;
  
-ENTITY mtrx_dot_tb IS
-END mtrx_dot_tb;
+ENTITY mtrx_mul_tb IS
+END mtrx_mul_tb;
  
-ARCHITECTURE behavior OF mtrx_dot_tb IS 
+ARCHITECTURE behavior OF mtrx_mul_tb IS 
  
     -- Component Declaration for the Unit Under Test (UUT)
  
-    COMPONENT mtrx_dot
+    COMPONENT mtrx_mul
     PORT(
          rst_i : IN  std_logic;
          clk_i : IN  std_logic;
@@ -83,7 +83,7 @@ ARCHITECTURE behavior OF mtrx_dot_tb IS
 BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
-   uut: mtrx_dot PORT MAP (
+   uut: mtrx_mul PORT MAP (
           rst_i => rst_i,
           clk_i => clk_i,
           op_i => op_i,

@@ -16,7 +16,7 @@ use IEEE.NUMERIC_STD.ALL;
 -- Note: only A and B needs sophisticated addressing. C always uses 
 -- simple sequential increment.
 --
-entity mtrx_iter_cross is
+entity mtrx_iter_dot is
   Generic (
     WIDTH : positive := 5 -- number of bits needed for addressing matrix
   );
@@ -39,12 +39,12 @@ entity mtrx_iter_cross is
     a_adr_o : out std_logic_vector(WIDTH*2-1 downto 0) := (others => '1');
     b_adr_o : out std_logic_vector(WIDTH*2-1 downto 0) := (others => '1')
   );
-end mtrx_iter_cross;
+end mtrx_iter_dot;
 
 
 -----------------------------------------------------------------------------
 
-architecture beh of mtrx_iter_cross is
+architecture beh of mtrx_iter_dot is
   
   constant ZERO  : std_logic_vector(WIDTH-1 downto 0)   := (others => '0');
   constant ZERO2 : std_logic_vector(2*WIDTH-1 downto 0) := (others => '0');

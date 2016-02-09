@@ -4,13 +4,13 @@
 --
 -- Create Date:   14:41:14 02/06/2016
 -- Design Name:   
--- Module Name:   /home/barthess/projects/xilinx/fsmc2wb/test/mtrx_iter_cross_tb.vhd
+-- Module Name:   /home/barthess/projects/xilinx/fsmc2wb/test/mtrx_iter_dot_tb.vhd
 -- Project Name:  fsmc2wb
 -- Target Device:  
 -- Tool versions:  
 -- Description:   
 -- 
--- VHDL Test Bench Created by ISE for module: mtrx_iter_cross
+-- VHDL Test Bench Created by ISE for module: mtrx_iter_dot
 -- 
 -- Dependencies:
 -- 
@@ -32,14 +32,14 @@ USE ieee.std_logic_1164.ALL;
 -- arithmetic functions with Signed or Unsigned values
 --USE ieee.numeric_std.ALL;
  
-ENTITY mtrx_iter_cross_tb IS
-END mtrx_iter_cross_tb;
+ENTITY mtrx_iter_dot_tb IS
+END mtrx_iter_dot_tb;
  
-ARCHITECTURE behavior OF mtrx_iter_cross_tb IS 
+ARCHITECTURE behavior OF mtrx_iter_dot_tb IS 
  
     -- Component Declaration for the Unit Under Test (UUT)
  
-    COMPONENT mtrx_iter_cross
+    COMPONENT mtrx_iter_dot
     PORT(
          clk_i : IN  std_logic;
          rst_i : IN  std_logic;
@@ -78,7 +78,7 @@ ARCHITECTURE behavior OF mtrx_iter_cross_tb IS
 BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
-   uut: mtrx_iter_cross PORT MAP (
+   uut: mtrx_iter_dot PORT MAP (
           clk_i => clk_i,
           rst_i => rst_i,
           ce_i => ce_i,

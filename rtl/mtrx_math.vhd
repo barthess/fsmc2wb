@@ -35,7 +35,7 @@ Port (
   m_size_i, p_size_i, n_size_i : in std_logic_vector(MTRX_AW-1 downto 0); -- operand sizes
 
   op_mov_i   : in std_logic_vector(1 downto 0); -- specify move operation
-  op_dot_i   : in std_logic; -- specify dot multiplication or scale
+  op_mul_i   : in std_logic; -- specify Adamar multiplication or scale
   op_add_i   : in std_logic; -- specify addition or substraction
   constant_i : in std_logic_vector(BRAM_DW-1 downto 0) -- external constant for memset of scale
 );
@@ -49,21 +49,20 @@ architecture beh of mtrx_math is
   -- supported math operations. Note: some of them share single hardware block
   constant MATHs         : integer := 4; -- total number of slots on bus matrix
   -- hardware blocks
-  constant MATH_HW_DOT   : integer := 0;
+  constant MATH_HW_MUL   : integer := 0;
   constant MATH_HW_ADD   : integer := 1;
   constant MATH_HW_MOV   : integer := 2;
-  constant MATH_HW_CROSS : integer := 3;
+  constant MATH_HW_DOT   : integer := 3; -- classical matrix multiplication
   -- (pseudo)operations codes
-  constant MATH_OP_DOT   : natural := 0; -- uses mtrx_dot
-  constant MATH_OP_SCALE : natural := 1; -- uses mtrx_dot
+  constant MATH_OP_MUL   : natural := 0; -- uses mtrx_mul
+  constant MATH_OP_SCALE : natural := 1; -- uses mtrx_mul
   constant MATH_OP_TRN   : natural := 2; -- uses mtrx_mov
   constant MATH_OP_CPY   : natural := 3; -- uses mtrx_mov
   constant MATH_OP_SET   : natural := 4; -- uses mtrx_mov
   constant MATH_OP_EYE   : natural := 5; -- uses mtrx_mov
   constant MATH_OP_ADD   : natural := 6; -- uses mtrx_add
   constant MATH_OP_SUB   : natural := 7; -- uses mtrx_add
-  constant MATH_OP_CROSS : natural := 8; -- uses mtrx_cross
-  constant MATH_OP_INV   : natural := 9; -- unrealised
+  constant MATH_OP_DOT   : natural := 8; -- uses mtrx_dot
 
   -- wires with data from differnt matrix math
   constant BRAM_AW : positive := 2*MTRX_AW;
@@ -74,21 +73,21 @@ architecture beh of mtrx_math is
   signal math_constant : std_logic_vector(2*BRAM_DW-1 downto 0);
 
   -- control signals. Used to switch between direct/buffered connection
-  signal math_scale_not_dot : std_logic := '0';
+  signal math_scale_not_mul : std_logic := '0';
   signal math_sub_not_add : std_logic := '0';
   signal math_mov_type : std_logic_vector (1 downto 0) := "00";
 
 begin
                       
   ----------------------------------------------------------------------------------
-  -- multiplex data from different matrix operations into cross bar
+  -- multiplex data from different matrix operations into dot bar
   ----------------------------------------------------------------------------------
 
-  math_scale_not_dot <= op_dot_i;
+  math_scale_not_mul <= op_mul_i;
   math_sub_not_add   <= op_add_i;
   math_mov_type      <= op_mov_i;
 
---  op_dot_delay : entity work.delay
+--  op_mul_delay : entity work.delay
 --  generic map (
 --    LAT => DAT_LAT,
 --    WIDTH => 1,
@@ -98,7 +97,7 @@ begin
 --    clk   => clk_i,
 --    ce    => '1',
 --    di(0) => op_do_i,
---    do(0) => math_scale_not_dot
+--    do(0) => math_scale_not_mul
 --  );
 --
 --  op_add_delay : entity work.delay
@@ -293,7 +292,7 @@ begin
     do => math_n_size
   );
 
-  -- fanout constant to mov and dot
+  -- fanout constant to mov and mul
   fork_constant : entity work.fork
   generic map (
     ocnt => 2,
@@ -311,39 +310,39 @@ begin
   ----------------------------------------------------------------------------------
 
   --
-  -- DOT
+  -- MUL
   --
-  mtrx_dot : entity work.mtrx_dot
+  mtrx_mul : entity work.mtrx_mul
   generic map (
     MTRX_AW => MTRX_AW,
     BRAM_DW => BRAM_DW,
     DAT_LAT => DAT_LAT
   )
   port map (
-    rdy_o => math_rdy(MATH_HW_DOT),
+    rdy_o => math_rdy(MATH_HW_MUL),
     
     -- control interface
     clk_i  => clk_i,
-    rst_i  => math_rst(MATH_HW_DOT),
-    err_o  => math_err(MATH_HW_DOT),
-    m_size_i => math_m_size((MATH_HW_DOT+1)*MTRX_AW-1 downto MATH_HW_DOT*MTRX_AW),
-    p_size_i => math_p_size((MATH_HW_DOT+1)*MTRX_AW-1 downto MATH_HW_DOT*MTRX_AW),
-    n_size_i => math_n_size((MATH_HW_DOT+1)*MTRX_AW-1 downto MATH_HW_DOT*MTRX_AW),
+    rst_i  => math_rst(MATH_HW_MUL),
+    err_o  => math_err(MATH_HW_MUL),
+    m_size_i => math_m_size((MATH_HW_MUL+1)*MTRX_AW-1 downto MATH_HW_MUL*MTRX_AW),
+    p_size_i => math_p_size((MATH_HW_MUL+1)*MTRX_AW-1 downto MATH_HW_MUL*MTRX_AW),
+    n_size_i => math_n_size((MATH_HW_MUL+1)*MTRX_AW-1 downto MATH_HW_MUL*MTRX_AW),
 
-    scale_not_dot_i => math_scale_not_dot,
+    scale_not_mul_i => math_scale_not_mul,
     scale_factor_i  => math_constant(BRAM_DW-1 downto 0),
     
     -- BRAM interface
-    bram_adr_a_o => math_adr_a((MATH_HW_DOT+1)*BRAM_AW-1 downto MATH_HW_DOT*BRAM_AW),
-    bram_adr_b_o => math_adr_b((MATH_HW_DOT+1)*BRAM_AW-1 downto MATH_HW_DOT*BRAM_AW),
-    bram_adr_c_o => math_adr_c((MATH_HW_DOT+1)*BRAM_AW-1 downto MATH_HW_DOT*BRAM_AW),
+    bram_adr_a_o => math_adr_a((MATH_HW_MUL+1)*BRAM_AW-1 downto MATH_HW_MUL*BRAM_AW),
+    bram_adr_b_o => math_adr_b((MATH_HW_MUL+1)*BRAM_AW-1 downto MATH_HW_MUL*BRAM_AW),
+    bram_adr_c_o => math_adr_c((MATH_HW_MUL+1)*BRAM_AW-1 downto MATH_HW_MUL*BRAM_AW),
     
-    bram_dat_a_i => math_dat_a((MATH_HW_DOT+1)*BRAM_DW-1 downto MATH_HW_DOT*BRAM_DW),
-    bram_dat_b_i => math_dat_b((MATH_HW_DOT+1)*BRAM_DW-1 downto MATH_HW_DOT*BRAM_DW),
-    bram_dat_c_o => math_dat_c((MATH_HW_DOT+1)*BRAM_DW-1 downto MATH_HW_DOT*BRAM_DW),
-    bram_we_o    => math_we(MATH_HW_DOT)
+    bram_dat_a_i => math_dat_a((MATH_HW_MUL+1)*BRAM_DW-1 downto MATH_HW_MUL*BRAM_DW),
+    bram_dat_b_i => math_dat_b((MATH_HW_MUL+1)*BRAM_DW-1 downto MATH_HW_MUL*BRAM_DW),
+    bram_dat_c_o => math_dat_c((MATH_HW_MUL+1)*BRAM_DW-1 downto MATH_HW_MUL*BRAM_DW),
+    bram_we_o    => math_we(MATH_HW_MUL)
   );
-  
+
   -- 
   -- MOV
   --
@@ -414,35 +413,35 @@ begin
   );
   
   --
-  -- CROSS
+  -- DOT
   -- 
-  mtrx_cross : entity work.mtrx_cross
+  mtrx_dot : entity work.mtrx_dot
   generic map (
     MTRX_AW => MTRX_AW,
     BRAM_DW => BRAM_DW,
     DAT_LAT => DAT_LAT
   )
   port map (
-    rdy_o => math_rdy(MATH_HW_CROSS),
+    rdy_o => math_rdy(MATH_HW_DOT),
     
     -- control interface
     clk_i   => clk_i,
-    rst_i   => math_rst(MATH_HW_CROSS),
-    err_o   => math_err(MATH_HW_CROSS),
+    rst_i   => math_rst(MATH_HW_DOT),
+    err_o   => math_err(MATH_HW_DOT),
 
-    m_size_i => math_m_size((MATH_HW_CROSS+1)*MTRX_AW-1 downto MATH_HW_CROSS*MTRX_AW),
-    p_size_i => math_p_size((MATH_HW_CROSS+1)*MTRX_AW-1 downto MATH_HW_CROSS*MTRX_AW),
-    n_size_i => math_n_size((MATH_HW_CROSS+1)*MTRX_AW-1 downto MATH_HW_CROSS*MTRX_AW),
+    m_size_i => math_m_size((MATH_HW_DOT+1)*MTRX_AW-1 downto MATH_HW_DOT*MTRX_AW),
+    p_size_i => math_p_size((MATH_HW_DOT+1)*MTRX_AW-1 downto MATH_HW_DOT*MTRX_AW),
+    n_size_i => math_n_size((MATH_HW_DOT+1)*MTRX_AW-1 downto MATH_HW_DOT*MTRX_AW),
     
     -- BRAM interface
-    bram_adr_a_o => math_adr_a((MATH_HW_CROSS+1)*BRAM_AW-1 downto MATH_HW_CROSS*BRAM_AW),
-    bram_adr_b_o => math_adr_b((MATH_HW_CROSS+1)*BRAM_AW-1 downto MATH_HW_CROSS*BRAM_AW),
-    bram_adr_c_o => math_adr_c((MATH_HW_CROSS+1)*BRAM_AW-1 downto MATH_HW_CROSS*BRAM_AW),
+    bram_adr_a_o => math_adr_a((MATH_HW_DOT+1)*BRAM_AW-1 downto MATH_HW_DOT*BRAM_AW),
+    bram_adr_b_o => math_adr_b((MATH_HW_DOT+1)*BRAM_AW-1 downto MATH_HW_DOT*BRAM_AW),
+    bram_adr_c_o => math_adr_c((MATH_HW_DOT+1)*BRAM_AW-1 downto MATH_HW_DOT*BRAM_AW),
     
-    bram_dat_a_i => math_dat_a((MATH_HW_CROSS+1)*BRAM_DW-1 downto MATH_HW_CROSS*BRAM_DW),
-    bram_dat_b_i => math_dat_b((MATH_HW_CROSS+1)*BRAM_DW-1 downto MATH_HW_CROSS*BRAM_DW),
-    bram_dat_c_o => math_dat_c((MATH_HW_CROSS+1)*BRAM_DW-1 downto MATH_HW_CROSS*BRAM_DW),
-    bram_we_o    => math_we(MATH_HW_CROSS)
+    bram_dat_a_i => math_dat_a((MATH_HW_DOT+1)*BRAM_DW-1 downto MATH_HW_DOT*BRAM_DW),
+    bram_dat_b_i => math_dat_b((MATH_HW_DOT+1)*BRAM_DW-1 downto MATH_HW_DOT*BRAM_DW),
+    bram_dat_c_o => math_dat_c((MATH_HW_DOT+1)*BRAM_DW-1 downto MATH_HW_DOT*BRAM_DW),
+    bram_we_o    => math_we(MATH_HW_DOT)
   );
 
 

@@ -47,23 +47,23 @@ architecture beh of wb_mtrx is
   -- supported math operations. Note: some of them share single hardware block
   constant MATHs         : integer := 4; -- total number of slots on bus matrix
   -- hardware blocks
-  constant MATH_HW_DOT   : integer := 0;
+  constant MATH_HW_MUL   : integer := 0;
   constant MATH_HW_ADD   : integer := 1;
   constant MATH_HW_MOV   : integer := 2;
-  constant MATH_HW_CROSS : integer := 3;
+  constant MATH_HW_DOT : integer := 3;
   -- (pseudo)operations codes
-  constant MATH_OP_DOT   : natural := 0; -- uses mtrx_dot
-  constant MATH_OP_SCALE : natural := 1; -- uses mtrx_dot
+  constant MATH_OP_MUL   : natural := 0; -- uses mtrx_mul
+  constant MATH_OP_SCALE : natural := 1; -- uses mtrx_mul
   constant MATH_OP_TRN   : natural := 2; -- uses mtrx_mov
   constant MATH_OP_CPY   : natural := 3; -- uses mtrx_mov
   constant MATH_OP_SET   : natural := 4; -- uses mtrx_mov
   constant MATH_OP_EYE   : natural := 5; -- uses mtrx_mov
   constant MATH_OP_ADD   : natural := 6; -- uses mtrx_add
   constant MATH_OP_SUB   : natural := 7; -- uses mtrx_add
-  constant MATH_OP_CROSS : natural := 8; -- uses mtrx_cross
+  constant MATH_OP_DOT : natural := 8; -- uses mtrx_dot
   constant MATH_OP_INV   : natural := 9; -- unrealised
-  
-  -- data latency on cross bar. Set it to 1 (BRAM latency) if no buffering used
+
+  -- data latency on dot bar. Set it to 1 (BRAM latency) if no buffering used
   constant DAT_LAT : positive := 1; 
   
   -- wires for control interface connection to WB
@@ -100,18 +100,18 @@ architecture beh of wb_mtrx is
   signal wire_bram2mul_we     : std_logic_vector(BRAMs-1        downto 0);
   signal wire_bram2mul_en     : std_logic_vector(BRAMs-1        downto 0);
 
-  signal crossbar_dat_a_select : std_logic_vector(2 downto 0);
-  signal crossbar_dat_b_select : std_logic_vector(2 downto 0);
-  signal crossbar_dat_select_stack : std_logic_vector(5 downto 0);
-  signal crossbar_we_select    : std_logic_vector(2 downto 0);
-  signal crossbar_adr_select   : std_logic_vector(2*BRAMS-1 downto 0) := (others => '1');
-  signal crossbar_adr_stack : std_logic_vector(4*MUL_AW-1 downto 0);
+  signal dotbar_dat_a_select : std_logic_vector(2 downto 0);
+  signal dotbar_dat_b_select : std_logic_vector(2 downto 0);
+  signal dotbar_dat_select_stack : std_logic_vector(5 downto 0);
+  signal dotbar_we_select    : std_logic_vector(2 downto 0);
+  signal dotbar_adr_select   : std_logic_vector(2*BRAMS-1 downto 0) := (others => '1');
+  signal dotbar_adr_stack : std_logic_vector(4*MUL_AW-1 downto 0);
   
   signal math_dat_a, math_dat_b, math_dat_c : std_logic_vector(MUL_DW-1 downto 0);
   signal math_adr_a, math_adr_b, math_adr_c : std_logic_vector(MUL_AW-1 downto 0);
   signal math_we, math_rdy, math_err : std_logic := '0';
   signal math_rst : std_logic := '1';
-  signal math_scale_not_dot : std_logic := '0';
+  signal math_scale_not_mul : std_logic := '0';
   signal math_sub_not_add : std_logic := '0';
   signal math_mov_type : std_logic_vector (1 downto 0) := "00";
   signal math_double_constant : std_logic_vector(MUL_DW-1 downto 0);
@@ -123,7 +123,7 @@ architecture beh of wb_mtrx is
 begin
                       
   ----------------------------------------------------------------------------------
-  -- multiplex data from BRAMs into crossbar
+  -- multiplex data from BRAMs into dotbar
   ----------------------------------------------------------------------------------
   wire_bram2mul_clk <= (others => clk_mul_i);
   wire_bram2mul_en  <= (others =>'1');
@@ -149,13 +149,13 @@ begin
   )
   port map (
     --clk_i => clk_mul_i,
-    A     => crossbar_we_select,
+    A     => dotbar_we_select,
     di(0) => math_we,
     do    => wire_bram2mul_we
   );
 
   -- Addres router from math to brams
-  crossbar_adr_stack <= "0000000000" & math_adr_c & math_adr_b & math_adr_a;
+  dotbar_adr_stack <= "0000000000" & math_adr_c & math_adr_b & math_adr_a;
   adr_abc_router : entity work.bus_matrix
   generic map (
     AW   => 2, -- address width in bits
@@ -164,13 +164,13 @@ begin
   )
   port map (
     --clk_i => clk_mul_i,
-    A  => crossbar_adr_select,
-    di => crossbar_adr_stack,
+    A  => dotbar_adr_select,
+    di => dotbar_adr_stack,
     do => wire_bram2mul_adr
   );
 
   -- connects BRAMs outputs to A and B inputs of math
-  crossbar_dat_select_stack <= crossbar_dat_b_select & crossbar_dat_a_select;
+  dotbar_dat_select_stack <= dotbar_dat_b_select & dotbar_dat_a_select;
   dat_ab_router : entity work.bus_matrix
   generic map (
     AW   => 3, -- address width in bits
@@ -179,7 +179,7 @@ begin
   )
   port map (
     --clk_i => clk_mul_i,
-    A  => crossbar_dat_select_stack,
+    A  => dotbar_dat_select_stack,
     di => wire_bram2mul_dat_o,
     do(127 downto 64) => math_dat_b,
     do(63  downto 0)  => math_dat_a
@@ -215,7 +215,7 @@ begin
     n_size_i=> math_n_size,
 
     op_mov_i => math_mov_type,
-    op_dot_i => math_scale_not_dot,
+    op_mul_i => math_scale_not_mul,
     op_add_i => math_sub_not_add,
     constant_i => math_double_constant
   );
@@ -223,7 +223,7 @@ begin
   ----------------------------------------------------------------------------------
   -- Wishbone interconnect
   ----------------------------------------------------------------------------------
-  -- generate and connect BRAMs to Matrix crossbar and to wishbone adaptors
+  -- generate and connect BRAMs to Matrix dotbar and to wishbone adaptors
   brams2mul : for n in 0 to BRAMs-1 generate 
   begin
     bram_mtrx : entity work.bram_mtrx
@@ -346,19 +346,19 @@ begin
         end if;
         
       when FETCH =>
-        -- select apropriate BRAMS via crossbar
-        crossbar_dat_a_select <= a_num;
-        crossbar_dat_b_select <= b_num;
-        crossbar_we_select    <= c_num;
+        -- select apropriate BRAMS via dotbar
+        dotbar_dat_a_select <= a_num;
+        dotbar_dat_b_select <= b_num;
+        dotbar_we_select    <= c_num;
         
         -- connect address buses
         a := conv_integer(a_num);
         b := conv_integer(b_num);
         c := conv_integer(c_num);
-        crossbar_adr_select <= (others => '1');
-        crossbar_adr_select((a+1)*2-1 downto a*2) <= "00";
-        crossbar_adr_select((b+1)*2-1 downto b*2) <= "01";
-        crossbar_adr_select((c+1)*2-1 downto c*2) <= "10";
+        dotbar_adr_select <= (others => '1');
+        dotbar_adr_select((a+1)*2-1 downto a*2) <= "00";
+        dotbar_adr_select((b+1)*2-1 downto b*2) <= "01";
+        dotbar_adr_select((c+1)*2-1 downto c*2) <= "10";
         
         math_m_size <= math_ctl_array(SIZES_REG)(4 downto 0);
         math_p_size <= math_ctl_array(SIZES_REG)(9 downto 5);
@@ -369,18 +369,18 @@ begin
       when DECODE =>
         -- parse command
         case cmd_raw is
-        when MATH_OP_DOT =>
-          hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_DOT, 2));
-          hw_sel_i := MATH_HW_DOT;
+        when MATH_OP_MUL =>
+          hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_MUL, 2));
+          hw_sel_i := MATH_HW_MUL;
           math_hw_select <= hw_sel_v;
-          math_scale_not_dot <= '0'; -- differece between scale and dot
+          math_scale_not_mul <= '0'; -- differece between scale and mul
           state <= EXEC;
           
         when MATH_OP_SCALE =>
-          hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_DOT, 2));
-          hw_sel_i := MATH_HW_DOT;
+          hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_MUL, 2));
+          hw_sel_i := MATH_HW_MUL;
           math_hw_select <= hw_sel_v;
-          math_scale_not_dot <= '1'; -- differece between scale and dot
+          math_scale_not_mul <= '1'; -- differece between scale and mul
           state <= EXEC;
 
         when MATH_OP_CPY =>
@@ -425,9 +425,9 @@ begin
           math_sub_not_add <= '1';
           state <= EXEC;   
 
-        when MATH_OP_CROSS =>
-          hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_CROSS, 2));
-          hw_sel_i := MATH_HW_CROSS;
+        when MATH_OP_DOT =>
+          hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_DOT, 2));
+          hw_sel_i := MATH_HW_DOT;
           math_hw_select <= hw_sel_v;
           state <= EXEC;   
           

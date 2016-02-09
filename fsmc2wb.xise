@@ -47,11 +47,11 @@
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="18"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="18"/>
     </file>
-    <file xil_pn:name="rtl/mtrx_cross.vhd" xil_pn:type="FILE_VHDL">
+    <file xil_pn:name="rtl/mtrx_dot.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="15"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="15"/>
     </file>
-    <file xil_pn:name="rtl/mtrx_iter_cross.vhd" xil_pn:type="FILE_VHDL">
+    <file xil_pn:name="rtl/mtrx_iter_dot.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="10"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="10"/>
     </file>
@@ -109,23 +109,23 @@
       <association xil_pn:name="PostRouteSimulation" xil_pn:seqID="0"/>
       <association xil_pn:name="PostTranslateSimulation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="test/mtrx_mul/mtrx_mul_tb.vhd" xil_pn:type="FILE_VHDL">
+    <file xil_pn:name="test/mtrx_dot/mtrx_dot_tb.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="0"/>
       <association xil_pn:name="PostMapSimulation" xil_pn:seqID="0"/>
       <association xil_pn:name="PostRouteSimulation" xil_pn:seqID="0"/>
       <association xil_pn:name="PostTranslateSimulation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="test/mtrx_mul/bram_file_in.vhd" xil_pn:type="FILE_VHDL">
+    <file xil_pn:name="test/mtrx_dot/bram_file_in.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="0"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="test/mtrx_mul/bram_file_in_tb.vhd" xil_pn:type="FILE_VHDL">
+    <file xil_pn:name="test/mtrx_dot/bram_file_in_tb.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="0"/>
       <association xil_pn:name="PostMapSimulation" xil_pn:seqID="0"/>
       <association xil_pn:name="PostRouteSimulation" xil_pn:seqID="0"/>
       <association xil_pn:name="PostTranslateSimulation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="test/mtrx_mul/bram_file_ref.vhd" xil_pn:type="FILE_VHDL">
+    <file xil_pn:name="test/mtrx_dot/bram_file_ref.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="0"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
@@ -133,9 +133,9 @@
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="20"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="23"/>
     </file>
-    <file xil_pn:name="rtl/mtrx_dot.vhd" xil_pn:type="FILE_VHDL">
+    <file xil_pn:name="rtl/mtrx_mul.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="14"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="14"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="13"/>
     </file>
     <file xil_pn:name="rtl/fork.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="17"/>
@@ -157,7 +157,7 @@
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="0"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="test/mtrx_dot_tb.vhd" xil_pn:type="FILE_VHDL">
+    <file xil_pn:name="test/mtrx_mul_tb.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="0"/>
       <association xil_pn:name="PostMapSimulation" xil_pn:seqID="0"/>
       <association xil_pn:name="PostRouteSimulation" xil_pn:seqID="0"/>
@@ -169,7 +169,7 @@
     </file>
     <file xil_pn:name="rtl/mtrx_mov.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="13"/>
-      <association xil_pn:name="Implementation" xil_pn:seqID="13"/>
+      <association xil_pn:name="Implementation" xil_pn:seqID="14"/>
     </file>
     <file xil_pn:name="test/fsmc2wb_tb.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="0"/>
@@ -208,7 +208,7 @@
     <file xil_pn:name="mnu_async.ucf" xil_pn:type="FILE_UCF">
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
-    <file xil_pn:name="test/mtrx_iter_cross_tb.vhd" xil_pn:type="FILE_VHDL">
+    <file xil_pn:name="test/mtrx_iter_dot_tb.vhd" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="0"/>
       <association xil_pn:name="PostMapSimulation" xil_pn:seqID="212"/>
       <association xil_pn:name="PostRouteSimulation" xil_pn:seqID="0"/>
