@@ -6,7 +6,7 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 -- arithmetic functions with Signed or Unsigned values
 use IEEE.NUMERIC_STD.ALL;
 
-use work.mtrx_math_const.all;
+use work.mtrx_math_constants.all;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx primitives in this code.

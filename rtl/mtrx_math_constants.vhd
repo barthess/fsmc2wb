@@ -1,7 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 
-package mtrx_math_const is
+package mtrx_math_constants is
   
   -- supported math operations. Note: some of them share single hardware block
   constant MATH_HW_TOTAL : integer := 4; -- total number of different hardware modules
@@ -23,8 +23,8 @@ package mtrx_math_const is
   constant MATH_OP_SUB   : natural := 7; -- uses mtrx_add
   constant MATH_OP_DOT   : natural := 8; -- uses mtrx_dot
 
-end mtrx_math_const;
+end mtrx_math_constants;
 
 
-package body mtrx_math_const is
-end mtrx_math_const;
+package body mtrx_math_constants is
+end mtrx_math_constants;

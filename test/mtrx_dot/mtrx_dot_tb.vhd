@@ -34,10 +34,10 @@ use std.textio.all;
 -- arithmetic functions with Signed or Unsigned values
 USE ieee.numeric_std.ALL;
  
-ENTITY mtrx_mul_tb IS
-END mtrx_mul_tb;
+ENTITY mtrx_dot_tb IS
+END mtrx_dot_tb;
  
-ARCHITECTURE behavior OF mtrx_mul_tb IS 
+ARCHITECTURE behavior OF mtrx_dot_tb IS 
 
   --Inputs
   signal clk_i : std_logic := '0';
