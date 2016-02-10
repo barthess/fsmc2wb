@@ -112,8 +112,8 @@ begin
   txdata3_in_i            <= X"00";
   txcharisk_in_i(1)       <= '0';
   txcharisk_in_i(3)       <= '0';
-  uart_tx_i(15 downto 2)  <= uart_rx_i(15 downto 2);
-  uart_rts_i(15 downto 2) <= uart_cts_i(15 downto 2);
+  uart_tx_i(15 downto 5)  <= uart_rx_i(15 downto 5);
+  uart_rts_i(15 downto 5) <= uart_cts_i(15 downto 5);
 
   refclk_ibufds_i : IBUFDS
     port map
@@ -135,7 +135,7 @@ begin
   wb_pwm_1 : entity work.wb_pwm
     generic map (
       PWM_CHANNELS    => 16,
-      PWM_TX_INTERVAL => 1024)          -- clk_gtp_tx cycles
+      PWM_TX_INTERVAL => 512)           -- clk_gtp_tx cycles
     port map (
       rst          => rst,
       clk_gtp_tx   => txusrclk8_23,
@@ -157,13 +157,13 @@ begin
 
   wb_uart_1 : entity work.wb_uart
     generic map (
-      UART_CHANNELS => 2)
+      UART_CHANNELS => 5)
     port map (
       rst      => rst,
-      UART_TX  => uart_tx_i(1 downto 0),
-      UART_RTS => uart_rts_i(1 downto 0),
-      UART_RX  => uart_rx_i(1 downto 0),
-      UART_CTS => uart_cts_i(1 downto 0),
+      UART_TX  => uart_tx_i(4 downto 0),
+      UART_RTS => uart_rts_i(4 downto 0),
+      UART_RX  => uart_rx_i(4 downto 0),
+      UART_CTS => uart_cts_i(4 downto 0),
       -- Wishbone signals
       clk_i    => uart_clk_i,
       sel_i    => uart_sel_i,
