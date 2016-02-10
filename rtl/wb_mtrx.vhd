@@ -129,26 +129,26 @@ begin
   wire_bram2mul_en  <= (others =>'1');
   
   -- connect all BRAM dat_i together
-  fork_bram_dat_c : entity work.fork
+  fork_bram_dat_c : entity work.fork_reg(io)
   generic map (
     ocnt => BRAMS,
     DW   => MUL_DW
   )
   port map (
-    --clk_i => clk_mul_i,
+    clk_i => clk_mul_i,
     di => math_dat_c,
     do => wire_bram2mul_dat_i
   );
   
   -- Route WE line
-  we_router : entity work.demuxer
+  we_router : entity work.demuxer_reg(io)
   generic map (
     AW => 3, -- address width (select bits count)
     DW => 1,  -- data width 
     default => '0'
   )
   port map (
-    --clk_i => clk_mul_i,
+    clk_i => clk_mul_i,
     A     => crossbar_we_select,
     di(0) => math_we,
     do    => wire_bram2mul_we
@@ -171,14 +171,14 @@ begin
 
   -- connects BRAMs outputs to A and B inputs of math
   crossbar_dat_select_stack <= crossbar_dat_b_select & crossbar_dat_a_select;
-  dat_ab_router : entity work.bus_matrix
+  dat_ab_router : entity work.bus_matrix_reg(io)
   generic map (
     AW   => 3, -- address width in bits
     ocnt => 2, -- output ports count
     DW   => 64 -- data bus width 
   )
   port map (
-    --clk_i => clk_mul_i,
+    clk_i => clk_mul_i,
     A  => crossbar_dat_select_stack,
     di => wire_bram2mul_dat_o,
     do(127 downto 64) => math_dat_b,
@@ -194,7 +194,7 @@ begin
   generic map (
     MTRX_AW => 5,
     BRAM_DW => MUL_DW,
-    DAT_LAT => 4
+    DAT_LAT => 10
   )
   port map (
     clk_i => clk_mul_i,

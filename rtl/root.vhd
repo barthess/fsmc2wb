@@ -143,7 +143,7 @@ begin
 		LOCKED   => clk_locked
 	);
   clk_wb  <= clk_108mhz;
-  clk_mul <= clk_108mhz;
+  clk_mul <= clk_216mhz;
 
   --
   -- connect stubs to unused wishbone slots

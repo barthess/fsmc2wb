@@ -67,223 +67,223 @@ begin
   -- multiplex data from different matrix operations into dot bar
   ----------------------------------------------------------------------------------
 
-  math_scale_not_mul <= op_mul_i;
-  math_sub_not_add   <= op_add_i;
-  math_mov_type      <= op_mov_i;
+--  math_scale_not_mul <= op_mul_i;
+--  math_sub_not_add   <= op_add_i;
+--  math_mov_type      <= op_mov_i;
 
---  op_mul_delay : entity work.delay
---  generic map (
---    LAT => DAT_LAT,
---    WIDTH => 1,
---    default => '0'
---  )
---  port map (
---    clk   => clk_i,
---    ce    => '1',
---    di(0) => op_do_i,
---    do(0) => math_scale_not_mul
---  );
---
---  op_add_delay : entity work.delay
---  generic map (
---    LAT => DAT_LAT,
---    WIDTH => 1,
---    default => '0'
---  )
---  port map (
---    clk   => clk_i,
---    ce    => '1',
---    di(0) => op_add_i,
---    do(0) => math_sub_not_add
---  );
---
---  op_mov_delay : entity work.delay
---  generic map (
---    LAT => DAT_LAT,
---    WIDTH => 1,
---    default => '0'
---  )
---  port map (
---    clk   => clk_i,
---    ce    => '1',
---    di(0) => op_mov_i,
---    do(0) => math_mov_type
---  );
+  op_mul_delay : entity work.delay
+  generic map (
+    LAT => DAT_LAT,
+    WIDTH => 1,
+    default => '0'
+  )
+  port map (
+    clk   => clk_i,
+    ce    => '1',
+    di(0) => op_mul_i,
+    do(0) => math_scale_not_mul
+  );
+
+  op_add_delay : entity work.delay
+  generic map (
+    LAT => DAT_LAT,
+    WIDTH => 1,
+    default => '0'
+  )
+  port map (
+    clk   => clk_i,
+    ce    => '1',
+    di(0) => op_add_i,
+    do(0) => math_sub_not_add
+  );
+
+  op_mov_delay : entity work.delay
+  generic map (
+    LAT => DAT_LAT,
+    WIDTH => 2,
+    default => '0'
+  )
+  port map (
+    clk => clk_i,
+    ce  => '1',
+    di  => op_mov_i,
+    do  => math_mov_type
+  );
 
 
   -- fan out DAT bus A
-  fork_dat_a : entity work.fork
+  fork_dat_a : entity work.fork_reg(io)
   generic map (
     ocnt => MATH_HW_TOTAL,
     DW   => BRAM_DW
   )
   port map (
-    --clk_i => clk_mul_i,
+    clk_i => clk_i,
     di => dat_a_i,
     do => math_dat_a
   );
   
   -- fan out DAT bus B
-  fork_dat_b : entity work.fork
+  fork_dat_b : entity work.fork_reg(io)
   generic map (
     ocnt => MATH_HW_TOTAL,
     DW   => BRAM_DW
   )
   port map (
-    --clk_i => clk_mul_i,
+    clk_i => clk_i,
     di => dat_b_i,
     do => math_dat_b
   );
   
   -- Multiplex DAT bus C
-  mux_dat_c : entity work.muxer
+  mux_dat_c : entity work.muxer_reg(io)
   generic map (
     AW => 2,
     DW => BRAM_DW
   )
   port map (
-    --clk_i => clk_mul_i,
+    clk_i => clk_i,
     A  => sel_i,
     do => dat_c_o,
     di => math_dat_c
   );
 
   -- Multiplex ADR for bus A
-  mux_adr_a : entity work.muxer
+  mux_adr_a : entity work.muxer_reg(io)
   generic map (
     AW => 2,
     DW => 2*MTRX_AW
   )
   port map (
-    --clk_i => clk_mul_i,
+    clk_i => clk_i,
     A  => sel_i,
     do => adr_a_o,
     di => math_adr_a
   );
   
   -- Multiplex ADR for bus B
-  mux_adr_b : entity work.muxer
+  mux_adr_b : entity work.muxer_reg(io)
   generic map (
     AW => 2,
     DW => 2*MTRX_AW
   )
   port map (
-    --clk_i => clk_mul_i,
+    clk_i => clk_i,
     A  => sel_i,
     do => adr_b_o,
     di => math_adr_b
   );
   
   -- Multiplex ADR for bus C
-  mux_math_adr_c : entity work.muxer
+  mux_math_adr_c : entity work.muxer_reg(io)
   generic map (
     AW => 2,
     DW => 2*MTRX_AW
   )
   port map (
-    --clk_i => clk_mul_i,
+    clk_i => clk_i,
     A  => sel_i,
     do => adr_c_o,
     di => math_adr_c
   );
   
   -- Multiplex WE
-  mux_we : entity work.muxer
+  mux_we : entity work.muxer_reg(io)
   generic map (
     AW => 2,
     DW => 1
   )
   port map (
-    --clk_i => clk_mul_i,
+    clk_i => clk_i,
     A     => sel_i,
     do(0) => we_o,
     di    => math_we
   );
 
   -- Multiplex ERR
-  mux_err : entity work.muxer
+  mux_err : entity work.muxer_reg(io)
   generic map (
     AW => 2,
     DW => 1
   )
   port map (
-    --clk_i => clk_mul_i,
+    clk_i => clk_i,
     A     => sel_i,
     do(0) => err_o,
     di    => math_err
   );
 
   -- Multiplex ERR
-  mux_rdy : entity work.muxer
+  mux_rdy : entity work.muxer_reg(io)
   generic map (
     AW => 2,
     DW => 1
   )
   port map (
-    --clk_i => clk_mul_i,
+    clk_i => clk_i,
     A     => sel_i,
     do(0) => rdy_o,
     di    => math_rdy
   );
 
   -- Demuxer for RST
-  rst_demux : entity work.demuxer
+  rst_demux : entity work.demuxer_reg(io)
   generic map (
     AW => 2, -- address width (select bits count)
     DW => 1,  -- data width 
     default => '1'
   )
   port map (
-    --clk_i => clk_mul_i,
+    clk_i => clk_i,
     A     => sel_i,
     di(0) => rst_i,
     do    => math_rst
   );
 
   -- fanout M size to all math
-  fork_m_size : entity work.fork
+  fork_m_size : entity work.fork_reg(io)
   generic map (
     ocnt => MATH_HW_TOTAL,
     DW   => MTRX_AW
   )
   port map (
-    --clk_i => clk_mul_i,
+    clk_i => clk_i,
     di => m_size_i,
     do => math_m_size
   );
 
   -- fanout P size to all math
-  fork_p_size : entity work.fork
+  fork_p_size : entity work.fork_reg(io)
   generic map (
     ocnt => MATH_HW_TOTAL,
     DW   => MTRX_AW
   )
   port map (
-    --clk_i => clk_mul_i,
+    clk_i => clk_i,
     di => p_size_i,
     do => math_p_size
   );
 
   -- fanout N size to all math
-  fork_n_size : entity work.fork
+  fork_n_size : entity work.fork_reg(io)
   generic map (
     ocnt => MATH_HW_TOTAL,
     DW   => MTRX_AW
   )
   port map (
-    --clk_i => clk_mul_i,
+    clk_i => clk_i,
     di => n_size_i,
     do => math_n_size
   );
 
   -- fanout constant to mov and mul
-  fork_constant : entity work.fork
+  fork_constant : entity work.fork_reg(io)
   generic map (
     ocnt => 2,
     DW   => BRAM_DW
   )
   port map (
-    --clk_i => clk_mul_i,
+    clk_i => clk_i,
     di => constant_i,
     do => math_constant
   );
