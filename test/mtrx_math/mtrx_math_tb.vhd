@@ -191,8 +191,8 @@ BEGIN
           state <= SIZES2;
           
         when SIZES2 =>
-          dat_i <= '0' & n & p & m;
-          --dat_i <= '0' & n & "00000" & m;
+          --dat_i <= '0' & n & p & m;
+          dat_i <= '0' & n & "00000" & m;
           adr_i <= x"0001";
           stb_i <= '1';
           sel_i <= '1';
@@ -200,7 +200,7 @@ BEGIN
           state <= OP_N;
 
         when OP_N =>
-          dat_i <= '1' & "00" & "1000" & "010" & "001" & "000";
+          dat_i <= '1' & "00" & "0010" & "010" & "000" & "000";
           adr_i <= x"0000";
           state <= ACTIVE;
         

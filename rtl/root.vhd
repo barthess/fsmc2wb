@@ -341,7 +341,7 @@ begin
   --
   -- multiplicator with integrated BRAMs
   --
-  wb_mtrx_inst : entity work.wb_mtrx
+  wb_mtrx : entity work.wb_mtrx
     generic map (
       WB_AW => WB_AW,
       WB_DW => FSMC_DW

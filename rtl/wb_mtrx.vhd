@@ -83,12 +83,12 @@ architecture beh of wb_mtrx is
   signal wire_bram2mul_we     : std_logic_vector(BRAMs-1        downto 0);
   signal wire_bram2mul_en     : std_logic_vector(BRAMs-1        downto 0);
 
-  signal dotbar_dat_a_select : std_logic_vector(2 downto 0);
-  signal dotbar_dat_b_select : std_logic_vector(2 downto 0);
-  signal dotbar_dat_select_stack : std_logic_vector(5 downto 0);
-  signal dotbar_we_select    : std_logic_vector(2 downto 0);
-  signal dotbar_adr_select   : std_logic_vector(2*BRAMS-1 downto 0) := (others => '1');
-  signal dotbar_adr_stack : std_logic_vector(4*MUL_AW-1 downto 0);
+  signal crossbar_dat_a_select : std_logic_vector(2 downto 0);
+  signal crossbar_dat_b_select : std_logic_vector(2 downto 0);
+  signal crossbar_dat_select_stack : std_logic_vector(5 downto 0);
+  signal crossbar_we_select    : std_logic_vector(2 downto 0);
+  signal crossbar_adr_select   : std_logic_vector(2*BRAMS-1 downto 0) := (others => '1');
+  signal crossbar_adr_stack : std_logic_vector(4*MUL_AW-1 downto 0);
   
   signal math_dat_a, math_dat_b, math_dat_c : std_logic_vector(MUL_DW-1 downto 0);
   signal math_adr_a, math_adr_b, math_adr_c : std_logic_vector(MUL_AW-1 downto 0);
@@ -106,7 +106,7 @@ architecture beh of wb_mtrx is
 begin
                       
   ----------------------------------------------------------------------------------
-  -- multiplex data from BRAMs into dotbar
+  -- multiplex data from BRAMs into crossbar
   ----------------------------------------------------------------------------------
   wire_bram2mul_clk <= (others => clk_mul_i);
   wire_bram2mul_en  <= (others =>'1');
@@ -132,13 +132,13 @@ begin
   )
   port map (
     --clk_i => clk_mul_i,
-    A     => dotbar_we_select,
+    A     => crossbar_we_select,
     di(0) => math_we,
     do    => wire_bram2mul_we
   );
 
   -- Addres router from math to brams
-  dotbar_adr_stack <= "0000000000" & math_adr_c & math_adr_b & math_adr_a;
+  crossbar_adr_stack <= "0000000000" & math_adr_c & math_adr_b & math_adr_a;
   adr_abc_router : entity work.bus_matrix
   generic map (
     AW   => 2, -- address width in bits
@@ -147,13 +147,13 @@ begin
   )
   port map (
     --clk_i => clk_mul_i,
-    A  => dotbar_adr_select,
-    di => dotbar_adr_stack,
+    A  => crossbar_adr_select,
+    di => crossbar_adr_stack,
     do => wire_bram2mul_adr
   );
 
   -- connects BRAMs outputs to A and B inputs of math
-  dotbar_dat_select_stack <= dotbar_dat_b_select & dotbar_dat_a_select;
+  crossbar_dat_select_stack <= crossbar_dat_b_select & crossbar_dat_a_select;
   dat_ab_router : entity work.bus_matrix
   generic map (
     AW   => 3, -- address width in bits
@@ -162,7 +162,7 @@ begin
   )
   port map (
     --clk_i => clk_mul_i,
-    A  => dotbar_dat_select_stack,
+    A  => crossbar_dat_select_stack,
     di => wire_bram2mul_dat_o,
     do(127 downto 64) => math_dat_b,
     do(63  downto 0)  => math_dat_a
@@ -173,7 +173,7 @@ begin
   -- Matrix math instance
   ----------------------------------------------------------------------------------
   
-  mtrx_math_inst : entity work.mtrx_math
+  mtrx_math : entity work.mtrx_math
   generic map (
     MTRX_AW => 5,
     BRAM_DW => MUL_DW
@@ -206,7 +206,7 @@ begin
   ----------------------------------------------------------------------------------
   -- Wishbone interconnect
   ----------------------------------------------------------------------------------
-  -- generate and connect BRAMs to Matrix dotbar and to wishbone adaptors
+  -- generate and connect BRAMs to Matrix crossbar and to wishbone adaptors
   brams2mul : for n in 0 to BRAMs-1 generate 
   begin
     bram_mtrx : entity work.bram_mtrx
@@ -329,19 +329,19 @@ begin
         end if;
         
       when FETCH =>
-        -- select apropriate BRAMS via dotbar
-        dotbar_dat_a_select <= a_num;
-        dotbar_dat_b_select <= b_num;
-        dotbar_we_select    <= c_num;
+        -- select apropriate BRAMS via crossbar
+        crossbar_dat_a_select <= a_num;
+        crossbar_dat_b_select <= b_num;
+        crossbar_we_select    <= c_num;
         
         -- connect address buses
         a := conv_integer(a_num);
         b := conv_integer(b_num);
         c := conv_integer(c_num);
-        dotbar_adr_select <= (others => '1');
-        dotbar_adr_select((a+1)*2-1 downto a*2) <= "00";
-        dotbar_adr_select((b+1)*2-1 downto b*2) <= "01";
-        dotbar_adr_select((c+1)*2-1 downto c*2) <= "10";
+        crossbar_adr_select <= (others => '1');
+        crossbar_adr_select((a+1)*2-1 downto a*2) <= "00";
+        crossbar_adr_select((b+1)*2-1 downto b*2) <= "01";
+        crossbar_adr_select((c+1)*2-1 downto c*2) <= "10";
         
         math_m_size <= math_ctl_array(SIZES_REG)(4 downto 0);
         math_p_size <= math_ctl_array(SIZES_REG)(9 downto 5);

@@ -106,9 +106,7 @@ begin
     adr_o  => adr_trn
   );
 
-  -- transposed address generator for 
-  -- C address
-  -- output must be connected via muxer
+  -- direct address generator for C address
   -- Suitable for:
   -- CPY, EYE, SET
   iter_cpy_eye_set : entity work.mtrx_iter_eye
