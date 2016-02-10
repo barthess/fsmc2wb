@@ -159,7 +159,6 @@ begin
     generic map (
       UART_CHANNELS => 5)
     port map (
-      rst      => rst,
       UART_TX  => uart_tx_i(4 downto 0),
       UART_RTS => uart_rts_i(4 downto 0),
       UART_RX  => uart_rx_i(4 downto 0),

@@ -10,8 +10,6 @@ entity wb_uart is
     UART_CHANNELS : positive := 2);
 
   port (
-    rst : in std_logic;
-
     UART_TX  : out std_logic_vector(UART_CHANNELS-1 downto 0);
     UART_RTS : out std_logic_vector(UART_CHANNELS-1 downto 0);
     UART_RX  : in  std_logic_vector(UART_CHANNELS-1 downto 0);
@@ -40,8 +38,10 @@ architecture rtl of wb_uart is
   type t_uart_do is array (0 to UART_CHANNELS-1) of std_logic_vector(7 downto 0);
   signal uart_do           : t_uart_do;
   signal uart_irqs         : std_logic_vector(UART_CHANNELS-1 downto 0);
+  signal uart_resets       : std_logic_vector(UART_CHANNELS-1 downto 0) := (others => '1');
   signal uart_16x_baudclk  : std_logic_vector(UART_CHANNELS-1 downto 0);
   signal irqs_rd           : std_logic;  -- wishbone reads irqs register
+  signal resets_wr         : std_logic;  -- wishbone writes resets register
   signal illegal_op        : std_logic;  -- illegal operation
   shared variable uart_num : natural;
 
@@ -50,8 +50,10 @@ begin
   -- Address space --
   -- bits 2:0 are UART register address
   -- when reading IRQs register, bits 2:0 can be anything
+  -- when writing resets register, bits 2:0 can be anything
   -- upper bits are for UART selection (0 to UART_CHANNELS-1)
   -- UART_CHANNELS value is used for IRQs register reading
+  -- UART_CHANNELS+1 value is used for resets register writing
 
   uart_di <= dat_i(7 downto 0);
 
@@ -64,27 +66,34 @@ begin
     uart_rd    <= '0';
     illegal_op <= '0';
     irqs_rd    <= '0';
+    resets_wr  <= '0';
     uart_addr  <= adr_i(2 downto 0);
 
     uart_num := to_integer(unsigned(adr_i(15 downto 3)));
     -- bits 2:0 of adr_i are UART register address
 
     if sel_i = '1' then
-      if uart_num <= UART_CHANNELS-1 then  -- any UART channel
+      if uart_num <= UART_CHANNELS-1 then    -- any UART channel
         uart_cs(uart_num) <= '1';
         if we_i = '0' then
           uart_rd <= '1';
         else
           uart_wr <= '1';
         end if;
-      elsif uart_num = UART_CHANNELS then  -- irqs register (end of address space)
+      elsif uart_num = UART_CHANNELS then    -- irqs register
         if we_i = '0' then
           irqs_rd <= '1';
         else
-          illegal_op <= '1';            -- write to irqs register illegal
+          illegal_op <= '1';                 -- write to irqs register illegal
+        end if;
+      elsif uart_num = UART_CHANNELS+1 then  -- resets register
+        if we_i = '0' then
+          illegal_op <= '1';                 -- read illegal
+        else
+          resets_wr <= '1';
         end if;
       else
-        illegal_op <= '1';              -- illegal address
+        illegal_op <= '1';                   -- illegal address
       end if;
     end if;
   end process;
@@ -105,6 +114,8 @@ begin
           dat_o <= zeros(15 downto 8) & uart_do(uart_num);
         elsif irqs_rd = '1' then
           dat_o <= zeros(15 downto UART_CHANNELS) & uart_irqs;
+        elsif resets_wr = '1' then
+          uart_resets <= dat_i(UART_CHANNELS-1 downto 0);
         else
           dat_o <= (others => 'Z');
         end if;
@@ -116,7 +127,7 @@ begin
     uart_16750_i : entity uart_lib.uart_16750
       port map (
         CLK      => clk_i,
-        RST      => rst,
+        RST      => uart_resets(i),
         BAUDCE   => '1',
         CS       => uart_cs(i),
         WR       => uart_wr,
