@@ -207,8 +207,8 @@ begin
           ab_iter_rst <= '1';
           c_iter_rst  <= '1';
           mtrx_m      <= m_size_i;
-          mtrx_p      <= n_size_i;
-          mtrx_n      <= p_size_i;
+          mtrx_p      <= p_size_i;
+          mtrx_n      <= n_size_i;
           accum_len   <= p_size_i;
           state       <= ADR_PRELOAD;
         
