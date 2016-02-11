@@ -31,15 +31,24 @@ entity wb_to_gtp is
     MODTELEM_RX_MNU : out std_logic;
 
     -- Wishbone signals
-    clk_i : in  std_logic;
-    sel_i : in  std_logic;
-    stb_i : in  std_logic;
-    we_i  : in  std_logic;
-    err_o : out std_logic;
-    ack_o : out std_logic;
-    adr_i : in  std_logic_vector(15 downto 0);
-    dat_o : out std_logic_vector(15 downto 0);
-    dat_i : in  std_logic_vector(15 downto 0));
+    pwm_clk_i  : in  std_logic;
+    pwm_sel_i  : in  std_logic;
+    pwm_stb_i  : in  std_logic;
+    pwm_we_i   : in  std_logic;
+    pwm_err_o  : out std_logic;
+    pwm_ack_o  : out std_logic;
+    pwm_adr_i  : in  std_logic_vector(15 downto 0);
+    pwm_dat_o  : out std_logic_vector(15 downto 0);
+    pwm_dat_i  : in  std_logic_vector(15 downto 0);
+    uart_clk_i : in  std_logic;
+    uart_sel_i : in  std_logic;
+    uart_stb_i : in  std_logic;
+    uart_we_i  : in  std_logic;
+    uart_err_o : out std_logic;
+    uart_ack_o : out std_logic;
+    uart_adr_i : in  std_logic_vector(15 downto 0);
+    uart_dat_o : out std_logic_vector(15 downto 0);
+    uart_dat_i : in  std_logic_vector(15 downto 0));
 
 end entity wb_to_gtp;
 
@@ -99,12 +108,12 @@ begin
   gtpreset_in_i <= (others => rst);
 
   -- Temporary values for unused signals (warning suppression)
-  txdata1_in_i      <= X"00";
-  txdata3_in_i      <= X"00";
-  txcharisk_in_i(1) <= '0';
-  txcharisk_in_i(3) <= '0';
-  uart_tx_i         <= uart_rx_i;
-  uart_rts_i        <= uart_cts_i;
+  txdata1_in_i            <= X"00";
+  txdata3_in_i            <= X"00";
+  txcharisk_in_i(1)       <= '0';
+  txcharisk_in_i(3)       <= '0';
+  uart_tx_i(15 downto 5)  <= uart_rx_i(15 downto 5);
+  uart_rts_i(15 downto 5) <= uart_cts_i(15 downto 5);
 
   refclk_ibufds_i : IBUFDS
     port map
@@ -126,7 +135,7 @@ begin
   wb_pwm_1 : entity work.wb_pwm
     generic map (
       PWM_CHANNELS    => 16,
-      PWM_TX_INTERVAL => 1024)          -- clk_gtp_tx cycles
+      PWM_TX_INTERVAL => 512)           -- clk_gtp_tx cycles
     port map (
       rst          => rst,
       clk_gtp_tx   => txusrclk8_23,
@@ -136,15 +145,34 @@ begin
       PWM_DATA_OUT => pwm_data_tx_i,
       PWM_EN_OUT   => pwm_en_tx_i,
       -- Wishbone signals
-      clk_i        => clk_i,
-      sel_i        => sel_i,
-      stb_i        => stb_i,
-      we_i         => we_i,
-      err_o        => err_o,
-      ack_o        => ack_o,
-      adr_i        => adr_i,
-      dat_o        => dat_o,
-      dat_i        => dat_i);
+      clk_i        => pwm_clk_i,
+      sel_i        => pwm_sel_i,
+      stb_i        => pwm_stb_i,
+      we_i         => pwm_we_i,
+      err_o        => pwm_err_o,
+      ack_o        => pwm_ack_o,
+      adr_i        => pwm_adr_i,
+      dat_o        => pwm_dat_o,
+      dat_i        => pwm_dat_i);
+
+  wb_uart_1 : entity work.wb_uart
+    generic map (
+      UART_CHANNELS => 5)
+    port map (
+      UART_TX  => uart_tx_i(4 downto 0),
+      UART_RTS => uart_rts_i(4 downto 0),
+      UART_RX  => uart_rx_i(4 downto 0),
+      UART_CTS => uart_cts_i(4 downto 0),
+      -- Wishbone signals
+      clk_i    => uart_clk_i,
+      sel_i    => uart_sel_i,
+      stb_i    => uart_stb_i,
+      we_i     => uart_we_i,
+      err_o    => uart_err_o,
+      ack_o    => uart_ack_o,
+      adr_i    => uart_adr_i,
+      dat_o    => uart_dat_o,
+      dat_i    => uart_dat_i);
 
   -- RX interface gtp0 (from MORS)
   post_rx_mnu_0 : entity work.post_rx_mnu(gtp0)
