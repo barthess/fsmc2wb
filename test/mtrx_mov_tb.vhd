@@ -37,33 +37,33 @@ END mtrx_mov_tb;
  
 ARCHITECTURE behavior OF mtrx_mov_tb IS 
  
-    -- Component Declaration for the Unit Under Test (UUT)
+  --Inputs
+  signal rst_i : std_logic := '1';
+  signal clk_i : std_logic := '0';
+  signal m_size_i : std_logic_vector(4 downto 0) := (others => '0');
+  signal p_size_i : std_logic_vector(4 downto 0) := (others => '0');
+  signal n_size_i : std_logic_vector(4 downto 0) := (others => '0');
+  signal op_i : std_logic_vector(1 downto 0) := (others => '0');
+  signal constant_i : std_logic_vector(63 downto 0) := x"aaaabbbbccccdddd";
+  signal bram_dat_a_i : std_logic_vector(63 downto 0) := x"1111222233334444";
 
-   --Inputs
-   signal rst_i : std_logic := '1';
-   signal clk_i : std_logic := '0';
-   signal size_i : std_logic_vector(15 downto 0) := (others => '0');
-   signal op_i : std_logic_vector(1 downto 0) := (others => '0');
-   signal constant_i : std_logic_vector(63 downto 0) := x"aaaabbbbccccdddd";
-   signal bram_dat_a_i : std_logic_vector(63 downto 0) := x"1111222233334444";
+  --Outputs
+  signal err_o : std_logic;
+  signal rdy_o : std_logic;
+  signal bram_adr_a_o : std_logic_vector(9 downto 0);
+  signal bram_adr_b_o : std_logic_vector(9 downto 0);
+  signal bram_adr_c_o : std_logic_vector(9 downto 0);
+  signal bram_dat_b_i : std_logic_vector(63 downto 0);
+  signal bram_dat_c_o : std_logic_vector(63 downto 0);
+  signal bram_ce_a_o : std_logic;
+  signal bram_ce_c_o : std_logic;
+  signal bram_we_o : std_logic;
 
- 	--Outputs
-   signal err_o : std_logic;
-   signal rdy_o : std_logic;
-   signal bram_adr_a_o : std_logic_vector(9 downto 0);
-   signal bram_adr_b_o : std_logic_vector(9 downto 0);
-   signal bram_adr_c_o : std_logic_vector(9 downto 0);
-   signal bram_dat_b_i : std_logic_vector(63 downto 0);
-   signal bram_dat_c_o : std_logic_vector(63 downto 0);
-   signal bram_ce_a_o : std_logic;
-   signal bram_ce_c_o : std_logic;
-   signal bram_we_o : std_logic;
+  -- Clock period definitions
+  constant clk_i_period : time := 10 ns;
 
-   -- Clock period definitions
-   constant clk_i_period : time := 10 ns;
-   
-   type state_t is (IDLE, ACTIVE, HALT);
-   signal state : state_t := IDLE;
+  type state_t is (IDLE, PRELOAD_EYE, ACTIVE_EYE, PRELOAD_CPY, ACTIVE_CPY, HALT);
+  signal state : state_t := IDLE;
   
 BEGIN
  
@@ -77,7 +77,11 @@ BEGIN
    PORT MAP (
           rst_i => rst_i,
           clk_i => clk_i,
-          size_i => size_i,
+          
+          m_size_i => m_size_i,
+          p_size_i => p_size_i,
+          n_size_i => n_size_i,
+
           err_o => err_o,
           rdy_o => rdy_o,
           op_i => op_i,
@@ -105,23 +109,40 @@ BEGIN
 
   -- Stimulus process
   stim_proc: process(clk_i)
-    variable m, n : std_logic_vector(4 downto 0);
   begin		
     if rising_edge(clk_i) then
       case state is
 
       when IDLE =>
-        m := "00010";
-        n := "00010";
-        size_i(9 downto 5) <= n;
-        size_i(4 downto 0) <= m;
-        op_i <= "01";
+        m_size_i <= "00010";
+        p_size_i <= "00000";
+        n_size_i <= "00010";
+        op_i  <= "01"; -- EYE
+        rst_i <= '1';
+        state <= PRELOAD_EYE;
+
+      when PRELOAD_EYE =>
         rst_i <= '0';
-        state <= ACTIVE;
+        state <= ACTIVE_EYE;
         
-      when ACTIVE =>
+      when ACTIVE_EYE =>
+        if rdy_o = '1' then
+          state <= PRELOAD_CPY;
+          rst_i <= '1';
+        end if;
+
+      when PRELOAD_CPY =>
+        m_size_i <= "00010";
+        p_size_i <= "00000";
+        n_size_i <= "00001";
+        op_i  <= "00"; -- CPY
+        rst_i <= '0';
+        state <= ACTIVE_CPY;
+
+      when ACTIVE_CPY =>
         if rdy_o = '1' then
           state <= HALT;
+          rst_i <= '1';
         end if;
         
       when HALT =>
