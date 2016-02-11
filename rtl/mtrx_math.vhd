@@ -61,6 +61,9 @@ architecture beh of mtrx_math is
   signal math_sub_not_add : std_logic := '0';
   signal math_mov_type : std_logic_vector (1 downto 0) := "00";
 
+  -- Latency for control signals. It is NOT equal with data latency
+  constant CTL_LAT : positive := 2;
+  
 begin
                       
   ----------------------------------------------------------------------------------
@@ -73,7 +76,7 @@ begin
 
   op_mul_delay : entity work.delay
   generic map (
-    LAT => DAT_LAT,
+    LAT => CTL_LAT,
     WIDTH => 1,
     default => '0'
   )
@@ -86,7 +89,7 @@ begin
 
   op_add_delay : entity work.delay
   generic map (
-    LAT => DAT_LAT,
+    LAT => CTL_LAT,
     WIDTH => 1,
     default => '0'
   )
@@ -99,7 +102,7 @@ begin
 
   op_mov_delay : entity work.delay
   generic map (
-    LAT => DAT_LAT,
+    LAT => CTL_LAT,
     WIDTH => 2,
     default => '0'
   )
