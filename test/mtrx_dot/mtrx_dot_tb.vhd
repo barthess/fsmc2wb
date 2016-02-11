@@ -34,89 +34,58 @@ use std.textio.all;
 -- arithmetic functions with Signed or Unsigned values
 USE ieee.numeric_std.ALL;
  
-ENTITY mtrx_mul_tb IS
-END mtrx_mul_tb;
+ENTITY mtrx_dot_tb IS
+END mtrx_dot_tb;
  
-ARCHITECTURE behavior OF mtrx_mul_tb IS 
- 
-    -- Component Declaration for the Unit Under Test (UUT)
- 
-    COMPONENT mtrx_mul
-    PORT(
-         rdy_o : OUT  std_logic;
-         
-         clk_i : IN  std_logic;
-         sel_i : IN  std_logic;
-         stb_i : IN  std_logic;
-         we_i  : IN  std_logic;
-         err_o : OUT  std_logic;
-         ack_o : OUT  std_logic;
-         adr_i : IN  std_logic_vector(15 downto 0);
-         dat_o : OUT  std_logic_vector(15 downto 0);
-         dat_i : IN  std_logic_vector(15 downto 0);
+ARCHITECTURE behavior OF mtrx_dot_tb IS 
 
-         bram_adr_a_o : OUT std_logic_vector(9 downto 0);
-         bram_adr_b_o : OUT std_logic_vector(9 downto 0);
-         bram_adr_c_o : OUT std_logic_vector(9 downto 0);
+  --Inputs
+  signal clk_i : std_logic := '0';
+  signal rst_i : std_logic := '1';
+  
+  --Outputs
+  signal rdy_o : std_logic;
+  signal err_o : std_logic;
+  signal size_i : std_logic_vector(15 downto 0);
+  
+  signal bram_ce_a_o  : std_logic;
+  signal bram_ce_b_o  : std_logic;
+  signal bram_ce_c_o  : std_logic;
 
-         bram_dat_a_i : IN  std_logic_vector(63 downto 0);
-         bram_dat_b_i : IN  std_logic_vector(63 downto 0);
-         bram_dat_c_o : out std_logic_vector(63 downto 0);
-         bram_ce_a_o  : out std_logic;
-         bram_ce_b_o  : out std_logic;
-         bram_ce_c_o  : out std_logic;
-         bram_we_o    : OUT std_logic
-        );
-    END COMPONENT;
-    
+  signal bram_adr_a_o : std_logic_vector(9 downto 0);
+  signal bram_adr_b_o : std_logic_vector(9 downto 0);
+  signal bram_adr_c_o : std_logic_vector(9 downto 0);
 
-   --Inputs
-   signal clk_i : std_logic := '0';
-   signal sel_i : std_logic := '0';
-   signal stb_i : std_logic := '0';
-   signal we_i  : std_logic := '0';
-   signal adr_i : std_logic_vector(15 downto 0) := (others => '0');
-   signal dat_i : std_logic_vector(15 downto 0) := (others => '0');
-   signal bram_dat_a_i : std_logic_vector(63 downto 0) := (others => '0');
-   signal bram_dat_b_i : std_logic_vector(63 downto 0) := (others => '0');
-   
- 	--Outputs
-   signal rdy_o : std_logic;
-   signal err_o : std_logic;
-   signal ack_o : std_logic;
-   signal dat_o : std_logic_vector(15 downto 0);
-   signal bram_ce_a_o  : std_logic;
-   signal bram_ce_b_o  : std_logic;
-   signal bram_ce_c_o  : std_logic;
-   signal bram_adr_a_o : std_logic_vector(9 downto 0);
-   signal bram_adr_b_o : std_logic_vector(9 downto 0);
-   signal bram_adr_c_o : std_logic_vector(9 downto 0);
-   signal bram_dat_c_o : std_logic_vector(63 downto 0);
-   signal bram_we_o : std_logic;
+  signal bram_dat_c_o : std_logic_vector(63 downto 0);
+  signal bram_dat_a_i : std_logic_vector(63 downto 0) := (others => '0');
+  signal bram_dat_b_i : std_logic_vector(63 downto 0) := (others => '0');
 
-   -- Clock period definitions
-   constant clk_i_period : time := 1 ns;
- 
-    -- state machine
+  signal bram_we_o : std_logic;
+
+  -- Clock period definitions
+  constant clk_i_period : time := 1 ns;
+
+  -- state machine
   type state_t is (IDLE, LOAD, ACTIVE, HALT);
   signal state : state_t := IDLE;
-  
+
   signal m_i, p_i, n_i : integer := 0;
-  
+
 BEGIN
  
-	-- Instantiate the Unit Under Test (UUT)
-   uut: mtrx_mul PORT MAP (
-          rdy_o => rdy_o,
+  -- Instantiate the Unit Under Test (UUT)
+  uut: entity work.mtrx_dot
+  generic map (
+    BRAM_DW => 64,
+    MTRX_AW => 5,
+    DAT_LAT => 1
+  )
+  PORT MAP (
           clk_i => clk_i,
-          sel_i => sel_i,
-          stb_i => stb_i,
-          we_i => we_i,
+          rst_i => rst_i,
+          rdy_o => rdy_o,
+          size_i => size_i,
           err_o => err_o,
-          ack_o => ack_o,
-          adr_i => adr_i,
-          dat_o => dat_o,
-          dat_i => dat_i,
           bram_adr_a_o => bram_adr_a_o,
           bram_adr_b_o => bram_adr_b_o,
           bram_adr_c_o => bram_adr_c_o,
@@ -133,7 +102,7 @@ BEGIN
   -- Instantiate the input A bram 
   bram_file_a: entity work.bram_file_in 
   Generic map (
-    LATENCY => 2,
+    LATENCY => 1,
     PREFIX  => "a"
   )
   PORT MAP (
@@ -149,7 +118,7 @@ BEGIN
   -- Instantiate the input B bram 
   bram_file_b: entity work.bram_file_in 
   Generic map (
-    LATENCY => 2,
+    LATENCY => 1,
     PREFIX  => "b"
   )
   PORT MAP (
@@ -219,21 +188,16 @@ BEGIN
           m_i <= m_read;
           p_i <= p_read;
           n_i <= n_read;
-          dat_i(4  downto 0)  <= std_logic_vector(to_unsigned(m_read, 5));
-          dat_i(9  downto 5)  <= std_logic_vector(to_unsigned(p_read, 5));
-          dat_i(14 downto 10) <= std_logic_vector(to_unsigned(n_read, 5));
-          stb_i <= '1';
-          sel_i <= '1';
-          we_i  <= '1';
+          size_i(4  downto 0)  <= std_logic_vector(to_unsigned(m_read, 5));
+          size_i(9  downto 5)  <= std_logic_vector(to_unsigned(p_read, 5));
+          size_i(14 downto 10) <= std_logic_vector(to_unsigned(n_read, 5));
           state <= ACTIVE;
+          rst_i <= '0';
         else
           state <= HALT;
         end if;
 
       when ACTIVE => 
-        stb_i <= '0';
-        sel_i <= '0';
-        we_i  <= '0';
         if (rdy_o = '1') then
           state <= IDLE;
         end if;

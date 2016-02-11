@@ -27,39 +27,39 @@ end entity memtest_assist;
 
 architecture rtl of memtest_assist is
   signal addr_cnt : std_logic_vector (AW-1 downto 0) := (others => '0');
+  signal a_reg  : std_logic_vector(AW-1 downto 0);
+  signal do_reg : std_logic_vector(AW-1 downto 0);
+  signal di_reg : std_logic_vector(DW-1 downto 0);
+  signal we_reg : std_logic_vector(0 downto 0);
 begin
 	BRAM_CLK <= clk_i;
   BRAM_EN  <= '1';
   BRAM_DO(DW-1 downto AW) <= (others => '0');  
-  
+  BRAM_A <= a_reg;
+  BRAM_DO(AW-1 downto 0) <= do_reg;
+  BRAM_WE  <= we_reg;
+
   --
-  process(clk_i) is
+  --
+  --
+	main : process(clk_i) is
 	begin
     if rising_edge(clk_i) then
       if (BRAM_FILL = '0') then
+        we_reg <= "0";
+        a_reg <= (others => '0');
         addr_cnt <= (others => '0');
-      else
-        addr_cnt <= addr_cnt + 1;
-      end if;
-    end if;
-	end process;
-  
-  --
-	process(clk_i) is
-	begin
-    if rising_edge(clk_i) then
-      if (BRAM_FILL = '0') then
-        BRAM_WE <= "0";
-        BRAM_A  <= (others => '0');
-        if (BRAM_DI = x"55AA") then
+        di_reg <= BRAM_DI;
+        if (di_reg = x"55AA") then
           BRAM_DBG <= '1';
         else
           BRAM_DBG <= '0';
         end if;
       else
-        BRAM_WE <= "1";
-        BRAM_A  <= addr_cnt(AW-1 downto 0);
-        BRAM_DO(AW-1 downto 0)  <= addr_cnt;
+        we_reg <= "1";
+        addr_cnt <= addr_cnt + 1;
+        a_reg    <= addr_cnt(AW-1 downto 0);
+        do_reg <= addr_cnt;
       end if;
     end if;
 	end process;

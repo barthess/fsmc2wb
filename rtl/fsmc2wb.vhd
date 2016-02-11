@@ -35,14 +35,12 @@ entity fsmc2wb is
   Generic (
     AW : positive := 23; -- total FSMC address width
     DW : positive := 16; -- data witdth
-    USENBL : std_logic :='0'; -- set to '1' if you want NBL (byte select) pin support
-    AWSEL  : positive :=4; -- address lines used for slave select
+    --USENBL : std_logic :='0'; -- set to '1' if you want NBL (byte select) pin support
+    AWSEL  : positive  := 4; -- address lines used for slave select
     AWSLAVE : positive := 16 -- wishbone slave address width 
   );
 	Port (
     clk_i : in std_logic; -- high speed internal FPGA clock
-    err_o : out std_logic;
-    ack_o : out std_logic;
     
     -- FSMC interface
     A : in STD_LOGIC_VECTOR (AW-1 downto 0);
@@ -50,7 +48,12 @@ entity fsmc2wb is
     NWE : in STD_LOGIC;
     NOE : in STD_LOGIC;
     NCE : in STD_LOGIC;
-    NBL : in std_logic_vector (1 downto 0);
+    --NBL : in std_logic_vector (1 downto 0);
+    
+    -- External interrupt/status lines for STM32
+    external_err_o : out std_logic;
+    external_mmu_err_o : out std_logic;
+    external_ack_o : out std_logic;
     
     -- WB slaves interface
     sel_o : out std_logic_vector(2**AWSEL - 1           downto 0);
@@ -62,18 +65,6 @@ entity fsmc2wb is
     dat_o : out std_logic_vector(DW * 2**AWSEL - 1      downto 0);
     dat_i : in  std_logic_vector(DW * 2**AWSEL - 1      downto 0)
   );
-
-  -- MMU check routine. Must be called when addres sampled
-  function mmu_check(A   : in std_logic_vector(AW-1 downto 0);
-                     NBL : in std_logic_vector(1 downto 0)) 
-                     return std_logic is
-  begin
-    if (A(AW-1 downto AWSEL+AWSLAVE) /= 0) or ((NBL(0) /= NBL(1) and USENBL = '0')) then
-      return '1';
-    else
-      return '0';
-    end if;
-  end mmu_check;
 
   -- Return actual address bits
   function get_addr(A : in std_logic_vector(AW-1 downto 0)) 
@@ -97,113 +88,224 @@ end fsmc2wb;
 
 architecture beh of fsmc2wb is
 
-  signal a_reg    : STD_LOGIC_VECTOR (AWSLAVE-1 downto 0);
-  signal sel_reg  : STD_LOGIC_VECTOR (AWSEL-1 downto 0);
-  signal d_reg    : STD_LOGIC_VECTOR (DW-1 downto 0); 
-  signal nwe_reg  : STD_LOGIC_VECTOR (1 downto 0) := "11";
-  -- control signals for WB slave
-  signal we_wire : std_logic;
-  signal stb_wire : std_logic;
-  signal err_wire : std_logic;
-  -- outputs from data bus muxer
-  signal fsmc_do_wire : std_logic_vector(DW-1 downto 0);
-  signal fsmc_do_reg  : std_logic_vector(DW-1 downto 0);
+  signal fsmc_a_reg    : STD_LOGIC_VECTOR (AWSLAVE-1 downto 0);
+  signal fsmc_d_reg    : STD_LOGIC_VECTOR (DW-1 downto 0); 
+  signal fsmc_nwe_reg  : STD_LOGIC_VECTOR (1 downto 0) := "11";
+  signal fsmc_noe_reg  : STD_LOGIC_VECTOR (1 downto 0) := "11";
+  signal fsmc_nce_reg  : STD_LOGIC := '1';
 
+  signal slave_select : STD_LOGIC_VECTOR (AWSEL-1 downto 0);
+  
+  -- control signals for WB slave
+  signal we_wire  : std_logic := '0';
+  signal stb_wire : std_logic := '0';
+  signal sel_wire : std_logic := '0';
+  signal err_wire : std_logic := '0';
+  signal sel_w, sel_r, stb_r, stb_w : std_logic := '0';
+  
+  -- output data from WB to FSMC
+  signal fsmc_do_wire : std_logic_vector(DW-1 downto 0);
+
+  type state_t is (IDLE, ADSET, READ1);
+  signal state : state_t := IDLE;
+  
 begin
+  ------------------------------------------------------------------------------
+  -- lines from wishbone to FSMC
+  ------------------------------------------------------------------------------
 
   -- data muxer from multiple wishbone slaves to data bus
-  di_muxer : entity work.muxer
+  wb2fsmc_dat_muxer : entity work.muxer_reg(i)
   generic map (
     AW => AWSEL,
     DW => DW
   )
   port map (
-    A  => sel_reg,
-    do => fsmc_do_wire,
-    di => dat_i
+    clk_i => clk_i,
+    a     => slave_select,
+    do    => fsmc_do_wire,
+    di    => dat_i
   );
 
-  -- MMU muxer from multiple wishbone slaves
-  mmu_muxer : entity work.muxer
+  -- error muxer from multiple wishbone slaves
+  wb2fsmc_err_muxer : entity work.muxer_reg(i)
   generic map (
     AW => AWSEL,
     DW => 1
   )
   port map (
-    A     => sel_reg,
-    do(0) => err_wire,
+    clk_i => clk_i,
+    a     => slave_select,
+    do(0) => external_err_o,
     di    => err_i
   );
 
   -- ACK muxer from multiple wishbone slaves
-  ack_muxer : entity work.muxer
+  wb2fsmc_ack_muxer : entity work.muxer_reg(i)
   generic map (
     AW => AWSEL,
     DW => 1
   )
   port map (
-    A     => sel_reg,
-    do(0) => ack_o,
+    clk_i => clk_i,
+    a     => slave_select,
+    do(0) => external_ack_o,
     di    => ack_i
   );
 
+  ------------------------------------------------------------------------------
+  -- lines from FSMC to wishbone
+  ------------------------------------------------------------------------------
+
   -- demuxer for chip select line
-  sel_demux : entity work.demuxer
-    generic map (
-      AW => AWSEL,
-      DW => 1,
-      default => '0'
-    )
-    port map (
-      di(0) => not NCE,
-      a     => sel_reg,
-      do    => sel_o
-    );
-    
-  -- fanout bus outputs to slaves (no muxers)
-  wb_fanout : for n in 0 to 2**AWSEL-1 generate 
-  begin
-    we_o(n)  <= we_wire;
-    stb_o(n) <= stb_wire;
-    adr_o((n+1)*AWSLAVE-1 downto n*AWSLAVE) <= a_reg;  
-    dat_o((n+1)*DW-1 downto n*DW) <= d_reg;
-  end generate;
+  fsmc2wb_select_demux : entity work.demuxer_reg(o)
+  generic map (
+    AW => AWSEL,
+    DW => 1,
+    default => '0'
+  )
+  port map (
+    clk_i => clk_i,
+    a     => slave_select,
+    di(0) => sel_wire,
+    do    => sel_o
+  );
+
+  -- fanout bus outputs to all slaves without muxers
+  fsmc2wb_stb_fork : entity work.fork_reg(o)
+  generic map (
+    ocnt => 2**AWSEL,
+    DW   => 1
+  )
+  port map (
+    clk_i => clk_i,
+    di(0) => stb_wire,
+    do    => stb_o
+  );
+  
+  -- 
+  fsmc2wb_we_fork : entity work.fork_reg(o)
+  generic map (
+    ocnt => 2**AWSEL,
+    DW   => 1
+  )
+  port map (
+    clk_i => clk_i,
+    di(0) => we_wire,
+    do    => we_o
+  );
+  
+  --
+  fsmc2wb_adr_fork : entity work.fork_reg(o)
+  generic map (
+    ocnt => 2**AWSEL,
+    DW   => AWSLAVE
+  )
+  port map (
+    clk_i => clk_i,
+    di    => fsmc_a_reg,
+    do    => adr_o
+  );
+  
+  -- 
+  fsmc2wb_dat_fork : entity work.fork_reg(o)
+  generic map (
+    ocnt => 2**AWSEL,
+    DW   => DW
+  )
+  port map (
+    clk_i => clk_i,
+    di => fsmc_d_reg,
+    do => dat_o
+  );
   
   -- connect 3-state data bus
-  D <= fsmc_do_reg when (NCE = '0' and NOE = '0') else (others => 'Z');
+  D <= fsmc_do_wire when (NCE = '0' and NOE = '0') else (others => 'Z');
   
   -- bus registering
   process(clk_i) begin
     if rising_edge(clk_i) then
-      d_reg   <= D;
-      a_reg   <= get_addr(A);
-      sel_reg <= get_sel(A);
-      nwe_reg <= nwe_reg(0) & NWE;
-      fsmc_do_reg <= fsmc_do_wire;
+      fsmc_d_reg   <= D;
+      fsmc_a_reg   <= get_addr(A);
+      slave_select <= get_sel(A);
+      fsmc_nwe_reg <= fsmc_nwe_reg(0) & NWE;
+      fsmc_noe_reg <= fsmc_noe_reg(0) & NOE;
+      fsmc_nce_reg <= NCE;
     end if;
   end process;
   
-  -- BRAM WE logic. Will be activate 1 clock after WE goes down
-  process(clk_i) begin
+  
+  -- resolution function for STB and SEL signals
+  stb_wire <= stb_r or stb_w;
+  sel_wire <= sel_r or sel_w;
+  
+  --
+  --
+  --
+  read_proc : process(clk_i) 
+  begin
     if rising_edge(clk_i) then
-      if (nwe_reg = "10") then
-         we_wire  <= '1';
-         stb_wire <= '1';
+      case state is
+      when IDLE =>
+        if (fsmc_noe_reg = "10" and fsmc_nce_reg = '0') then
+          stb_r <= '1';
+          sel_r <= '1';
+          state <= ADSET;
+        end if;
+      
+      when ADSET =>
+        state <= READ1;
+        
+      when READ1 =>
+        stb_r <= '0';
+        sel_r <= '0';
+        state <= IDLE;
+      end case;
+      
+    end if;
+  end process;
+
+  --
+  -- BRAM WE logic. Will be activate 1 clock after WE goes down
+  --
+  write_proc : process(clk_i) 
+  begin
+    if rising_edge(clk_i) then
+      if (fsmc_nwe_reg = "10" and fsmc_nce_reg = '0') then
+        we_wire <= '1';
+        stb_w   <= '1';
+        sel_w   <= '1';
       else
-         we_wire  <= '0';
-         stb_wire <= '0';
+        we_wire <= '0';
+        stb_w   <= '0';
+        sel_w   <= '0';
+        -- тут получаются сигналы, активные 1 такт,
+        -- а для вишбона надо 2. Возможно есть смысл скостылить чего-нибудь. 
+        -- Такую же траблу надо проверить на цикле чтения
       end if;
     end if;
   end process;
 
+  --
+  -- MMU check
+  --
+  external_mmu_err_o <= '1' when (stb_wire = '1' and A(AW-1 downto AWSEL+AWSLAVE) > 0) else '0';
+        
+  --
   -- MMU process
-  process(clk_i) begin
-    if rising_edge(clk_i) then
-      if (NCE = '0') then
-        err_o <= mmu_check(A, NBL) or err_wire;
-      end if;
-    end if;
-  end process;
-  
+  --
+--  process(clk_i) begin
+--    if rising_edge(clk_i) then
+--      if stb_wire = '1' then
+--        if A(AW-1 downto AWSEL+AWSLAVE) > 0 then
+--          external_mmu_err_o <= '1';
+--        else
+--          external_mmu_err_o <= '0';
+--        end if;
+--      end if;
+--    end if;
+--  end process;
+
+
 end beh;
 

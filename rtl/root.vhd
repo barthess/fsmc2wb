@@ -34,7 +34,7 @@ use IEEE.NUMERIC_STD.ALL;
 use ieee.std_logic_misc.all;
 
 
-entity root is
+entity AA_root is
   generic (
     FSMC_AW   : positive := 23;
     FSMC_DW   : positive := 16;
@@ -46,7 +46,7 @@ entity root is
 
     FSMC_A : in std_logic_vector ((FSMC_AW - 1) downto 0);
     FSMC_D : inout std_logic_vector ((FSMC_DW - 1) downto 0);
-    FSMC_NBL : in std_logic_vector (1 downto 0);
+    --FSMC_NBL : in std_logic_vector (1 downto 0);
     FSMC_NOE : in std_logic;
     FSMC_NWE : in std_logic;
     FSMC_NCE : in std_logic;
@@ -82,13 +82,14 @@ entity root is
     UART6_RTS : in  std_logic;
     UART6_CTS : out std_logic
 	);
-end root;
+end AA_root;
 
 
-architecture Behavioral of root is
+architecture Behavioral of AA_root is
 
 -- wires for memtest
-signal wire_bram_a   : std_logic_vector(14 downto 0); 
+constant MEMTEST_BRAM_AW : integer := 12;
+signal wire_bram_a   : std_logic_vector(MEMTEST_BRAM_AW-1 downto 0); 
 signal wire_bram_di  : std_logic_vector(FSMC_DW-1 downto 0); 
 signal wire_bram_do  : std_logic_vector(FSMC_DW-1 downto 0); 
 signal wire_bram_ce  : std_logic; 
@@ -102,7 +103,7 @@ signal wire_memtest_wb_ack    : std_logic;
 signal wire_memtest_wb_adr    : std_logic_vector(WB_AW-1 downto 0);
 signal wire_memtest_wb_dat_o  : std_logic_vector(FSMC_DW-1 downto 0);
 signal wire_memtest_wb_dat_i  : std_logic_vector(FSMC_DW-1 downto 0);
-signal wire_memtest_bram_a    : std_logic_vector(14 downto 0); 
+signal wire_memtest_bram_a    : std_logic_vector(MEMTEST_BRAM_AW-1 downto 0); 
 signal wire_memtest_bram_di   : std_logic_vector(FSMC_DW-1 downto 0); 
 signal wire_memtest_bram_do   : std_logic_vector(FSMC_DW-1 downto 0); 
 signal wire_memtest_bram_ce   : std_logic;
@@ -191,7 +192,7 @@ begin
       generic map (
         AW => WB_AW,
         DW => FSMC_DW,
-        ID => n
+        DAT_AW => 3
       )
       port map (
         clk_i => clk_wb,
@@ -271,20 +272,20 @@ begin
       AW      => FSMC_AW,
       DW      => FSMC_DW,
       AWSEL   => 4,
-      AWSLAVE => WB_AW,
-      USENBL  => '0'
+      AWSLAVE => WB_AW
     )
     port map (
       clk_i => clk_wb,
-      err_o => STM_IO_WB_ERR_OUT,
-      ack_o => STM_IO_WB_ACK_OUT,
+      external_err_o => STM_IO_WB_ERR_OUT,
+      external_mmu_err_o => open,
+      external_ack_o => STM_IO_WB_ACK_OUT,
       
       A   => FSMC_A,
       D   => FSMC_D,
       NCE => FSMC_NCE,
       NOE => FSMC_NOE,
       NWE => FSMC_NWE,
-      NBL => FSMC_NBL,
+      --NBL => FSMC_NBL,
       
 --      sel_o => wb_stub_sel,
 --      stb_o => wb_stub_stb,
@@ -357,11 +358,11 @@ begin
   --
   memtest_assist : entity work.memtest_assist
   generic map (
-    AW => 15,
+    AW => MEMTEST_BRAM_AW,
     DW => FSMC_DW
   )
   port map (
-    clk_i     => clk_108mhz,
+    clk_i     => clk_wb,
 
     BRAM_FILL => STM_IO_BRAM_AUTO_FILL,
     BRAM_DBG  => STM_IO_BRAM_DBG_OUT,
@@ -404,7 +405,7 @@ begin
     generic map (
       WB_AW   => WB_AW,
       DW      => FSMC_DW,
-      BRAM_AW => 15
+      BRAM_AW => MEMTEST_BRAM_AW
     )
     port map (
       -- BRAM
@@ -429,7 +430,7 @@ begin
   --
   -- multiplicator with integrated BRAMs
   --
-  mtrx_math : entity work.mtrx_math
+  wb_mtrx : entity work.wb_mtrx
     generic map (
       WB_AW => WB_AW,
       WB_DW => FSMC_DW
@@ -449,7 +450,8 @@ begin
       dat_o => wire_mul2wb_dat_o,
       dat_i => wire_mul2wb_dat_i
     );
-
+  --STM_IO_MUL_RDY_OUT <= '0';
+  
   --
 	-- raize ready flag for STM32
   --
@@ -458,7 +460,7 @@ begin
   --
   -- warning suppressors and other trash
   --
-  DEV_NULL_BANK0 <= '1';
+  DEV_NULL_BANK0 <= '1';--FSMC_NBL(0) or FSMC_NBL(1);
   DEV_NULL_BANK1 <= '1';
 
 end Behavioral;

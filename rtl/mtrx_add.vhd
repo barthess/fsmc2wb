@@ -16,33 +16,37 @@ use IEEE.NUMERIC_STD.ALL;
 --
 --
 entity mtrx_add is
-  Generic (
-    BRAM_AW : positive := 10;
-    BRAM_DW : positive := 64;
-    -- Data latency. Consist of:
-    -- 1) address path to BRAM
-    -- 2) BRAM data latency (generally 1 cycle)
-    -- 3) data path from BRAM to device
-    DAT_LAT : positive range 1 to 15 := 1
-  );
-  Port (
-    -- control interface
-    rst_i  : in  std_logic; -- active high. Must be used before every new calculation
-    clk_i  : in  std_logic;
-    size_i : in  std_logic_vector(15 downto 0); -- size of input operands
-    rdy_o  : out std_logic := '0'; -- active high 1 cycle
-    sub_not_add_i : in std_logic;
-    
-    -- BRAM interface
-    -- Note: there are no clocks for BRAMs. They are handle in higher level
-    bram_adr_a_o : out std_logic_vector(BRAM_AW-1 downto 0);
-    bram_adr_b_o : out std_logic_vector(BRAM_AW-1 downto 0);
-    bram_adr_c_o : out std_logic_vector(BRAM_AW-1 downto 0);
-    bram_dat_a_i : in  std_logic_vector(BRAM_DW-1 downto 0);
-    bram_dat_b_i : in  std_logic_vector(BRAM_DW-1 downto 0);
-    bram_dat_c_o : out std_logic_vector(BRAM_DW-1 downto 0);
-    bram_we_o    : out std_logic -- for C bram
-  );
+Generic (
+  MTRX_AW : positive := 5;  -- 2**MTRX_AW = max matrix index
+  BRAM_DW : positive := 64;
+  -- Data latency. Consist of:
+  -- 1) address path to BRAM
+  -- 2) BRAM data latency (generally 1 cycle)
+  -- 3) data path from BRAM to device
+  DAT_LAT : positive range 1 to 15 := 1
+);
+Port (
+  -- control interface
+  rst_i  : in  std_logic; -- active high. Must be used before every new calculation
+  clk_i  : in  std_logic;
+  m_size_i, p_size_i, n_size_i : in  std_logic_vector(MTRX_AW-1 downto 0);
+  rdy_o  : out std_logic := '0'; -- active high 1 cycle
+  err_o  : out std_logic := '0';
+  sub_not_add_i : in std_logic;
+  
+  -- BRAM interface
+  -- Note: there are no clocks for BRAMs. They are handle in higher level
+  bram_adr_a_o : out std_logic_vector(2*MTRX_AW-1 downto 0);
+  bram_adr_b_o : out std_logic_vector(2*MTRX_AW-1 downto 0);
+  bram_adr_c_o : out std_logic_vector(2*MTRX_AW-1 downto 0);
+  bram_dat_a_i : in  std_logic_vector(BRAM_DW-1 downto 0);
+  bram_dat_b_i : in  std_logic_vector(BRAM_DW-1 downto 0);
+  bram_dat_c_o : out std_logic_vector(BRAM_DW-1 downto 0);
+  bram_ce_a_o  : out std_logic;
+  bram_ce_b_o  : out std_logic;
+  bram_ce_c_o  : out std_logic;
+  bram_we_o    : out std_logic -- for C bram
+);
 end mtrx_add;
 
 
@@ -51,31 +55,80 @@ end mtrx_add;
 architecture beh of mtrx_add is
   
   -- operand and result addresses registers
-  constant ZERO : std_logic_vector(BRAM_AW-1 downto 0) := (others => '0');
-  signal A_adr : std_logic_vector(BRAM_AW-1 downto 0);
-  signal B_adr : std_logic_vector(BRAM_AW-1 downto 0);
-  signal C_adr : std_logic_vector(BRAM_AW-1 downto 0);
-  signal nd_track : std_logic_vector(BRAM_AW-1 downto 0);
+  signal AB_adr : std_logic_vector(2*MTRX_AW-1 downto 0):= (others => '0');
+  signal AB_ce  : std_logic := '0';
+  signal C_ce   : std_logic := '0';
+  signal C_adr  : std_logic_vector(2*MTRX_AW-1 downto 0):= (others => '0');
+  signal m_size, n_size : std_logic_vector(MTRX_AW-1 downto 0):= (others => '0');
   signal lat_i, lat_o : natural range 0 to 15 := DAT_LAT;
+
+  signal end_c_iter  : std_logic := '0';
+  signal rst_iter    : std_logic := '1';
+  signal ce_ab_iter  : std_logic := '0';
+  signal add_rdy : std_logic := '0';
   
-  -- multiplicator control signals
-  signal add_nd  : std_logic := '0';
-  signal add_ce  : std_logic := '0';
-  signal add_rdy : std_logic;
+  -- adder control signals
+  signal add_nd : std_logic := '0';
 
   -- state machine
-  type state_t is (IDLE, PRELOAD, ACTIVE, HALT);
+  type state_t is (IDLE, ADR_PRELOAD, DAT_PRELOAD, ACTIVE, FLUSH, HALT);
   signal state : state_t := IDLE;
-  type rdy_state_t is (RDY_IDLE, RDY_ACTIVE, RDY_HALT);
-  signal rdy_state : rdy_state_t := RDY_IDLE;
 
 begin
   
-  bram_adr_a_o <= A_adr;
-  bram_adr_b_o <= B_adr;
-  bram_adr_c_o <= C_adr;
-  bram_we_o    <= add_rdy;
+  --
+  -- address iterator for IN matrices
+  --
+  iter_ab : entity work.mtrx_iter_seq
+  generic map (
+    MTRX_AW => MTRX_AW
+  )
+  port map (
+    rst_i  => rst_iter,
+    clk_i  => clk_i,
+    m_i    => m_size,
+    n_i    => n_size,
+    ce_i   => ce_ab_iter,
+    end_o  => open,
+    dv_o   => AB_ce,
+    adr_o  => AB_adr
+  );
 
+  --
+  -- address iterator for OUT matrix
+  --
+  iter_c : entity work.mtrx_iter_seq
+  generic map (
+    MTRX_AW => MTRX_AW
+  )
+  port map (
+    rst_i  => rst_iter,
+    clk_i  => clk_i,
+    m_i    => m_size,
+    n_i    => n_size,
+    ce_i   => add_rdy,
+    end_o  => end_c_iter,
+    dv_o   => C_ce,
+    adr_o  => C_adr
+  );
+  
+  --
+  -- delay line connecting data_valid signal from input address
+  -- iterator to operation_nd and ce of the adder
+  --
+  add_nd_delay : entity work.delay
+  generic map (
+    LAT => DAT_LAT,
+    WIDTH => 1,
+    default => '0'
+  )
+  port map (
+    clk   => clk_i,
+    ce    => '1',
+    di(0) => AB_ce,
+    do(0) => add_nd
+  );
+  
   --
   -- adder
   --
@@ -85,12 +138,20 @@ begin
     b      => bram_dat_b_i,
     result => bram_dat_c_o,
     clk    => clk_i,
-    ce     => add_ce,
+    ce     => '1',
     rdy    => add_rdy,
     operation(5 downto 1) => "00000",
     operation(0) => sub_not_add_i,
     operation_nd => add_nd
   );
+  
+  bram_adr_a_o <= AB_adr;
+  bram_adr_b_o <= AB_adr;
+  bram_adr_c_o <= C_adr;
+  bram_ce_a_o  <= AB_ce;
+  bram_ce_b_o  <= AB_ce;
+  bram_ce_c_o  <= C_ce;
+  bram_we_o    <= add_rdy;
   
   --
   -- Main state machine
@@ -100,90 +161,59 @@ begin
     if rising_edge(clk_i) then
       if (rst_i = '1') then
         state   <= IDLE;
-        add_nd  <= '0';
-        add_ce  <= '0';
         lat_i   <= DAT_LAT;
+        lat_o   <= DAT_LAT / 2;
+        rst_iter  <= '1';
+        err_o <= '0';
+        rdy_o <= '0';
       else
+        err_o <= '0';
+        rdy_o <= '0';
         case state is
         when IDLE =>
-          A_adr     <= size_i(9 downto 0);
-          B_adr     <= size_i(9 downto 0);
-          C_adr     <= size_i(9 downto 0);
-          nd_track  <= size_i(9 downto 0);
-          lat_i     <= lat_i - 1;
-          state     <= PRELOAD;
-
-        when PRELOAD =>
-          A_adr <= A_adr - 1;
-          B_adr <= B_adr - 1;
+          if (p_size_i > 0) -- error
+          then
+            err_o <= '1';
+            state <= HALT;
+          else
+            m_size  <= m_size_i;
+            n_size  <= n_size_i;
+            state   <= ADR_PRELOAD;
+          end if;
+          
+        when ADR_PRELOAD =>
+          rst_iter <= '0';
+          ce_ab_iter  <= '1';
+          lat_i <= lat_i - 1;
+          state <= DAT_PRELOAD;
+            
+        when DAT_PRELOAD =>
           lat_i <= lat_i - 1;
           if (lat_i = 0) then
-            state  <= ACTIVE;
-            add_ce <= '1';
-            add_nd <= '1';
+            state <= ACTIVE;
           end if;
 
         when ACTIVE =>
-          A_adr <= A_adr - 1;
-          B_adr <= B_adr - 1;
-
-          if (nd_track /= 0) then
-            nd_track <= nd_track - 1;
-          else
-            add_nd <= '0';
+          if end_c_iter = '1' then
+            rst_iter   <= '1';
+            ce_ab_iter <= '0';
+            state      <= FLUSH;
           end if;
-          
-          if (add_rdy = '1') then
-            C_adr <= C_adr - 1;
-            if (C_adr = 0) then
-              add_ce <= '0';
-              state  <= HALT;
-            end if;
+
+        when FLUSH =>
+          lat_o <= lat_o - 1;
+          if (lat_o = 0) then
+            state <= HALT;
+            rdy_o <= '1';
           end if;
 
         when HALT =>
           state <= HALT;
         end case;
-        
       end if; -- clk
     end if; -- rst
   end process;
-
-
-  --
-  -- ready pin logic
-  -- 
-  rdy_o <= '1' when (rdy_state = RDY_ACTIVE and lat_o = 0) else '0';
-  
-  rdy_o_driver : process(clk_i)
-  begin
-    if rising_edge(clk_i) then
-      if (rst_i = '1') then
-        rdy_state <= RDY_IDLE;
-        -- we need only half of the pipeline during data flush
-        -- because data transferred in one direction
-        lat_o <= DAT_LAT / 2;
-      else
-        case rdy_state is
-        when RDY_IDLE =>
-          if (C_adr = 0 and add_rdy = '1' and state = ACTIVE) then
-            rdy_state <= RDY_ACTIVE;
-          end if;
-
-        when RDY_ACTIVE =>
-          lat_o <= lat_o - 1;
-          if (lat_o = 0) then
-            rdy_state <= RDY_HALT;
-          end if;
-
-        when RDY_HALT =>
-          rdy_state <= RDY_HALT;
-        end case;
-        
-      end if; -- clk
-    end if; -- rst
-  end process;
-
 
 end beh;
+
 

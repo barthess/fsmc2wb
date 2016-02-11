@@ -15,7 +15,7 @@
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="11" />
+   <WVObjectSize size="14" />
    <wvobject fp_name="/fsmc2wb_tb/clk_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">clk_i</obj_property>
       <obj_property name="ObjectShortName">clk_i</obj_property>
@@ -36,18 +36,6 @@
       <obj_property name="ElementShortName">w_rst</obj_property>
       <obj_property name="ObjectShortName">w_rst</obj_property>
    </wvobject>
-   <wvobject fp_name="/fsmc2wb_tb/clk_fsmc" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">clk_fsmc</obj_property>
-      <obj_property name="ObjectShortName">clk_fsmc</obj_property>
-   </wvobject>
-   <wvobject fp_name="/fsmc2wb_tb/err_o" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">err_o</obj_property>
-      <obj_property name="ObjectShortName">err_o</obj_property>
-   </wvobject>
-   <wvobject fp_name="/fsmc2wb_tb/ack_o" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">ack_o</obj_property>
-      <obj_property name="ObjectShortName">ack_o</obj_property>
-   </wvobject>
    <wvobject fp_name="/fsmc2wb_tb/state" type="other" db_ref_id="1">
       <obj_property name="ElementShortName">state</obj_property>
       <obj_property name="ObjectShortName">state</obj_property>
@@ -55,9 +43,37 @@
    <wvobject fp_name="/fsmc2wb_tb/a" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">a[22:0]</obj_property>
       <obj_property name="ObjectShortName">a[22:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/fsmc2wb_tb/d" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">d[15:0]</obj_property>
       <obj_property name="ObjectShortName">d[15:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc2wb_tb/uut/stb_o" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">stb_o[1:0]</obj_property>
+      <obj_property name="ObjectShortName">stb_o[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc2wb_tb/uut/we_o" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">we_o[1:0]</obj_property>
+      <obj_property name="ObjectShortName">we_o[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc2wb_tb/uut/sel_o" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">sel_o[1:0]</obj_property>
+      <obj_property name="ObjectShortName">sel_o[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc2wb_tb/dat_o" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">dat_o[31:0]</obj_property>
+      <obj_property name="ObjectShortName">dat_o[31:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc2wb_tb/adr_o" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">adr_o[31:0]</obj_property>
+      <obj_property name="ObjectShortName">adr_o[31:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc2wb_tb/uut/state" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">state</obj_property>
+      <obj_property name="ObjectShortName">state</obj_property>
    </wvobject>
 </wave_config>

@@ -14,8 +14,8 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity wb_led is
   Generic (
-    AW : positive; -- address width
-    DW : positive  -- data width
+    AW : positive := 16; -- address width
+    DW : positive := 16 -- data width
   );
   Port (
     led   : out std_logic_vector(5 downto 0);
@@ -44,27 +44,34 @@ architecture beh of wb_led is
 
 begin
 
-  dat_o(DW-1 downto 6) <= (others => '0');
-  dat_o(5 downto 0) <= led_reg;
   led <= led_reg;
   err_o <= err_dat or err_adr;
 
   -- dat_i to LED
   process(clk_i) begin
     if rising_edge(clk_i) then
+      ack_o <= '0';
       if (stb_i = '1' and sel_i = '1') then
-        if (we_i = '1') and (adr_i = 0) then
-          led_reg <= dat_i(5 downto 0);
+        dat_o(5 downto 0) <= led_reg;
+        if (adr_i = 0) then
           ack_o <= '1';
-        end if;
-      end if;
-    end if;
+          if (we_i = '1') then
+            led_reg <= dat_i(5 downto 0);
+          else
+            dat_o(DW-1 downto 6) <= (others => '0');
+            dat_o(5 downto 0) <= led_reg;
+          end if;
+        else
+          dat_o <= (others => '1');
+        end if; -- adr
+      end if; -- sel
+    end if; -- clk
   end process;
   
   -- data check
   process(clk_i) begin
     if rising_edge(clk_i) then
-      if (sel_i = '1' and adr_i > 0 and we_i = '1' and dat_i(DW-1 downto 6) > 0) then
+      if (sel_i = '1' and stb_i = '1' and adr_i > 0 and we_i = '1' and dat_i(DW-1 downto 6) > 0) then
         err_dat <= '1';
       else
         err_dat <= '0';
@@ -75,7 +82,7 @@ begin
   -- MMU check
   process(clk_i) begin
     if rising_edge(clk_i) then
-      if (sel_i = '1' and adr_i > 0) then
+      if (sel_i = '1' and stb_i = '1'  and adr_i > 0) then
         err_adr <= '1';
       else
         err_adr <= '0';

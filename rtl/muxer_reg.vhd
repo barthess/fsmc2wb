@@ -24,8 +24,10 @@ entity muxer_reg is
   );
 end muxer_reg;
 
-
-architecture Behavioral of muxer_reg is
+--
+--
+--
+architecture io of muxer_reg is
   signal a_reg  : STD_LOGIC_VECTOR(AW-1       downto 0);
   signal di_reg : STD_LOGIC_VECTOR(2**AW*DW-1 downto 0);
   signal do_reg : STD_LOGIC_VECTOR(DW-1       downto 0);
@@ -51,5 +53,60 @@ begin
     end if;
   end process;
 
-end Behavioral;
+end io;
 
+--
+--
+--
+architecture i of muxer_reg is
+  signal a_reg  : STD_LOGIC_VECTOR(AW-1       downto 0);
+  signal di_reg : STD_LOGIC_VECTOR(2**AW*DW-1 downto 0);
+begin
+
+  muxer_e : entity work.muxer
+  generic map(
+    AW => AW,
+    DW => DW
+  )
+  port map(
+    A  => a_reg,
+    di => di_reg,
+    do => do
+  );
+  
+  main : process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      a_reg  <= A;
+      di_reg <= di;
+    end if;
+  end process;
+
+end i;
+
+--
+--
+--
+architecture o of muxer_reg is
+  signal do_reg : STD_LOGIC_VECTOR(DW-1 downto 0);
+begin
+
+  muxer_e : entity work.muxer
+  generic map(
+    AW => AW,
+    DW => DW
+  )
+  port map(
+    A  => A,
+    di => di,
+    do => do_reg
+  );
+  
+  main : process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      do <= do_reg;
+    end if;
+  end process;
+
+end o;

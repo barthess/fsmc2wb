@@ -45,8 +45,10 @@ entity demuxer_reg is
   );
 end demuxer_reg;
 
-
-architecture Behavioral of demuxer_reg is
+--
+--
+--
+architecture io of demuxer_reg is
   signal a_reg  : STD_LOGIC_VECTOR(AW-1 downto 0) := (others => '0');
   signal di_reg : STD_LOGIC_VECTOR(DW-1 downto 0);
   signal do_reg : STD_LOGIC_VECTOR(2**AW*DW-1 downto 0) := (others => default);
@@ -73,5 +75,64 @@ begin
     end if;
   end process;
   
-end Behavioral;
+end io;
+
+--
+--
+--
+architecture i of demuxer_reg is
+  signal a_reg  : STD_LOGIC_VECTOR(AW-1 downto 0) := (others => '0');
+  signal di_reg : STD_LOGIC_VECTOR(DW-1 downto 0);
+begin
+  
+  demuxer_e : entity work.demuxer
+  generic map(
+    AW => AW,
+    DW => DW,
+    default => default
+  )
+  port map(
+    A => a_reg,
+    di => di_reg,
+    do => do
+  );
+  
+  main : process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      a_reg  <= A;
+      di_reg <= di;
+    end if;
+  end process;
+  
+end i;
+
+--
+--
+--
+architecture o of demuxer_reg is
+  signal do_reg : STD_LOGIC_VECTOR(2**AW*DW-1 downto 0) := (others => default);
+begin
+  
+  demuxer_e : entity work.demuxer
+  generic map(
+    AW => AW,
+    DW => DW,
+    default => default
+  )
+  port map(
+    A  => A,
+    di => di,
+    do => do_reg
+  );
+  
+  main : process(clk_i)
+  begin
+    if rising_edge(clk_i) then
+      do <= do_reg;
+    end if;
+  end process;
+  
+end o;
+
 

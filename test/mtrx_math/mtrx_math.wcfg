@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="/home/barthess/projects/xilinx/fsmc2wb/mtrx_math_tb_isim_beh.wdb" id="1" type="auto">
+         <top_modules>
+            <top_module name="attributes" />
+            <top_module name="bip_utils_pkg_v2_0" />
+            <top_module name="floating_point_pkg_v5_0" />
+            <top_module name="floating_point_v5_0_consts" />
+            <top_module name="mtrx_math_constants" />
+            <top_module name="mtrx_math_tb" />
+            <top_module name="numeric_std" />
+            <top_module name="std_logic_1164" />
+            <top_module name="std_logic_arith" />
+            <top_module name="std_logic_misc" />
+            <top_module name="std_logic_textio" />
+            <top_module name="std_logic_unsigned" />
+            <top_module name="textio" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="31" />
+   <wvobject fp_name="/mtrx_math_tb/clk_mul_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_mul_i</obj_property>
+      <obj_property name="ObjectShortName">clk_mul_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/rdy_o" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">rdy_o</obj_property>
+      <obj_property name="ObjectShortName">rdy_o</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/dat_i" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">dat_i[15:0]</obj_property>
+      <obj_property name="ObjectShortName">dat_i[15:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/dat_o" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">dat_o[15:0]</obj_property>
+      <obj_property name="ObjectShortName">dat_o[15:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/adr_i" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">adr_i[15:0]</obj_property>
+      <obj_property name="ObjectShortName">adr_i[15:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/stb_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">stb_i</obj_property>
+      <obj_property name="ObjectShortName">stb_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/sel_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">sel_i</obj_property>
+      <obj_property name="ObjectShortName">sel_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/we_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">we_i</obj_property>
+      <obj_property name="ObjectShortName">we_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/err_o" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">err_o</obj_property>
+      <obj_property name="ObjectShortName">err_o</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/ack_o" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ack_o</obj_property>
+      <obj_property name="ObjectShortName">ack_o</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/uut/math_we" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">math_we</obj_property>
+      <obj_property name="ObjectShortName">math_we</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/uut/state" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">state</obj_property>
+      <obj_property name="ObjectShortName">state</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/state" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">state</obj_property>
+      <obj_property name="ObjectShortName">state</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/rdy_pattern" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">rdy_pattern</obj_property>
+      <obj_property name="ObjectShortName">rdy_pattern</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/ce_pattern" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ce_pattern</obj_property>
+      <obj_property name="ObjectShortName">ce_pattern</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/uut/ctl_ack_o" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ctl_ack_o</obj_property>
+      <obj_property name="ObjectShortName">ctl_ack_o</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/uut/ctl_err_o" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ctl_err_o</obj_property>
+      <obj_property name="ObjectShortName">ctl_err_o</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/uut/ctl_stb_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ctl_stb_i</obj_property>
+      <obj_property name="ObjectShortName">ctl_stb_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/uut/ctl_we_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ctl_we_i</obj_property>
+      <obj_property name="ObjectShortName">ctl_we_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/uut/ctl_sel_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ctl_sel_i</obj_property>
+      <obj_property name="ObjectShortName">ctl_sel_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider127" type="divider">
+      <obj_property name="label">mtrx_sum</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="BkColor">128 128 255</obj_property>
+      <obj_property name="TextColor">230 230 230</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/uut/mtrx_math/adr_a_o" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">adr_a_o[9:0]</obj_property>
+      <obj_property name="ObjectShortName">adr_a_o[9:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/uut/mtrx_math/adr_b_o" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">adr_b_o[9:0]</obj_property>
+      <obj_property name="ObjectShortName">adr_b_o[9:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/uut/mtrx_math/adr_c_o" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">adr_c_o[9:0]</obj_property>
+      <obj_property name="ObjectShortName">adr_c_o[9:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">di[39:0]</obj_property>
+      <obj_property name="ObjectShortName">di[39:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="vbus157" type="vbus" db_ref_id="1">
+      <obj_property name="label">New Virtual Bus3</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[39]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[39]</obj_property>
+         <obj_property name="ObjectShortName">di[39]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[38]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[38]</obj_property>
+         <obj_property name="ObjectShortName">di[38]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[37]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[37]</obj_property>
+         <obj_property name="ObjectShortName">di[37]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[36]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[36]</obj_property>
+         <obj_property name="ObjectShortName">di[36]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[35]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[35]</obj_property>
+         <obj_property name="ObjectShortName">di[35]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[34]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[34]</obj_property>
+         <obj_property name="ObjectShortName">di[34]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[33]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[33]</obj_property>
+         <obj_property name="ObjectShortName">di[33]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[32]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[32]</obj_property>
+         <obj_property name="ObjectShortName">di[32]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[31]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[31]</obj_property>
+         <obj_property name="ObjectShortName">di[31]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[30]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[30]</obj_property>
+         <obj_property name="ObjectShortName">di[30]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="vbus146" type="vbus" db_ref_id="1">
+      <obj_property name="label">New Virtual Bus2</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[29]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[29]</obj_property>
+         <obj_property name="ObjectShortName">di[29]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[28]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[28]</obj_property>
+         <obj_property name="ObjectShortName">di[28]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[27]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[27]</obj_property>
+         <obj_property name="ObjectShortName">di[27]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[26]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[26]</obj_property>
+         <obj_property name="ObjectShortName">di[26]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[25]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[25]</obj_property>
+         <obj_property name="ObjectShortName">di[25]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[24]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[24]</obj_property>
+         <obj_property name="ObjectShortName">di[24]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[23]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[23]</obj_property>
+         <obj_property name="ObjectShortName">di[23]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[22]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[22]</obj_property>
+         <obj_property name="ObjectShortName">di[22]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[21]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[21]</obj_property>
+         <obj_property name="ObjectShortName">di[21]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[20]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[20]</obj_property>
+         <obj_property name="ObjectShortName">di[20]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="vbus135" type="vbus" db_ref_id="1">
+      <obj_property name="label">New Virtual Bus1</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[19]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[19]</obj_property>
+         <obj_property name="ObjectShortName">di[19]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[18]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[18]</obj_property>
+         <obj_property name="ObjectShortName">di[18]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[17]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[17]</obj_property>
+         <obj_property name="ObjectShortName">di[17]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[16]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[16]</obj_property>
+         <obj_property name="ObjectShortName">di[16]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[15]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[15]</obj_property>
+         <obj_property name="ObjectShortName">di[15]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[14]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[14]</obj_property>
+         <obj_property name="ObjectShortName">di[14]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[13]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[13]</obj_property>
+         <obj_property name="ObjectShortName">di[13]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[12]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[12]</obj_property>
+         <obj_property name="ObjectShortName">di[12]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[11]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[11]</obj_property>
+         <obj_property name="ObjectShortName">di[11]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[10]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[10]</obj_property>
+         <obj_property name="ObjectShortName">di[10]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="vbus124" type="vbus" db_ref_id="1">
+      <obj_property name="label">New Virtual Bus</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[9]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[9]</obj_property>
+         <obj_property name="ObjectShortName">di[9]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[8]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[8]</obj_property>
+         <obj_property name="ObjectShortName">di[8]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[7]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[7]</obj_property>
+         <obj_property name="ObjectShortName">di[7]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[6]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[6]</obj_property>
+         <obj_property name="ObjectShortName">di[6]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[5]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[5]</obj_property>
+         <obj_property name="ObjectShortName">di[5]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[4]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[4]</obj_property>
+         <obj_property name="ObjectShortName">di[4]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[3]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[3]</obj_property>
+         <obj_property name="ObjectShortName">di[3]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[2]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[2]</obj_property>
+         <obj_property name="ObjectShortName">di[2]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[1]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[1]</obj_property>
+         <obj_property name="ObjectShortName">di[1]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/di[0]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[0]</obj_property>
+         <obj_property name="ObjectShortName">di[0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/do" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">do[79:0]</obj_property>
+      <obj_property name="ObjectShortName">do[79:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="vbus249" type="vbus" db_ref_id="1">
+      <obj_property name="label">New Virtual Bus4</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/do[9]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[9]</obj_property>
+         <obj_property name="ObjectShortName">do[9]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/do[8]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[8]</obj_property>
+         <obj_property name="ObjectShortName">do[8]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/do[7]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[7]</obj_property>
+         <obj_property name="ObjectShortName">do[7]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/do[6]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[6]</obj_property>
+         <obj_property name="ObjectShortName">do[6]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/do[5]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[5]</obj_property>
+         <obj_property name="ObjectShortName">do[5]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/do[4]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[4]</obj_property>
+         <obj_property name="ObjectShortName">do[4]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/do[3]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[3]</obj_property>
+         <obj_property name="ObjectShortName">do[3]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/do[2]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[2]</obj_property>
+         <obj_property name="ObjectShortName">do[2]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/do[1]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[1]</obj_property>
+         <obj_property name="ObjectShortName">do[1]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/mtrx_math_tb/uut/adr_abc_router/do[0]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[0]</obj_property>
+         <obj_property name="ObjectShortName">do[0]</obj_property>
+      </wvobject>
+   </wvobject>
+</wave_config>

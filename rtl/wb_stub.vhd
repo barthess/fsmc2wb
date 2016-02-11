@@ -14,9 +14,9 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity wb_stub is
   Generic (
-    AW : positive; -- address width
-    DW : positive; -- data width
-    ID : integer   -- 8 bit ID
+    AW : positive := 16; -- address width
+    DW : positive := 16; -- data width
+    DAT_AW : integer := 3 -- address width of internal data array
   );
   Port (
     clk_i : in  std_logic;
@@ -35,36 +35,37 @@ end wb_stub;
 -----------------------------------------------------------------------------
 
 architecture beh of wb_stub is
-
-  signal dat_o_reg : std_logic_vector (DW-1 downto 0) := (others => '0');
-  
+  type math_ctl_reg_t is array (0 to 2**DAT_AW-1) of std_logic_vector(DW-1 downto 0);
+  signal dat_array : math_ctl_reg_t := (others => (x"DEAD"));
 begin
   
-  --dat_o <= x"DE00" or std_logic_vector(to_unsigned(ID, 8)); --dat_o_reg;
-  
   -- bus sampling process
-  process(clk_i) 
-    variable pattern : std_logic_vector (DW-1 downto 0);
+  main : process(clk_i) 
+    variable int_adr : integer range 0 to 2**DAT_AW-1 := 0;
   begin
     if rising_edge(clk_i) then
       if (stb_i = '1' and sel_i = '1') then
-        dat_o <= pattern + adr_i;
+        int_adr := conv_integer(adr_i(DAT_AW-1 downto 0));
+        dat_o <= dat_array(int_adr);
         if (we_i = '1') then
-          pattern := dat_i;
+          dat_array(int_adr) <= dat_i;
         end if;
       end if;
     end if;
   end process;
-  
+
   -- MMU process
-  process(clk_i) begin
+  mmu : process(clk_i) 
+  begin
     if rising_edge(clk_i) then
-      if (sel_i = '1' and adr_i > 0) then
-        err_o <= '1';
-        ack_o <= '0';
-      else
-        err_o <= '0';
-        ack_o <= '1';
+      if (sel_i = '1' and stb_i = '1') then
+        if (adr_i > 2**DAT_AW-1) then
+          err_o <= '1';
+          ack_o <= '0';
+        else
+          err_o <= '0';
+          ack_o <= '1';
+        end if;
       end if;
     end if;
   end process;

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="/home/barthess/projects/xilinx/fsmc2wb/mtrx_iter_cross_tb_isim_beh.wdb" id="1" type="auto">
+         <top_modules>
+            <top_module name="mtrx_iter_cross_tb" />
+            <top_module name="numeric_std" />
+            <top_module name="std_logic_1164" />
+            <top_module name="std_logic_arith" />
+            <top_module name="std_logic_unsigned" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="17" />
+   <wvobject fp_name="/mtrx_iter_cross_tb/clk_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_i</obj_property>
+      <obj_property name="ObjectShortName">clk_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iter_cross_tb/rst_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">rst_i</obj_property>
+      <obj_property name="ObjectShortName">rst_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iter_cross_tb/ce_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ce_i</obj_property>
+      <obj_property name="ObjectShortName">ce_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iter_cross_tb/m_i" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">m_i[4:0]</obj_property>
+      <obj_property name="ObjectShortName">m_i[4:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iter_cross_tb/p_i" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">p_i[4:0]</obj_property>
+      <obj_property name="ObjectShortName">p_i[4:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iter_cross_tb/n_i" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">n_i[4:0]</obj_property>
+      <obj_property name="ObjectShortName">n_i[4:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iter_cross_tb/end_o" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">end_o</obj_property>
+      <obj_property name="ObjectShortName">end_o</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iter_cross_tb/dv_o" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">dv_o</obj_property>
+      <obj_property name="ObjectShortName">dv_o</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iter_cross_tb/a_adr_o" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">a_adr_o[9:0]</obj_property>
+      <obj_property name="ObjectShortName">a_adr_o[9:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iter_cross_tb/b_adr_o" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">b_adr_o[9:0]</obj_property>
+      <obj_property name="ObjectShortName">b_adr_o[9:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iter_cross_tb/state" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">state</obj_property>
+      <obj_property name="ObjectShortName">state</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iter_cross_tb/uut/k" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">k[4:0]</obj_property>
+      <obj_property name="ObjectShortName">k[4:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iter_cross_tb/uut/j" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">j[4:0]</obj_property>
+      <obj_property name="ObjectShortName">j[4:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iter_cross_tb/uut/i" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">i[4:0]</obj_property>
+      <obj_property name="ObjectShortName">i[4:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iter_cross_tb/uut/j_incr" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">j_incr</obj_property>
+      <obj_property name="ObjectShortName">j_incr</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iter_cross_tb/uut/i_incr" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">i_incr</obj_property>
+      <obj_property name="ObjectShortName">i_incr</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iter_cross_tb/uut/end_reg" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">end_reg</obj_property>
+      <obj_property name="ObjectShortName">end_reg</obj_property>
+   </wvobject>
+</wave_config>

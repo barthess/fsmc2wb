@@ -69,6 +69,7 @@ begin
       b       => b_buf,
       result  => dat_o,
       rdy     => rdy_o,
+      operation => (others => '0'),
       operation_nd => sum_nd
     );
 
