@@ -123,9 +123,9 @@ signal wb_led_dat_i : std_logic_vector(FSMC_DW-1 downto 0);
 signal wb_led_dat_o : std_logic_vector(FSMC_DW-1 downto 0);
 
 -- clock wires
-signal clk_216mhz : std_logic;
-signal clk_135mhz : std_logic;
-signal clk_108mhz : std_logic;
+signal clk_200mhz : std_logic;
+signal clk_150mhz : std_logic;
+signal clk_100mhz : std_logic;
 signal clk_locked : std_logic;
 signal clk_wb     : std_logic;
 signal clk_mul    : std_logic;
@@ -137,13 +137,13 @@ begin
   --
 	clk_src : entity work.clk_src port map (
 		CLK_IN1  => CLK_IN_27MHZ,
-  	CLK_OUT1 => clk_216mhz,
-		CLK_OUT2 => clk_135mhz,
-		CLK_OUT3 => clk_108mhz,
+  	CLK_OUT1 => clk_200mhz,
+		CLK_OUT2 => clk_150mhz,
+		CLK_OUT3 => clk_100mhz,
 		LOCKED   => clk_locked
 	);
-  clk_wb  <= clk_108mhz;
-  clk_mul <= clk_108mhz;
+  clk_wb  <= clk_100mhz;
+  clk_mul <= clk_150mhz;
 
   --
   -- connect stubs to unused wishbone slots
@@ -341,7 +341,7 @@ begin
   --
   -- multiplicator with integrated BRAMs
   --
-  wb_mtrx_inst : entity work.wb_mtrx
+  wb_mtrx : entity work.wb_mtrx
     generic map (
       WB_AW => WB_AW,
       WB_DW => FSMC_DW
