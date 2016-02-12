@@ -190,7 +190,7 @@ begin
   -- Matrix math instance
   ----------------------------------------------------------------------------------
   
-  mtrx_math_inst : entity work.mtrx_math
+  mtrx_math : entity work.mtrx_math
   generic map (
     MTRX_AW => 5,
     BRAM_DW => MUL_DW,
@@ -292,6 +292,8 @@ begin
       case state is
       -- data buffering from slow WB to fast MATH clock domain
       when IDLE =>
+        math_rst <= '1';
+        
         math_m_size           <= math_ctl_array(SIZES_REG)(4 downto 0);
         math_p_size           <= math_ctl_array(SIZES_REG)(9 downto 5);
         math_n_size           <= math_ctl_array(SIZES_REG)(14 downto 10);
@@ -408,10 +410,6 @@ begin
         crossbar_adr_select_wb((a+1)*2-1 downto a*2) <= "00";
         crossbar_adr_select_wb((b+1)*2-1 downto b*2) <= "01";
         crossbar_adr_select_wb((c+1)*2-1 downto c*2) <= "10";
-        
---        math_m_size_wb <= math_ctl_array(SIZES_REG)(4 downto 0);
---        math_p_size_wb <= math_ctl_array(SIZES_REG)(9 downto 5);
---        math_n_size_wb <= math_ctl_array(SIZES_REG)(14 downto 10);
 
         wb_state <= WB_DECODE;
 
