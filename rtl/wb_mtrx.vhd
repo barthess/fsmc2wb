@@ -387,7 +387,8 @@ begin
       if rising_edge(ctl_clk_i) then
         ctl_ack_o <= '0';
         ctl_err_o <= '0';
-
+        math_rst_wb <= '0';
+        
         case wb_state is
         when WB_IDLE =>
           if (ctl_stb_i = '1' and ctl_sel_i = '1') then
