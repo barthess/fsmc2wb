@@ -51,13 +51,15 @@ entity AA_root is
     FSMC_NWE : in std_logic;
     FSMC_NCE : in std_logic;
 
-    STM_IO_MUL_RDY_OUT : out std_logic;
+    STM_IO_MATH_RDY_OUT : out std_logic;
+    STM_IO_MATH_RST_IN : in std_logic;
     STM_IO_WB_ERR_OUT : out std_logic;
     STM_IO_WB_ACK_OUT : out std_logic;
     STM_IO_BRAM_AUTO_FILL : in std_logic;
     STM_IO_BRAM_DBG_OUT : out std_logic;
     STM_IO_FPGA_RDY : out std_logic;
-
+    STM_IO_MMU_ERR_OUT : out std_logic;
+    
     LED_LINE : out std_logic_vector (5 downto 0);
 
     DEV_NULL_BANK1 : out std_logic; -- warning suppressor
@@ -204,7 +206,7 @@ begin
     port map (
       clk_i => clk_wb,
       external_err_o => STM_IO_WB_ERR_OUT,
-      external_mmu_err_o => open,
+      external_mmu_err_o => STM_IO_MMU_ERR_OUT,
       external_ack_o => STM_IO_WB_ACK_OUT,
       
       A   => FSMC_A,
@@ -347,8 +349,9 @@ begin
       WB_DW => FSMC_DW
     )
     port map (
-      rdy_o => STM_IO_MUL_RDY_OUT,
-      
+      rdy_o => STM_IO_MATH_RDY_OUT,
+      rst_i => STM_IO_MATH_RST_IN,
+
       clk_wb_i  => (others => clk_wb),
       clk_mul_i => clk_mul,
       
@@ -361,7 +364,7 @@ begin
       dat_o => wire_mul2wb_dat_o,
       dat_i => wire_mul2wb_dat_i
     );
-  --STM_IO_MUL_RDY_OUT <= '0';
+  --STM_IO_MATH_RDY_OUT <= '0';
   
   --
 	-- raize ready flag for STM32

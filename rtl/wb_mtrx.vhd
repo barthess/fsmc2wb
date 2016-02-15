@@ -24,6 +24,7 @@ Generic (
 );
 Port (
   rdy_o : out std_logic; -- data ready external interrupt. Active high when IDLE
+  rst_i : in std_logic;
   
   clk_mul_i : in std_logic; -- high speed clock for multiplier
   clk_wb_i  : in std_logic_vector(SLAVES-1 downto 0); -- slow wishbone clock
@@ -119,7 +120,7 @@ architecture beh of wb_mtrx is
   signal math_n_size_wb           : std_logic_vector(4 downto 0);
   signal math_rdy_wb, math_err_wb : std_logic := '0';
   signal data_valid_wb            : std_logic := '0';
-
+  signal math_rst_wb              : std_logic := '1';
 begin
                       
   ----------------------------------------------------------------------------------
@@ -289,52 +290,67 @@ begin
     variable cnt : std_logic_vector(1 downto 0) := DELAY;
   begin
     if rising_edge(clk_mul_i) then
-      case state is
-      -- data buffering from slow WB to fast MATH clock domain
-      when IDLE =>
+      if math_rst_wb = '1' then
+        state <= IDLE;
         math_rst <= '1';
-        
-        math_m_size           <= math_ctl_array(SIZES_REG)(4 downto 0);
-        math_p_size           <= math_ctl_array(SIZES_REG)(9 downto 5);
-        math_n_size           <= math_ctl_array(SIZES_REG)(14 downto 10);
-        math_double_constant  <= math_ctl_array(SCALE_REG3) &
-                                 math_ctl_array(SCALE_REG2) &
-                                 math_ctl_array(SCALE_REG1) &
-                                 math_ctl_array(SCALE_REG0);
-        math_hw_select        <= math_hw_select_wb;
-        crossbar_adr_select   <= crossbar_adr_select_wb;
-        crossbar_dat_a_select <= crossbar_dat_a_select_wb;
-        crossbar_dat_b_select <= crossbar_dat_b_select_wb;
-        crossbar_we_select    <= crossbar_we_select_wb;
-        math_mov_type         <= math_mov_type_wb;
-        math_scale_not_mul    <= math_scale_not_mul_wb;
-        math_sub_not_add      <= math_sub_not_add_wb;
+        math_m_size           <= (others => '1');
+        math_p_size           <= (others => '1');
+        math_n_size           <= (others => '1');
+        math_double_constant  <= (others => '0');
+        math_hw_select        <= (others => '0');
+        crossbar_adr_select   <= "1111111111100100";
+        crossbar_dat_a_select <= (others => '0');
+        crossbar_dat_b_select <= "001";
+        crossbar_we_select    <= "010";
+        math_mov_type         <= (others => '0');
+        math_scale_not_mul    <= '0';
+        math_sub_not_add      <= '0';
+      else
+        case state is
+        -- data buffering from slow WB to fast MATH clock domain
+        when IDLE =>
+          math_m_size           <= math_ctl_array(SIZES_REG)(4 downto 0);
+          math_p_size           <= math_ctl_array(SIZES_REG)(9 downto 5);
+          math_n_size           <= math_ctl_array(SIZES_REG)(14 downto 10);
+          math_double_constant  <= math_ctl_array(SCALE_REG3) &
+                                   math_ctl_array(SCALE_REG2) &
+                                   math_ctl_array(SCALE_REG1) &
+                                   math_ctl_array(SCALE_REG0);
+          math_hw_select        <= math_hw_select_wb;
+          crossbar_adr_select   <= crossbar_adr_select_wb;
+          crossbar_dat_a_select <= crossbar_dat_a_select_wb;
+          crossbar_dat_b_select <= crossbar_dat_b_select_wb;
+          crossbar_we_select    <= crossbar_we_select_wb;
+          math_mov_type         <= math_mov_type_wb;
+          math_scale_not_mul    <= math_scale_not_mul_wb;
+          math_sub_not_add      <= math_sub_not_add_wb;
 
-        if data_valid_wb = '1' then
-          cnt := DELAY;
-          state <= EXEC;
-        end if;
-        
-      -- command execution
-      when EXEC =>
-        math_rst <= '0';
-        if (math_rdy = '1') or (math_err = '1') then
-          math_rst <= '1';
-          math_rdy_wb <= math_rdy;
-          math_err_wb <= math_err;
-          state <= MATH_WB_SIGNAL;
-        end if;
+          if data_valid_wb = '1' then
+            state <= EXEC;
+          end if;
+          
+        -- command execution
+        when EXEC =>
+          math_rst <= '0';
+          if (math_rdy = '1') or (math_err = '1') then
+            cnt := DELAY;
+            math_rst <= '1';
+            math_rdy_wb <= math_rdy;
+            math_err_wb <= math_err;
+            state <= MATH_WB_SIGNAL;
+          end if;
 
-      when MATH_WB_SIGNAL =>
-        if (cnt /= "00") then
-          cnt := cnt - 1;
-        else
-          math_rdy_wb <= '0';
-          math_err_wb <= '0';
-          state <= IDLE;
-        end if;
-      end case;
-      
+        when MATH_WB_SIGNAL =>
+          if (cnt /= "00") then
+            cnt := cnt - 1;
+          else
+            math_rdy_wb <= '0';
+            math_err_wb <= '0';
+            state <= IDLE;
+          end if;
+        end case;
+
+      end if; -- rst 
     end if; -- clk
   end process;
 
@@ -355,7 +371,7 @@ begin
   ctl_clk_i       <= clk_wb_i(SLAVES-1);
   dat_o(WB_DW*SLAVES-1 downto WB_DW*(SLAVES-1)) <= ctl_dat_o;
   
-  control_logic : process(ctl_clk_i)
+  control_logic : process(ctl_clk_i, rst_i)
     variable a_num, b_num, c_num : std_logic_vector(2 downto 0) := "000";
     variable dv : std_logic := '0'; -- data valid bit
     variable a, b, c : integer := 0;
@@ -363,133 +379,136 @@ begin
     variable hw_sel_v : std_logic_vector(1 downto 0); -- same as hw_sel_i
     constant DV_BIT : integer := 15;
   begin
+    if rst_i = '1' then
+      wb_state <= WB_IDLE;
+      math_rst_wb <= '1';
+      data_valid_wb <= '0';
+    else
+      if rising_edge(ctl_clk_i) then
+        ctl_ack_o <= '0';
+        ctl_err_o <= '0';
 
-    if rising_edge(ctl_clk_i) then
-      ctl_ack_o <= '0';
-      ctl_err_o <= '0';
-
-      case wb_state is
-      when WB_IDLE =>
-        data_valid_wb <= '0';
-
-        if (ctl_stb_i = '1' and ctl_sel_i = '1') then
-          if (ctl_adr_i > 7) then
-            ctl_err_o <= '1';
-          else
-            ctl_ack_o <= '1';
-            if (ctl_we_i = '1') then
-              math_ctl_array(conv_integer(ctl_adr_i)) <= ctl_dat_i;
-            else -- read request
-              ctl_dat_o <= math_ctl_array(conv_integer(ctl_adr_i));
+        case wb_state is
+        when WB_IDLE =>
+          if (ctl_stb_i = '1' and ctl_sel_i = '1') then
+            if (ctl_adr_i > 7) then
+              ctl_err_o <= '1';
+            else
+              ctl_ack_o <= '1';
+              if (ctl_we_i = '1') then
+                math_ctl_array(conv_integer(ctl_adr_i)) <= ctl_dat_i;
+              else -- read request
+                ctl_dat_o <= math_ctl_array(conv_integer(ctl_adr_i));
+              end if;
             end if;
           end if;
-        end if;
-        
-        a_num   := math_ctl_array(CONTROL_REG)(2  downto 0);
-        b_num   := math_ctl_array(CONTROL_REG)(5  downto 3);
-        c_num   := math_ctl_array(CONTROL_REG)(8  downto 6);
-        cmd_raw := conv_integer(math_ctl_array(CONTROL_REG)(12 downto 9));
-        dv      := math_ctl_array(CONTROL_REG)(DV_BIT);
-        
-        if dv = '1' then
-          math_ctl_array(CONTROL_REG)(DV_BIT) <= '0';
-          wb_state <= WB_FETCH;
-        end if;
-        
-      when WB_FETCH =>
-        -- select apropriate BRAMS via crossbar
-        crossbar_dat_a_select_wb <= a_num;
-        crossbar_dat_b_select_wb <= b_num;
-        crossbar_we_select_wb    <= c_num;
-        
-        -- connect address buses
-        a := conv_integer(a_num);
-        b := conv_integer(b_num);
-        c := conv_integer(c_num);
-        crossbar_adr_select_wb <= (others => '1');
-        crossbar_adr_select_wb((a+1)*2-1 downto a*2) <= "00";
-        crossbar_adr_select_wb((b+1)*2-1 downto b*2) <= "01";
-        crossbar_adr_select_wb((c+1)*2-1 downto c*2) <= "10";
-
-        wb_state <= WB_DECODE;
-
-      when WB_DECODE =>
-        -- parse command
-        case cmd_raw is
-        when MATH_OP_MUL =>
-          hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_MUL, 2));
-          math_hw_select_wb     <= hw_sel_v;
-          math_scale_not_mul_wb <= '0'; -- differece between scale and mul
-          wb_state <= WB_EXEC;
           
-        when MATH_OP_SCALE =>
-          hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_MUL, 2));
-          math_hw_select_wb     <= hw_sel_v;
-          math_scale_not_mul_wb <= '1'; -- differece between scale and mul
-          wb_state <= WB_EXEC;
-
-        when MATH_OP_CPY =>
-          hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_MOV, 2));
-          math_hw_select_wb <= hw_sel_v;
-          math_mov_type_wb  <= "00";
-          wb_state <= WB_EXEC;
-
-        when MATH_OP_EYE =>
-          hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_MOV, 2));
-          math_hw_select_wb <= hw_sel_v;
-          math_mov_type_wb  <= "01";
-          wb_state <= WB_EXEC;   
+          a_num   := math_ctl_array(CONTROL_REG)(2  downto 0);
+          b_num   := math_ctl_array(CONTROL_REG)(5  downto 3);
+          c_num   := math_ctl_array(CONTROL_REG)(8  downto 6);
+          cmd_raw := conv_integer(math_ctl_array(CONTROL_REG)(12 downto 9));
+          dv      := math_ctl_array(CONTROL_REG)(DV_BIT);
           
-        when MATH_OP_TRN =>
-          hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_MOV, 2));
-          math_hw_select_wb <= hw_sel_v;
-          math_mov_type_wb  <= "10";
-          wb_state <= WB_EXEC;
-
-        when MATH_OP_SET =>
-          hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_MOV, 2));
-          math_hw_select_wb <= hw_sel_v;
-          math_mov_type_wb  <= "11";
-          wb_state <= WB_EXEC;          
-
-        when MATH_OP_ADD =>
-          hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_ADD, 2));
-          math_hw_select_wb   <= hw_sel_v;
-          math_sub_not_add_wb <= '0';
-          wb_state <= WB_EXEC;   
-          
-        when MATH_OP_SUB =>
-          hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_ADD, 2));
-          math_hw_select_wb   <= hw_sel_v;
-          math_sub_not_add_wb <= '1';
-          wb_state <= WB_EXEC;   
-
-        when MATH_OP_DOT =>
-          hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_DOT, 2));
-          math_hw_select_wb <= hw_sel_v;
-          wb_state <= WB_EXEC;   
-          
-        when others =>
-          wb_state <= WB_IDLE;
-          ctl_err_o <= '1';
-        end case;
-
-      -- raise data valid flag for Math 
-      when WB_EXEC =>
-        data_valid_wb <= '1';
-        wb_state <= WB_WAIT_RDY;
-
-      when WB_WAIT_RDY =>
-        data_valid_wb <= '0';
-        if (math_rdy_wb = '1') or (math_err_wb = '1') then
-          if math_err_wb = '1' then
-            ctl_err_o <= '1';
-            math_ctl_array(STATUS_REG) <= "00000000000000" & hw_sel_v;
+          if dv = '1' then
+            math_ctl_array(CONTROL_REG)(DV_BIT) <= '0';
+            wb_state <= WB_FETCH;
           end if;
-          wb_state <= WB_IDLE;
-        end if;
-      end case;
-      
+          
+        when WB_FETCH =>
+          -- select apropriate BRAMS via crossbar
+          crossbar_dat_a_select_wb <= a_num;
+          crossbar_dat_b_select_wb <= b_num;
+          crossbar_we_select_wb    <= c_num;
+          
+          -- connect address buses
+          a := conv_integer(a_num);
+          b := conv_integer(b_num);
+          c := conv_integer(c_num);
+          crossbar_adr_select_wb <= (others => '1');
+          crossbar_adr_select_wb((a+1)*2-1 downto a*2) <= "00";
+          crossbar_adr_select_wb((b+1)*2-1 downto b*2) <= "01";
+          crossbar_adr_select_wb((c+1)*2-1 downto c*2) <= "10";
+
+          wb_state <= WB_DECODE;
+
+        when WB_DECODE =>
+          -- parse command
+          case cmd_raw is
+          when MATH_OP_MUL =>
+            hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_MUL, 2));
+            math_hw_select_wb     <= hw_sel_v;
+            math_scale_not_mul_wb <= '0'; -- differece between scale and mul
+            wb_state <= WB_EXEC;
+            
+          when MATH_OP_SCALE =>
+            hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_MUL, 2));
+            math_hw_select_wb     <= hw_sel_v;
+            math_scale_not_mul_wb <= '1'; -- differece between scale and mul
+            wb_state <= WB_EXEC;
+
+          when MATH_OP_CPY =>
+            hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_MOV, 2));
+            math_hw_select_wb <= hw_sel_v;
+            math_mov_type_wb  <= "00";
+            wb_state <= WB_EXEC;
+
+          when MATH_OP_EYE =>
+            hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_MOV, 2));
+            math_hw_select_wb <= hw_sel_v;
+            math_mov_type_wb  <= "01";
+            wb_state <= WB_EXEC;   
+            
+          when MATH_OP_TRN =>
+            hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_MOV, 2));
+            math_hw_select_wb <= hw_sel_v;
+            math_mov_type_wb  <= "10";
+            wb_state <= WB_EXEC;
+
+          when MATH_OP_SET =>
+            hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_MOV, 2));
+            math_hw_select_wb <= hw_sel_v;
+            math_mov_type_wb  <= "11";
+            wb_state <= WB_EXEC;          
+
+          when MATH_OP_ADD =>
+            hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_ADD, 2));
+            math_hw_select_wb   <= hw_sel_v;
+            math_sub_not_add_wb <= '0';
+            wb_state <= WB_EXEC;   
+            
+          when MATH_OP_SUB =>
+            hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_ADD, 2));
+            math_hw_select_wb   <= hw_sel_v;
+            math_sub_not_add_wb <= '1';
+            wb_state <= WB_EXEC;   
+
+          when MATH_OP_DOT =>
+            hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_DOT, 2));
+            math_hw_select_wb <= hw_sel_v;
+            wb_state <= WB_EXEC;   
+            
+          when others =>
+            wb_state <= WB_IDLE;
+            ctl_err_o <= '1';
+          end case;
+
+        -- raise data valid flag for Math 
+        when WB_EXEC =>
+          data_valid_wb <= '1';
+          wb_state <= WB_WAIT_RDY;
+
+        when WB_WAIT_RDY =>
+          data_valid_wb <= '0';
+          if (math_rdy_wb = '1') or (math_err_wb = '1') then
+            if math_err_wb = '1' then
+              ctl_err_o <= '1';
+              math_ctl_array(STATUS_REG) <= "00000000000000" & hw_sel_v;
+            end if;
+            wb_state <= WB_IDLE;
+          end if;
+        end case;
+        
+      end if; --rst
     end if; -- clk
   end process;
 
