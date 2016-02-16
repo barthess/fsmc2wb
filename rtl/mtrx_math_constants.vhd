@@ -22,7 +22,9 @@ package mtrx_math_constants is
   constant MATH_OP_ADD   : natural := 6; -- uses mtrx_add
   constant MATH_OP_SUB   : natural := 7; -- uses mtrx_add
   constant MATH_OP_DOT   : natural := 8; -- uses mtrx_dot
-
+  
+  constant MATH_OP_LAST  : natural := MATH_OP_DOT; -- for checks from C code
+  
 end mtrx_math_constants;
 
 
