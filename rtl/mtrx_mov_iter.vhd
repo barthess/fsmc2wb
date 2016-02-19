@@ -26,7 +26,7 @@ entity mtrx_mov_iter is
     n_size : in  std_logic_vector(MTRX_AW-1 downto 0);
 
     -- operation select
-    trn_not_eye : in std_logic;
+    transpose_en : in std_logic;
 
     adr_a_o   : out std_logic_vector(2*MTRX_AW-1 downto 0);
     adr_c_o   : out std_logic_vector(2*MTRX_AW-1 downto 0);
@@ -82,7 +82,7 @@ begin
     default => '0'
   )
   port map(
-    A(0)  => trn_not_eye,
+    A(0)  => transpose_en,
     di(0) => ce_c_i,
     do(1) => ce_trn,
     do(0) => ce_eye
@@ -132,13 +132,8 @@ begin
   valid_c_o <= dv_trn  or dv_eye;
 
   -- switch outputs between trn and eye
-  adr_c_o <= adr_trn when (trn_not_eye = '1') else adr_eye;
+  adr_c_o <= adr_trn when (transpose_en = '1') else adr_eye;
 
 
 end beh;
-
-
-
-
-
 

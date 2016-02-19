@@ -450,25 +450,25 @@ begin
           when MATH_OP_CPY =>
             hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_MOV, 2));
             math_hw_select_wb <= hw_sel_v;
-            math_mov_type_wb  <= "00";
+            math_mov_type_wb  <= MOV_OP_CPY;
             wb_state <= WB_EXEC;
 
-          when MATH_OP_EYE =>
+          when MATH_OP_DIA =>
             hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_MOV, 2));
             math_hw_select_wb <= hw_sel_v;
-            math_mov_type_wb  <= "01";
+            math_mov_type_wb  <= MOV_OP_DIA;
             wb_state <= WB_EXEC;   
             
           when MATH_OP_TRN =>
             hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_MOV, 2));
             math_hw_select_wb <= hw_sel_v;
-            math_mov_type_wb  <= "10";
+            math_mov_type_wb  <= MOV_OP_TRN;
             wb_state <= WB_EXEC;
 
           when MATH_OP_SET =>
             hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_MOV, 2));
             math_hw_select_wb <= hw_sel_v;
-            math_mov_type_wb  <= "11";
+            math_mov_type_wb  <= MOV_OP_SET;
             wb_state <= WB_EXEC;          
 
           when MATH_OP_ADD =>

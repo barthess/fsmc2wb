@@ -5,11 +5,7 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx primitives in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
+use work.mtrx_math_constants.all;
 
 --
 --
@@ -58,11 +54,7 @@ architecture beh of mtrx_mov is
   -- operand and result addresses registers
   constant ZERO  : std_logic_vector(MTRX_AW-1   downto 0) := (others => '0');
   constant ZERO2 : std_logic_vector(2*MTRX_AW-1 downto 0) := (others => '0');
-  constant OP_CPY : std_logic_vector (1 downto 0) := "00";
-  constant OP_EYE : std_logic_vector (1 downto 0) := "01";
-  constant OP_TRN : std_logic_vector (1 downto 0) := "10";
-  constant OP_SET : std_logic_vector (1 downto 0) := "11";
-  signal trn_not_eye : std_logic;
+  signal transpose_en : std_logic;
   signal bram_ce_we_combined : std_logic := '0';
   
   signal m_size, n_size : std_logic_vector(MTRX_AW-1 downto 0) := ZERO;
@@ -90,15 +82,15 @@ architecture beh of mtrx_mov is
 begin
   
   -- switch iterator between transpose and eye
-  trn_not_eye <= '1' when (op_i = OP_TRN) else '0';
+  transpose_en <= '1' when (op_i = MOV_OP_TRN) else '0';
   
   -- select data input for operation
   -- double BRAM must be connected only to TRN or CPY
-  wire_tmp64 <= bram_dat_a_i when (op_i = OP_TRN or op_i = OP_CPY) else constant_i;
+  wire_tmp64 <= bram_dat_a_i when (op_i = MOV_OP_TRN or op_i = MOV_OP_CPY) else constant_i;
   
   -- connect one64 constant to data input 
   -- when eye strobe high
-  op_dat <= ONE64 when (eye_stb = '1' and op_i = OP_EYE) else wire_tmp64;
+  op_dat <= ONE64 when (eye_stb = '1' and op_i = MOV_OP_DIA) else wire_tmp64;
   
   --
   -- Iterator for input and output addresses
@@ -115,7 +107,7 @@ begin
     m_size => m_size,
     n_size => n_size,
 
-    trn_not_eye => trn_not_eye,
+    transpose_en => transpose_en,
 
     adr_a_o   => bram_adr_a_o,
     adr_c_o   => bram_adr_c_o,
@@ -157,7 +149,7 @@ begin
         case state is
         when IDLE =>
           if (p_size_i > 0) -- error
-          or ((m_size_i /= n_size_i) and (op_i = OP_EYE)) -- only square matices allowed for EYE
+          or ((m_size_i /= n_size_i) and (op_i = MOV_OP_DIA)) -- only square matices allowed for EYE
           then
             err_o <= '1';
             state <= HALT;
