@@ -22,6 +22,7 @@ sch2HdlBatchFile
 *.en
 *.exe
 *.gise
+*.grf
 *.html
 *.ini
 *.jhd
