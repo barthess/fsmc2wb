@@ -36,7 +36,7 @@ Port (
   bram_adr_b_o : out std_logic_vector(2*MTRX_AW-1 downto 0) := (others => '0'); -- unused
   bram_adr_c_o : out std_logic_vector(2*MTRX_AW-1 downto 0);
 
-  constant_i   : in  std_logic_vector(BRAM_DW-1 downto 0); -- external constant for memset and eye
+  constant_i   : in  std_logic_vector(BRAM_DW-1 downto 0); -- external constant for memset and dia
   bram_dat_a_i : in  std_logic_vector(BRAM_DW-1 downto 0);
   bram_dat_b_i : in  std_logic_vector(BRAM_DW-1 downto 0) := (others => '0'); -- unused
   bram_dat_c_o : out std_logic_vector(BRAM_DW-1 downto 0);
@@ -64,7 +64,7 @@ architecture beh of mtrx_mov is
   signal ce_c_iter  : std_logic := '0';
   signal rdy_a_iter : std_logic := '0';
   signal rdy_c_iter : std_logic := '0';
-  signal eye_stb    : std_logic := '0';
+  signal dia_stb    : std_logic := '0';
 
   -- signals for routing between data_a, constant, one64
   signal wire_tmp64 : std_logic_vector(BRAM_DW-1 downto 0);
@@ -81,7 +81,7 @@ architecture beh of mtrx_mov is
   
 begin
   
-  -- switch iterator between transpose and eye
+  -- switch iterator between transpose and dia
   transpose_en <= '1' when (op_i = MOV_OP_TRN) else '0';
   
   -- select data input for operation
@@ -89,8 +89,8 @@ begin
   wire_tmp64 <= bram_dat_a_i when (op_i = MOV_OP_TRN or op_i = MOV_OP_CPY) else constant_i;
   
   -- connect one64 constant to data input 
-  -- when eye strobe high
-  op_dat <= ONE64 when (eye_stb = '1' and op_i = MOV_OP_DIA) else wire_tmp64;
+  -- when dia strobe high
+  op_dat <= ONE64 when (dia_stb = '1' and op_i = MOV_OP_DIA) else wire_tmp64;
   
   --
   -- Iterator for input and output addresses
@@ -118,7 +118,7 @@ begin
     ce_a_i    => ce_a_iter,
     ce_c_i    => ce_c_iter,
 
-    eye_stb_o => eye_stb
+    dia_stb_o => dia_stb
   );
   
   
@@ -149,7 +149,7 @@ begin
         case state is
         when IDLE =>
           if (p_size_i > 0) -- error
-          or ((m_size_i /= n_size_i) and (op_i = MOV_OP_DIA)) -- only square matices allowed for EYE
+          or ((m_size_i /= n_size_i) and (op_i = MOV_OP_DIA)) -- only square matices allowed for DIA
           then
             err_o <= '1';
             state <= HALT;
