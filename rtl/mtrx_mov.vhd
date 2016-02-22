@@ -71,8 +71,9 @@ architecture beh of mtrx_mov is
   -- input data for operators
   signal op_dat : std_logic_vector(BRAM_DW-1 downto 0);
 
-  constant ONE64 : std_logic_vector(BRAM_DW-1 downto 0) := x"3FF0000000000000"; -- 1.000000
-
+  --constant ONE64 : std_logic_vector(BRAM_DW-1 downto 0) := x"3FF0000000000000"; -- 1.000000
+  constant ZERO64 : std_logic_vector(BRAM_DW-1 downto 0) := (others => '0');
+  
   -- state machine
   type state_t is (IDLE, ADR_PRELOAD, DAT_PRELOAD, ACTIVE, FLUSH, HALT);
   signal state : state_t := IDLE;
@@ -83,14 +84,12 @@ begin
   
   -- switch iterator between transpose and dia
   transpose_en <= '1' when (op_i = MOV_OP_TRN) else '0';
-  
-  -- select data input for operation
-  -- double BRAM must be connected only to TRN or CPY
+
+  -- BRAM input must be connected only to TRN or CPY
   wire_tmp64 <= bram_dat_a_i when (op_i = MOV_OP_TRN or op_i = MOV_OP_CPY) else constant_i;
   
-  -- connect one64 constant to data input 
-  -- when dia strobe high
-  op_dat <= ONE64 when (dia_stb = '1' and op_i = MOV_OP_DIA) else wire_tmp64;
+  -- connect constant_i to data input when dia strobe high connect to zero otherwise
+  op_dat <= ZERO64 when (dia_stb = '0' and op_i = MOV_OP_DIA) else wire_tmp64;
   
   --
   -- Iterator for input and output addresses
