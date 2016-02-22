@@ -91,6 +91,9 @@ begin
   -- connect constant_i to data input when dia strobe high connect to zero otherwise
   op_dat <= ZERO64 when (dia_stb = '0' and op_i = MOV_OP_DIA) else wire_tmp64;
   
+  -- design does not routes without this obviously reduntan assigning
+  bram_dat_c_o <= op_dat;
+  
   --
   -- Iterator for input and output addresses
   --
@@ -119,12 +122,6 @@ begin
 
     dia_stb_o => dia_stb
   );
-  
-  
-  -- connect BRAM signals
-  --bram_we_o    <= result_we;
-  bram_dat_c_o <= op_dat;--result_buf;
-  
   
   --
   -- Main state machine
