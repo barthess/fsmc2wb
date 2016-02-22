@@ -71,9 +71,9 @@ architecture beh of mtrx_mov is
   -- input data for operators
   signal op_dat : std_logic_vector(BRAM_DW-1 downto 0);
 
-  --constant ONE64 : std_logic_vector(BRAM_DW-1 downto 0) := x"3FF0000000000000"; -- 1.000000
+  constant ONE64 : std_logic_vector(BRAM_DW-1 downto 0) := x"3FF0000000000000"; -- 1.000000
   constant ZERO64 : std_logic_vector(BRAM_DW-1 downto 0) := (others => '0');
-  
+
   -- state machine
   type state_t is (IDLE, ADR_PRELOAD, DAT_PRELOAD, ACTIVE, FLUSH, HALT);
   signal state : state_t := IDLE;
@@ -88,12 +88,31 @@ begin
   -- BRAM input must be connected only to TRN or CPY
   wire_tmp64 <= bram_dat_a_i when (op_i = MOV_OP_TRN or op_i = MOV_OP_CPY) else constant_i;
   
-  -- connect constant_i to data input when dia strobe high connect to zero otherwise
+  -- connect one64 constant to data input 
+  -- when dia strobe high
+  --op_dat <= ONE64 when (dia_stb = '1' and op_i = MOV_OP_DIA) else wire_tmp64;
   op_dat <= ZERO64 when (dia_stb = '0' and op_i = MOV_OP_DIA) else wire_tmp64;
-  
-  -- design does not routes without this obviously reduntan assigning
-  bram_dat_c_o <= op_dat;
-  
+
+
+
+--  dat_a_router : process(op_i, dia_stb, bram_dat_a_i, constant_i)
+--  begin
+--    case op_i is
+--    when MOV_OP_DIA =>
+--      if (dia_stb = '1') then
+--        op_dat <= constant_i;
+--      else
+--        op_dat <= ZERO64;
+--      end if;
+--    when MOV_OP_SET =>
+--      op_dat <= constant_i;
+--    when others =>
+--      op_dat <= bram_dat_a_i;
+--    end case;
+--  end process;
+
+
+
   --
   -- Iterator for input and output addresses
   --
