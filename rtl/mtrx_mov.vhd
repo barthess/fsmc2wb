@@ -85,33 +85,41 @@ begin
   -- switch iterator between transpose and dia
   transpose_en <= '1' when (op_i = MOV_OP_TRN) else '0';
 
-  -- BRAM input must be connected only to TRN or CPY
-  wire_tmp64 <= bram_dat_a_i when (op_i = MOV_OP_TRN or op_i = MOV_OP_CPY) else constant_i;
-  
-  -- connect one64 constant to data input 
-  -- when dia strobe high
-  --op_dat <= ONE64 when (dia_stb = '1' and op_i = MOV_OP_DIA) else wire_tmp64;
-  op_dat <= ZERO64 when (dia_stb = '0' and op_i = MOV_OP_DIA) else wire_tmp64;
+  bram_dat_c_o <= op_dat;
 
-
-
---  dat_a_router : process(op_i, dia_stb, bram_dat_a_i, constant_i)
+--  dat_a_router : process(clk_i)
 --  begin
---    case op_i is
---    when MOV_OP_DIA =>
---      if (dia_stb = '1') then
+--    if rising_edge(clk_i) then
+--      case op_i is
+--      when MOV_OP_DIA =>
+--        if (dia_stb = '1') then
+--          op_dat <= constant_i;
+--        else
+--          op_dat <= ZERO64;
+--        end if;
+--      when MOV_OP_SET =>
 --        op_dat <= constant_i;
---      else
---        op_dat <= ZERO64;
---      end if;
---    when MOV_OP_SET =>
---      op_dat <= constant_i;
---    when others =>
---      op_dat <= bram_dat_a_i;
---    end case;
+--      when others => 
+--        op_dat <= bram_dat_a_i;
+--      end case;
+--    end if; --clk
 --  end process;
 
-
+  dat_a_router : process(op_i, dia_stb, bram_dat_a_i, constant_i)
+  begin
+    case op_i is
+    when MOV_OP_DIA =>
+      if (dia_stb = '1') then
+        op_dat <= constant_i;
+      else
+        op_dat <= ZERO64;
+      end if;
+    when MOV_OP_SET =>
+      op_dat <= constant_i;
+    when others => 
+      op_dat <= bram_dat_a_i;
+    end case;
+  end process;
 
   --
   -- Iterator for input and output addresses
