@@ -134,7 +134,7 @@ begin
 
   wb_pwm_1 : entity work.wb_pwm
     generic map (
-      PWM_CHANNELS    => 16,
+      PWM_CHANNELS    => 16,            -- plus 3 for odometer
       PWM_TX_INTERVAL => 512)           -- clk_gtp_tx cycles
     port map (
       rst          => rst,

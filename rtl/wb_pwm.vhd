@@ -34,11 +34,12 @@ end entity wb_pwm;
 
 architecture beh of wb_pwm is
 
-  type t_pwm_reg is array (0 to PWM_CHANNELS-1) of std_logic_vector(15 downto 0);
-  signal pwm_reg_tx_wb  : t_pwm_reg;    -- registers for sync between wishbone
-  signal pwm_reg_tx_gtp : t_pwm_reg;    -- and gtp clock domains, they contain
-  signal pwm_reg_rx_wb  : t_pwm_reg;    -- 16 pwm values
-  signal pwm_reg_rx_gtp : t_pwm_reg;
+  type t_pwm_reg_tx is array (0 to PWM_CHANNELS-1) of std_logic_vector(15 downto 0);
+  type t_pwm_reg_rx is array (0 to PWM_CHANNELS+2) of std_logic_vector(15 downto 0);
+  signal pwm_reg_tx_wb  : t_pwm_reg_tx;  -- registers for sync between wishbone
+  signal pwm_reg_tx_gtp : t_pwm_reg_tx;  -- and gtp clock domains, they contain
+  signal pwm_reg_rx_wb  : t_pwm_reg_rx;  -- 16 pwm values (+3 odometer for rx)
+  signal pwm_reg_rx_gtp : t_pwm_reg_rx;
 
   type t_pwm_trx_state is (idle, trx, pause);
   -- Pause state is needed because GTP tx interface is 8-bit wide
@@ -47,7 +48,7 @@ architecture beh of wb_pwm is
   signal pwm_tx_state : t_pwm_trx_state;
   signal pwm_rx_state : t_pwm_trx_state;
   signal pwm_tx_cnt   : integer range 0 to PWM_TX_INTERVAL-1;
-  signal pwm_rx_cnt   : integer range 0 to PWM_CHANNELS-1;
+  signal pwm_rx_cnt   : integer range 0 to PWM_CHANNELS+2;
 
 begin
 
@@ -61,15 +62,31 @@ begin
         dat_o         <= (others => '0');
         pwm_reg_tx_wb <= (others => (others => '0'));
       else
-        pwm_reg_rx_wb <= pwm_reg_rx_gtp;      -- sync
+        pwm_reg_rx_wb <= pwm_reg_rx_gtp;                    -- sync
         addr_int      := to_integer(unsigned(adr_i));
-        if (sel_i = '1') then
-          if addr_int <= PWM_CHANNELS-1 then  -- address range check
-            if we_i = '1' then
-              pwm_reg_tx_wb(addr_int) <= dat_i;
-            else
-              dat_o <= pwm_reg_rx_wb(addr_int);
-            end if;
+        if (sel_i = '1' and stb_i = '1') then
+          -- Address map:
+          -- 0:15  pwm tx
+          -- 16:31 pwm rx
+          -- 32    speed
+          -- 33    ---
+          -- 34:35 odometer
+          if (we_i = '1' and addr_int <= PWM_CHANNELS-1) then
+            -- write
+            pwm_reg_tx_wb(addr_int) <= dat_i;
+            ack_o                   <= '1';
+            err_o                   <= '0';
+          elsif (we_i = '0' and addr_int >= PWM_CHANNELS and addr_int <= PWM_CHANNELS*2+3) then
+            -- read
+            case addr_int is
+              when PWM_CHANNELS to PWM_CHANNELS*2 =>        -- PWM_RX or speed
+                dat_o <= pwm_reg_rx_wb(addr_int-PWM_CHANNELS);
+              when PWM_CHANNELS*2+1 =>                      -- empty
+                dat_o <= (others => '0');
+              when PWM_CHANNELS*2+2 to PWM_CHANNELS*2+3 =>  -- odometer
+                dat_o <= pwm_reg_rx_wb(addr_int-PWM_CHANNELS-1);
+              when others => null;
+            end case;
             ack_o <= '1';
             err_o <= '0';
           else
@@ -140,7 +157,7 @@ begin
           when trx =>
             pwm_rx_state <= pause;
           when pause =>
-            if pwm_rx_cnt = PWM_CHANNELS-1 then
+            if pwm_rx_cnt = PWM_CHANNELS+2 then
               pwm_rx_state <= idle;
             else
               pwm_rx_state                   <= trx;
