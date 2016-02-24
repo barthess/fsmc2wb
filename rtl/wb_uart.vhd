@@ -59,7 +59,7 @@ begin
   uart_di <= dat_i(7 downto 0);
 
   -- asynchronous generation of flags and signals for uart
-  process (sel_i, we_i, adr_i) is
+  process (sel_i, stb_i, we_i, adr_i, dat_i) is
   begin
     -- default values
     uart_cs    <= (others => '0');
