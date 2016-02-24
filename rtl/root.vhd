@@ -104,10 +104,10 @@ entity AA_root is
     STM_IO_GNSS_SELECT : in std_logic_vector (1 downto 0);
     
     -- STM32 UART port for MOD telemetry
-    MNU_TX_MSI_RX : out std_logic;
-    MNU_RX_MSI_TX : in  std_logic;
-    MNU_TX_STUB   : out std_logic;
-    MNU_RX_STUB   : in  std_logic
+    MNU_TX_MSI_RX : in  std_logic;
+    MNU_RX_MSI_TX : out std_logic;
+    MODTELEM_TX_MNU : in std_logic;     -- MOD TX
+    MODTELEM_RX_MNU : out std_logic     -- MOD RX
 	);
 end AA_root;
 
@@ -527,9 +527,9 @@ begin
     ubx_nrst  => UBLOX_NRST
   );
 
-  -- connect MOD telemetry
-  MNU_TX_MSI_RX <= MNU_RX_STUB;
-  MNU_TX_STUB   <= MNU_RX_MSI_TX;
+        -- connect MOD telemetry
+        MODTELEM_RX_MNU <= MNU_TX_MSI_RX;
+        MNU_RX_MSI_TX <= MODTELEM_TX_MNU;
 
   --
 	-- raize ready flag for STM32
