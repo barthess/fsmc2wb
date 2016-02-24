@@ -51,13 +51,15 @@ entity AA_root is
     FSMC_NWE : in std_logic;
     FSMC_NCE : in std_logic;
 
-    STM_IO_MUL_RDY_OUT : out std_logic;
+    STM_IO_MATH_RDY_OUT : out std_logic;
+    STM_IO_MATH_RST_IN : in std_logic;
     STM_IO_WB_ERR_OUT : out std_logic;
     STM_IO_WB_ACK_OUT : out std_logic;
     STM_IO_BRAM_AUTO_FILL : in std_logic;
     STM_IO_BRAM_DBG_OUT : out std_logic;
     STM_IO_FPGA_RDY : out std_logic;
-
+    STM_IO_MMU_ERR_OUT : out std_logic;
+    
     LED_LINE : out std_logic_vector (5 downto 0);
 
     DEV_NULL_BANK1 : out std_logic; -- warning suppressor
@@ -161,9 +163,9 @@ signal wb_uart_dat_i : std_logic_vector(FSMC_DW-1 downto 0);
 signal wb_uart_dat_o : std_logic_vector(FSMC_DW-1 downto 0);
 
 -- clock wires
-signal clk_216mhz : std_logic;
-signal clk_162mhz : std_logic;
-signal clk_108mhz : std_logic;
+signal clk_200mhz : std_logic;
+signal clk_150mhz : std_logic;
+signal clk_100mhz : std_logic;
 signal clk_locked : std_logic;
 signal clk_wb     : std_logic;
 signal clk_mul    : std_logic;
@@ -175,13 +177,13 @@ begin
   --
 	clk_src : entity work.clk_src port map (
 		CLK_IN1  => CLK_IN_27MHZ,
-  	CLK_OUT1 => clk_216mhz,
-		CLK_OUT2 => clk_162mhz,
-		CLK_OUT3 => clk_108mhz,
+  	CLK_OUT1 => clk_200mhz,
+		CLK_OUT2 => clk_150mhz,
+		CLK_OUT3 => clk_100mhz,
 		LOCKED   => clk_locked
 	);
-  clk_wb  <= clk_108mhz;
-  clk_mul <= clk_108mhz;
+  clk_wb  <= clk_100mhz;
+  clk_mul <= clk_100mhz;
 
   --
   -- connect stubs to unused wishbone slots
@@ -277,7 +279,7 @@ begin
     port map (
       clk_i => clk_wb,
       external_err_o => STM_IO_WB_ERR_OUT,
-      external_mmu_err_o => open,
+      external_mmu_err_o => STM_IO_MMU_ERR_OUT,
       external_ack_o => STM_IO_WB_ACK_OUT,
       
       A   => FSMC_A,
@@ -436,8 +438,9 @@ begin
       WB_DW => FSMC_DW
     )
     port map (
-      rdy_o => STM_IO_MUL_RDY_OUT,
-      
+      rdy_o => STM_IO_MATH_RDY_OUT,
+      rst_i => STM_IO_MATH_RST_IN,
+
       clk_wb_i  => (others => clk_wb),
       clk_mul_i => clk_mul,
       
@@ -450,7 +453,7 @@ begin
       dat_o => wire_mul2wb_dat_o,
       dat_i => wire_mul2wb_dat_i
     );
-  --STM_IO_MUL_RDY_OUT <= '0';
+  --STM_IO_MATH_RDY_OUT <= '0';
   
   --
 	-- raize ready flag for STM32

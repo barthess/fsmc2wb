@@ -53,10 +53,6 @@ ARCHITECTURE behavior OF mtrx_math_tb IS
   signal ack_wb_o : std_logic_vector(8 downto 0);
   signal dat_wb_o : std_logic_vector(143 downto 0);
 
-  -- Clock period definitions
-  constant clk_mul_i_period : time := 1 ns;
-  constant clk_wb_i_period  : time := 1 ns;
-
   -- slices for convenience
   signal dat_i : std_logic_vector(15 downto 0) := (others => '0');
   signal dat_o : std_logic_vector(15 downto 0) := (others => '0');
@@ -68,8 +64,12 @@ ARCHITECTURE behavior OF mtrx_math_tb IS
   signal rdy_pattern : std_logic := '0';
   signal ce_pattern : std_logic := '0';
 
-  type state_t is (IDLE, SIZES1, SIZES2, OP_N, ACTIVE, HALT);
-  signal state : state_t := IDLE;
+  type state_t is (SIZES_1, SIZES_2, OP_N_1, OP_N_2, ACTIVE_1, ACTIVE_2, HALT);
+  signal state : state_t := SIZES_1;
+
+  -- Clock period definitions
+  constant clk_mul_i_period : time := 1 ns;
+  constant clk_wb_i_period  : time := 2 ns;
   
 BEGIN
 
@@ -128,45 +128,10 @@ BEGIN
   
 
 
-  -- Fill brams with recognizable patterns
---  watermark_proc : process(clk_wb_i(8))
---    variable cnt : std_logic_vector(7 downto 0) := (others => '0');
---    variable tmp : std_logic_vector(2 downto 0);
---  begin
---    if rising_edge(clk_wb_i(8)) then
---      if (ce_pattern = '1') then
---        if (cnt /= "11111111") then
---          rdy_pattern <= '0';
---          sel_wb_i(7 downto 0) <= (others => '1');
---          stb_wb_i(7 downto 0) <= (others => '1');
---          we_wb_i(7 downto 0)  <= (others => '1');
---          
---          for n in 0 to 7 loop
---            tmp := std_logic_vector(to_unsigned(n, 3));
---            dat_wb_i((n+1)*16-1 downto n*16) <= tmp & "00000" & cnt;
---            adr_wb_i((n+1)*16-1 downto n*16) <= "00000000" & cnt;
---          end loop;
---
---          cnt := cnt + 1;
---        else
---          rdy_pattern <= '1';
---          sel_wb_i(7 downto 0) <= (others => '0');
---          stb_wb_i(7 downto 0) <= (others => '0');
---          we_wb_i(7 downto 0)  <= (others => '0');
---        end if;
---      else
---        sel_wb_i(7 downto 0) <= (others => '0');
---        stb_wb_i(7 downto 0) <= (others => '0');
---        we_wb_i(7 downto 0)  <= (others => '0');
---        rdy_pattern <= '0';
---      end if;
---    end if; -- clk
---  end process;
-
-
 
   -- Stimulus process
-  stim_proc: process(clk_wb_i(8))
+  stim1_proc: process(clk_wb_i(8))
+    variable cnt : integer := 10;
     variable m,p,n : std_logic_vector(4 downto 0) := "00010";
   begin
     if rising_edge(clk_wb_i(8)) then
@@ -176,41 +141,71 @@ BEGIN
         stb_i <= '0';
         sel_i <= '0';
         we_i  <= '0';
-        state <= IDLE;
+        cnt := 10;
+        state <= SIZES_1;
         rdy_pattern <= '1';
       else
         case state is
-        when IDLE =>
-          ce_pattern<= '1';
-          if rdy_pattern = '1' then
-            ce_pattern <= '0';
-            state <= SIZES1;
-          end if;
-          
-        when SIZES1 =>
-          state <= SIZES2;
-          
-        when SIZES2 =>
-          --dat_i <= '0' & n & p & m;
-          dat_i <= '0' & n & "00000" & m;
+
+        when SIZES_1 =>
+          m := "00010";
+          p := "00000";
+          n := "00010";
+          dat_i <= '0' & n & p & m;
           adr_i <= x"0001";
           stb_i <= '1';
           sel_i <= '1';
           we_i  <= '1';
-          state <= OP_N;
+          state <= OP_N_1;
 
-        when OP_N =>
-          dat_i <= '1' & "00" & "0010" & "010" & "000" & "000";
+        when OP_N_1 =>
+          dat_i <= '1' & "00" & "0101" & "010" & "001" & "000";
           adr_i <= x"0000";
-          state <= ACTIVE;
+          state <= ACTIVE_1;
         
-        when ACTIVE =>
+        when ACTIVE_1 =>
           stb_i <= '0';
           sel_i <= '0';
           we_i  <= '0';
-          if rdy_o = '1' then
-            state <= HALT;
+          if cnt > 0 then
+            cnt := cnt - 1;
+          else
+            if rdy_o = '1' then
+              state <= SIZES_2;
+            end if;
           end if;
+
+          
+        when SIZES_2 =>
+          cnt := 10;
+          m := "00010";
+          p := "00000";
+          n := "00001";
+          dat_i <= '0' & n & p & m;
+          --dat_i <= '0' & n & "00000" & m;
+          adr_i <= x"0001";
+          stb_i <= '1';
+          sel_i <= '1';
+          we_i  <= '1';
+          state <= OP_N_2;
+
+        when OP_N =>
+          dat_i <= '1' & "00" & "1000" & "010" & "001" & "000";
+          adr_i <= x"0000";
+          state <= ACTIVE_2;
+        
+        when ACTIVE_2 =>
+          stb_i <= '0';
+          sel_i <= '0';
+          we_i  <= '0';
+          if cnt > 0 then
+            cnt := cnt - 1;
+          else
+            if rdy_o = '1' then
+              state <= HALT;
+            end if;
+          end if;
+
         
         when HALT =>
           state <= HALT;

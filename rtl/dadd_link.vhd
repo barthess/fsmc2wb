@@ -56,6 +56,9 @@ architecture Behavioral of dadd_link is
   signal b_buf  : std_logic_vector(63 downto 0) := (others => '0');
   signal sum_nd : std_logic := '0';
   
+  signal rst_buf : std_logic := '1'; 
+  signal cnt_buf : std_logic_vector(WIDTH-1 downto 0);
+  
   signal   state  : std_logic := '0';
   constant LOAD_A : std_logic := '0';
   constant LOAD_B : std_logic := '1';
@@ -74,14 +77,42 @@ begin
     );
 
 
+
+
+  rst_delay : entity work.delay
+  generic map (
+    LAT => 1,
+    WIDTH => 1,
+    default => '1'
+  )
+  port map (
+    clk   => clk_i,
+    ce    => '1',
+    di(0) => rst_i,
+    do(0) => rst_buf
+  );
+
+  cnt_delay : entity work.delay
+  generic map (
+    LAT => 1,
+    WIDTH => WIDTH,
+    default => '1'
+  )
+  port map (
+    clk   => clk_i,
+    ce    => '1',
+    di    => cnt_i,
+    do    => cnt_buf
+  );
+
   state_switcher : process(clk_i)
     variable cnt_latch : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
   begin
     if rising_edge(clk_i) then
-      if rst_i = '1' then
+      if rst_buf = '1' then
         state <= LOAD_A;
-        cnt   <= cnt_i;
-        cnt_latch := cnt_i;
+        cnt   <= cnt_buf;
+        cnt_latch := cnt_buf;
       else
         if (nd_i = '1') then
           if (cnt = ZERO) then
@@ -100,7 +131,7 @@ begin
   nd_tracker : process(clk_i)
   begin
     if rising_edge(clk_i) then
-      if rst_i = '1' then
+      if rst_buf = '1' then
         sum_nd <= '0';
       else
         if nd_i = '1' and (cnt = ZERO or state = LOAD_B) then
@@ -115,7 +146,7 @@ begin
   data_buffering : process(clk_i)
   begin
     if rising_edge(clk_i) then
-      if rst_i = '0' then
+      if rst_buf = '0' then
         if (nd_i = '1') then
           if (state = LOAD_A) then
             a_buf <= dat_i;

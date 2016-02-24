@@ -1,6 +1,5 @@
 _ngo/
 _xmsgs/
-iseconfig/
 isim/
 netgen/
 planAhead_run*/
@@ -22,6 +21,7 @@ sch2HdlBatchFile
 *.en
 *.exe
 *.gise
+*.grf
 *.html
 *.ini
 *.jhd
@@ -37,6 +37,7 @@ sch2HdlBatchFile
 *.mcs
 *.mrp
 *.origin
+*.orig
 *.pad
 *.par
 *.pcf
@@ -65,6 +66,7 @@ sch2HdlBatchFile
 *.xmsgs
 *.xpi
 *.xrpt
+*.xreport
 *.xsl
 *.xst
 *.xwbt

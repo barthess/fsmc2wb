@@ -93,8 +93,8 @@ BEGIN
    begin		
       -- hold reset state for 100 ns.
       wait for 100 ns;	
-      m_i <= "00000";
-      n_i <= "00000";
+      m_i <= "00010";
+      n_i <= "00010";
       stim_ce <= '1';
       wait;
    end process;

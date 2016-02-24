@@ -14,7 +14,7 @@ use IEEE.NUMERIC_STD.ALL;
 --
 --
 --
-entity mtrx_iter_eye is
+entity mtrx_iter_dia is
   Generic (
     MTRX_AW : positive := 5 -- 2**MTRX_AW = max matrix index
   );
@@ -27,18 +27,18 @@ entity mtrx_iter_eye is
     m_i    : in  std_logic_vector(MTRX_AW-1 downto 0); -- rows
     n_i    : in  std_logic_vector(MTRX_AW-1 downto 0); -- columns
     end_o  : out std_logic := '0'; -- active high 1 clock when last valid data presents on bus
-    eye_o  : out std_logic := '0'; -- eye element strobe
+    dia_o  : out std_logic := '0'; -- eye element strobe
     dv_o   : out std_logic := '0'; -- data valid (sitable for BRAM CE)
     adr_o  : out std_logic_vector(2*MTRX_AW-1 downto 0)
   );
-end mtrx_iter_eye;
+end mtrx_iter_dia;
 
 
 -----------------------------------------------------------------------------
 -- Sequential iterator with eye signal
 -- WARNING: Eye signal works correctly ONLY with square matrices
 --
-architecture eye of mtrx_iter_eye is
+architecture dia of mtrx_iter_dia is
   
   signal m, n, i, j : natural range 0 to 2**MTRX_AW-1   := 0;
   signal adr        : natural range 0 to 2**(2*MTRX_AW)-1 := 0;
@@ -56,7 +56,7 @@ begin
   adr_o <= std_logic_vector(to_unsigned(adr, 2*MTRX_AW));
   end_o <= '1' when (rst_i = '0' and ce_i = '1' and i = m and j = n) else '0';
   dv_o  <= '1' when (rst_i = '0' and ce_i = '1' and state /= HALT) else '0';
-  eye_o <= '1' when (rst_i = '0' and ce_i = '1' and comparator = adr) else '0';
+  dia_o <= '1' when (rst_i = '0' and ce_i = '1' and comparator = adr) else '0';
 
   main : process(clk_i)
   begin
@@ -92,6 +92,6 @@ begin
   end process;
 
 
-end eye;
+end dia;
 
 
