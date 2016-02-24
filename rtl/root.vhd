@@ -78,11 +78,36 @@ entity AA_root is
     CSDA : inout std_logic;
     CSCL : inout std_logic;
 
-    -- MCU UART ports (named relative to MCU)
-    UART6_TX  : in  std_logic;
-    UART6_RX  : out std_logic;
-    UART6_RTS : in  std_logic;
-    UART6_CTS : out std_logic
+    -- STM32 UART ports for modem (named relative to MCU)
+    STM_UART6_TX  : in  std_logic;
+    STM_UART6_RX  : out std_logic;
+    STM_UART6_CTS : out std_logic;
+    STM_UART6_RTS : in  std_logic;
+    XBEE_TX       : in  std_logic;
+    XBEE_RX       : out std_logic;
+    XBEE_CTS      : out std_logic;
+    XBEE_RTS      : in  std_logic;
+    STM_IO_MODEM_SELECT : in std_logic;
+
+    -- STM32 UART ports for GNSS receivers (named relative to MCU)
+    STM_UART2_RX  : out std_logic;
+    STM_UART2_TX  : in  std_logic;
+    Navi_RX	      : in  std_logic;
+    Navi_TX	      : out std_logic;
+    NaviNMEA_RX   : in  std_logic;
+    NaviNMEA_TX   : out std_logic;
+    UBLOX_RX      : out std_logic;
+    UBLOX_TX      : in  std_logic;
+    UBLOX_NRST    : out std_logic;
+    MOD_RX1	      : out std_logic;
+    MOD_TX1	      : in  std_logic;
+    STM_IO_GNSS_SELECT : in std_logic_vector (1 downto 0);
+    
+    -- STM32 UART port for MOD telemetry
+    MNU_TX_MSI_RX : out std_logic;
+    MNU_RX_MSI_TX : in  std_logic;
+    MNU_TX_STUB   : out std_logic;
+    MNU_RX_STUB   : in  std_logic
 	);
 end AA_root;
 
@@ -162,6 +187,12 @@ signal wb_uart_adr   : std_logic_vector(WB_AW-1 downto 0);
 signal wb_uart_dat_i : std_logic_vector(FSMC_DW-1 downto 0);
 signal wb_uart_dat_o : std_logic_vector(FSMC_DW-1 downto 0);
 
+-- wires between modem router and GTP transceiver    
+signal mors_uart_tx  : std_logic;
+signal mors_uart_rx  : std_logic;
+signal mors_uart_rts : std_logic;
+signal mors_uart_cts : std_logic;
+
 -- clock wires
 signal clk_200mhz : std_logic;
 signal clk_150mhz : std_logic;
@@ -183,7 +214,7 @@ begin
 		LOCKED   => clk_locked
 	);
   clk_wb  <= clk_100mhz;
-  clk_mul <= clk_100mhz;
+  clk_mul <= clk_150mhz;
 
   --
   -- connect stubs to unused wishbone slots
@@ -221,10 +252,10 @@ begin
         RXP_IN          => RXP_IN,
         TXN_OUT         => TXN_OUT,
         TXP_OUT         => TXP_OUT,
-        UART6_TX        => UART6_TX,
-        UART6_RX        => UART6_RX,
-        UART6_RTS       => UART6_RTS,
-        UART6_CTS       => UART6_CTS,
+        UART6_TX        => mors_uart_rx,
+        UART6_RX        => mors_uart_tx,
+        UART6_RTS       => mors_uart_cts,
+        UART6_CTS       => mors_uart_rts,
         MODTELEM_RX_MNU => open,
         pwm_clk_i       => clk_wb,
         pwm_sel_i       => wb_pwm_sel,
@@ -453,8 +484,53 @@ begin
       dat_o => wire_mul2wb_dat_o,
       dat_i => wire_mul2wb_dat_i
     );
-  --STM_IO_MATH_RDY_OUT <= '0';
-  
+    
+    
+  -- connect debug modem
+  modem_router : entity work.modem_router 
+  port map (
+    STM_DI  => STM_UART6_TX,
+    STM_DO  => STM_UART6_RX,
+    STM_CSI => STM_UART6_RTS,
+    STM_CSO => STM_UART6_CTS,
+    
+    DI(0)  => XBEE_TX,
+    DI(1)  => mors_uart_tx,
+    DO(0)  => XBEE_RX,
+    DO(1)  => mors_uart_rx,
+    CSI(0) => XBEE_RTS,
+    CSI(1) => mors_uart_rts,
+    CSO(0) => XBEE_CTS,
+    CSO(1) => mors_uart_cts,
+    
+    sel => STM_IO_MODEM_SELECT
+  );
+
+  -- connect GNSS router
+  gnss_router : entity work.gnss_router 
+  port map (
+    sel => STM_IO_GNSS_SELECT,
+
+    from_gnss(0) => Navi_RX,
+    from_gnss(1) => NaviNMEA_RX,
+    from_gnss(2) => UBLOX_TX,
+    from_gnss(3) => MOD_TX1,
+
+    to_gnss(0) => Navi_TX,
+    to_gnss(1) => NaviNMEA_TX,
+    to_gnss(2) => UBLOX_RX,
+    to_gnss(3) => MOD_RX1,
+
+    to_stm    => STM_UART2_RX,
+    from_stm  => STM_UART2_TX,
+
+    ubx_nrst  => UBLOX_NRST
+  );
+
+  -- connect MOD telemetry
+  MNU_TX_MSI_RX <= MNU_RX_STUB;
+  MNU_TX_STUB   <= MNU_RX_MSI_TX;
+
   --
 	-- raize ready flag for STM32
   --
