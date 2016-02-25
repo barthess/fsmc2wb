@@ -223,22 +223,22 @@ begin
   wb_stub_gen : for n in 0 to WBSTUBS-1 generate 
   begin
     wb_stub : entity work.wb_stub
-      generic map (
-        AW => WB_AW,
-        DW => FSMC_DW,
-        DAT_AW => 3
-      )
-      port map (
-        clk_i => clk_wb,
-        sel_i => wb_stub_sel(n),
-        stb_i => wb_stub_stb(n),
-        we_i  => wb_stub_we(n),
-        err_o => wb_stub_err(n),
-        ack_o => wb_stub_ack(n),
-        adr_i => wb_stub_adr  ((n+1)*WB_AW-1   downto n*WB_AW),
-        dat_o => wb_stub_dat_o((n+1)*FSMC_DW-1 downto n*FSMC_DW),
-        dat_i => wb_stub_dat_i((n+1)*FSMC_DW-1 downto n*FSMC_DW)
-      );
+    generic map (
+      AW => WB_AW,
+      DW => FSMC_DW,
+      DAT_AW => 3
+    )
+    port map (
+      clk_i => clk_wb,
+      sel_i => wb_stub_sel(n),
+      stb_i => wb_stub_stb(n),
+      we_i  => wb_stub_we(n),
+      err_o => wb_stub_err(n),
+      ack_o => wb_stub_ack(n),
+      adr_i => wb_stub_adr  ((n+1)*WB_AW-1   downto n*WB_AW),
+      dat_o => wb_stub_dat_o((n+1)*FSMC_DW-1 downto n*FSMC_DW),
+      dat_i => wb_stub_dat_i((n+1)*FSMC_DW-1 downto n*FSMC_DW)
+    );
   end generate;
 
    wb_to_gtp : entity work.wb_to_gtp
