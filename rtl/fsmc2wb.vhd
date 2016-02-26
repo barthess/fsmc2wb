@@ -105,6 +105,7 @@ architecture beh of fsmc2wb is
   
   -- output data from WB to FSMC
   signal fsmc_do_wire : std_logic_vector(DW-1 downto 0);
+  signal fsmc_do_reg : std_logic_vector(DW-1 downto 0);
 
   type state_t is (IDLE, ADSET, READ1);
   signal state : state_t := IDLE;
@@ -127,8 +128,15 @@ begin
     di    => dat_i
   );
 
+  -- Special process for data lines allignment
+  do_reg_proc : process(clk_i) begin
+    if rising_edge(clk_i) then
+      fsmc_do_reg <= fsmc_do_wire;
+    end if;
+  end process;
+  
   -- error muxer from multiple wishbone slaves
-  wb2fsmc_err_muxer : entity work.muxer_reg(i)
+  wb2fsmc_err_muxer : entity work.muxer_reg(io)
   generic map (
     AW => AWSEL,
     DW => 1
@@ -141,7 +149,7 @@ begin
   );
 
   -- ACK muxer from multiple wishbone slaves
-  wb2fsmc_ack_muxer : entity work.muxer_reg(i)
+  wb2fsmc_ack_muxer : entity work.muxer_reg(io)
   generic map (
     AW => AWSEL,
     DW => 1
@@ -220,7 +228,7 @@ begin
   );
   
   -- connect 3-state data bus
-  D <= fsmc_do_wire when (NCE = '0' and NOE = '0') else (others => 'Z');
+  D <= fsmc_do_reg when (NCE = '0' and NOE = '0') else (others => 'Z');
   
   -- bus registering
   process(clk_i) begin
