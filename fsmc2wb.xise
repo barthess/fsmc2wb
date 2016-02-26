@@ -193,7 +193,7 @@
       <association xil_pn:name="PostRouteSimulation" xil_pn:seqID="0"/>
       <association xil_pn:name="PostTranslateSimulation" xil_pn:seqID="142"/>
     </file>
-    <file xil_pn:name="mnu_async.ucf" xil_pn:type="FILE_UCF">
+    <file xil_pn:name="AA_root.ucf" xil_pn:type="FILE_UCF">
       <association xil_pn:name="Implementation" xil_pn:seqID="0"/>
     </file>
     <file xil_pn:name="test/mtrx_iter_dot_tb.vhd" xil_pn:type="FILE_VHDL">
@@ -727,7 +727,7 @@
   </properties>
 
   <bindings>
-    <binding xil_pn:location="/AA_root" xil_pn:name="mnu_async.ucf"/>
+    <binding xil_pn:location="/AA_root" xil_pn:name="AA_root.ucf"/>
   </bindings>
 
   <libraries>

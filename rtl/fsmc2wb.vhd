@@ -106,6 +106,9 @@ architecture beh of fsmc2wb is
   -- output data from WB to FSMC
   signal fsmc_do_wire : std_logic_vector(DW-1 downto 0);
   signal fsmc_do_reg : std_logic_vector(DW-1 downto 0);
+  
+  attribute IOB : string;
+  attribute IOB of fsmc_do_reg : signal is "TRUE";
 
   type state_t is (IDLE, ADSET, READ1);
   signal state : state_t := IDLE;
