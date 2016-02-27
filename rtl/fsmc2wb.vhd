@@ -89,7 +89,7 @@ end fsmc2wb;
 architecture beh of fsmc2wb is
 
   signal fsmc_a_reg    : STD_LOGIC_VECTOR (AWSLAVE-1 downto 0);
-  signal fsmc_d_reg    : STD_LOGIC_VECTOR (DW-1 downto 0); 
+  signal fsmc_di_reg   : STD_LOGIC_VECTOR (DW-1 downto 0); 
   signal fsmc_nwe_reg  : STD_LOGIC_VECTOR (1 downto 0) := "11";
   signal fsmc_noe_reg  : STD_LOGIC_VECTOR (1 downto 0) := "11";
   signal fsmc_nce_reg  : STD_LOGIC := '1';
@@ -108,8 +108,13 @@ architecture beh of fsmc2wb is
   signal fsmc_do_reg : std_logic_vector(DW-1 downto 0);
   
   attribute IOB : string;
+  attribute IOB of A   : signal is "TRUE";
+  attribute IOB of NWE : signal is "TRUE";
+  attribute IOB of NOE : signal is "TRUE";
+  attribute IOB of NCE : signal is "TRUE";
   attribute IOB of fsmc_do_reg : signal is "TRUE";
-
+  attribute IOB of fsmc_di_reg : signal is "TRUE";
+  
   type state_t is (IDLE, ADSET, READ1);
   signal state : state_t := IDLE;
   
@@ -226,7 +231,7 @@ begin
   )
   port map (
     clk_i => clk_i,
-    di => fsmc_d_reg,
+    di => fsmc_di_reg,
     do => dat_o
   );
   
@@ -236,7 +241,7 @@ begin
   -- bus registering
   process(clk_i) begin
     if rising_edge(clk_i) then
-      fsmc_d_reg   <= D;
+      fsmc_di_reg  <= D;
       fsmc_a_reg   <= get_addr(A);
       slave_select <= get_sel(A);
       fsmc_nwe_reg <= fsmc_nwe_reg(0) & NWE;
