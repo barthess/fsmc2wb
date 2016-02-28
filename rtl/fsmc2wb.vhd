@@ -124,16 +124,15 @@ begin
   ------------------------------------------------------------------------------
 
   -- data muxer from multiple wishbone slaves to data bus
-  wb2fsmc_dat_muxer : entity work.muxer_reg(i)
-  generic map (
+  wb2fsmc_dat_muxer : entity work.muxer
+  generic map(
     AW => AWSEL,
     DW => DW
   )
-  port map (
-    clk_i => clk_i,
-    a     => slave_select,
-    do    => fsmc_do_wire,
-    di    => dat_i
+  port map(
+    A  => slave_select,
+    di => dat_i,
+    do => fsmc_do_wire
   );
 
   -- Special process for data lines allignment
