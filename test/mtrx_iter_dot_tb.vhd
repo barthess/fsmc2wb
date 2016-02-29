@@ -39,7 +39,7 @@ ARCHITECTURE behavior OF mtrx_iter_dot_tb IS
  
     -- Component Declaration for the Unit Under Test (UUT)
  
-    COMPONENT mtrx_iter_dot
+    COMPONENT mtrx_iter_dot_mul
     PORT(
          clk_i : IN  std_logic;
          rst_i : IN  std_logic;
@@ -49,7 +49,8 @@ ARCHITECTURE behavior OF mtrx_iter_dot_tb IS
          m_i : IN  std_logic_vector(4 downto 0);
          p_i : IN  std_logic_vector(4 downto 0);
          n_i : IN  std_logic_vector(4 downto 0);
-         tr_i : in std_logic;
+         ta_i : in std_logic;
+         tb_i : in std_logic;
          a_adr_o : OUT  std_logic_vector(9 downto 0);
          b_adr_o : OUT  std_logic_vector(9 downto 0)
         );
@@ -63,7 +64,8 @@ ARCHITECTURE behavior OF mtrx_iter_dot_tb IS
    signal m_i : std_logic_vector(4 downto 0) := (others => '0');
    signal p_i : std_logic_vector(4 downto 0) := (others => '0');
    signal n_i : std_logic_vector(4 downto 0) := (others => '0');
-   signal tr_i : std_logic := '1';
+   signal ta_i : std_logic := '0';
+   signal tb_i : std_logic := '0';
    
  	--Outputs
    signal end_o : std_logic;
@@ -80,7 +82,7 @@ ARCHITECTURE behavior OF mtrx_iter_dot_tb IS
 BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
-   uut: mtrx_iter_dot PORT MAP (
+   uut: mtrx_iter_dot_mul PORT MAP (
           clk_i => clk_i,
           rst_i => rst_i,
           ce_i => ce_i,
@@ -89,7 +91,8 @@ BEGIN
           m_i => m_i,
           p_i => p_i,
           n_i => n_i,
-          tr_i => tr_i,
+          ta_i => ta_i,
+          tb_i => tb_i,
           
           a_adr_o => a_adr_o,
           b_adr_o => b_adr_o
@@ -112,9 +115,9 @@ BEGIN
     if rising_edge(clk_i) then
       case state is
       when IDLE =>
-        m_i <= "00011";
-        p_i <= "00010";
-        n_i <= "00011";
+        m_i <= "11111";
+        p_i <= "11111";
+        n_i <= "11111";
         state <= PRELOAD;
         delay := 20;
         

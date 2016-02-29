@@ -13,7 +13,7 @@
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="13" />
+   <WVObjectSize size="16" />
    <wvobject fp_name="/mtrx_iter_dot_tb/clk_i" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">clk_i</obj_property>
       <obj_property name="ObjectShortName">clk_i</obj_property>
@@ -29,21 +29,22 @@
    <wvobject fp_name="/mtrx_iter_dot_tb/m_i" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">m_i[4:0]</obj_property>
       <obj_property name="ObjectShortName">m_i[4:0]</obj_property>
-      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/mtrx_iter_dot_tb/p_i" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">p_i[4:0]</obj_property>
       <obj_property name="ObjectShortName">p_i[4:0]</obj_property>
-      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/mtrx_iter_dot_tb/n_i" type="array" db_ref_id="1">
       <obj_property name="ElementShortName">n_i[4:0]</obj_property>
       <obj_property name="ObjectShortName">n_i[4:0]</obj_property>
-      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/mtrx_iter_dot_tb/tr_i" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">tr_i</obj_property>
-      <obj_property name="ObjectShortName">tr_i</obj_property>
+   <wvobject fp_name="/mtrx_iter_dot_tb/ta_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ta_i</obj_property>
+      <obj_property name="ObjectShortName">ta_i</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iter_dot_tb/tb_i" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">tb_i</obj_property>
+      <obj_property name="ObjectShortName">tb_i</obj_property>
    </wvobject>
    <wvobject fp_name="/mtrx_iter_dot_tb/end_o" type="logic" db_ref_id="1">
       <obj_property name="ElementShortName">end_o</obj_property>
@@ -63,12 +64,23 @@
       <obj_property name="ObjectShortName">b_adr_o[9:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
+   <wvobject fp_name="/mtrx_iter_dot_tb/uut/i" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">i[5:0]</obj_property>
+      <obj_property name="ObjectShortName">i[5:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iter_dot_tb/uut/j" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">j[5:0]</obj_property>
+      <obj_property name="ObjectShortName">j[5:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/mtrx_iter_dot_tb/uut/k" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">k[5:0]</obj_property>
+      <obj_property name="ObjectShortName">k[5:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
    <wvobject fp_name="/mtrx_iter_dot_tb/state" type="other" db_ref_id="1">
       <obj_property name="ElementShortName">state</obj_property>
       <obj_property name="ObjectShortName">state</obj_property>
-   </wvobject>
-   <wvobject fp_name="/mtrx_iter_dot_tb/clk_i_period" type="other" db_ref_id="1">
-      <obj_property name="ElementShortName">clk_i_period</obj_property>
-      <obj_property name="ObjectShortName">clk_i_period</obj_property>
    </wvobject>
 </wave_config>

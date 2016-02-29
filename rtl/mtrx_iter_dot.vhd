@@ -36,7 +36,7 @@ entity mtrx_iter_dot is
     n_i : in std_logic_vector(WIDTH-1 downto 0);
     
     -- transpose flag for B operand
-    tr_i : in std_logic;
+    tb_i : in std_logic;
     
     -- address outputs
     a_adr_o : out std_logic_vector(WIDTH*2-1 downto 0) := (others => '1');
@@ -64,7 +64,7 @@ architecture beh of mtrx_iter_dot is
   type state_t is (IDLE, ACTIVE, HALT);
   signal state : state_t := IDLE;
   
-  signal a_adr_reg, b_adr_reg, b_t_adr_reg : std_logic_vector(2*WIDTH-1 downto 0) := (others => '0');
+  signal a_adr_reg, b_adr_reg, bt_adr_reg : std_logic_vector(2*WIDTH-1 downto 0) := (others => '0');
   signal end_reg, dv_reg : std_logic := '0';
   
 begin
@@ -72,7 +72,7 @@ begin
   --
   --
   --
-  b_adr_o <= b_adr_reg when (tr_i = '0') else b_t_adr_reg;
+  b_adr_o <= b_adr_reg when (tb_i = '0') else bt_adr_reg;
   a_adr_o <= a_adr_reg;
   end_o   <= end_reg;
   dv_o    <= dv_reg;
@@ -275,7 +275,7 @@ begin
       else
         if ce_i = '1' then
           if delay = 0 then
-            b_t_adr_reg <= b_tmp;
+            bt_adr_reg <= b_tmp;
             b_tmp := b_tmp + 1;
             if (i_incr = '1') then
               b_tmp := ZERO2;
