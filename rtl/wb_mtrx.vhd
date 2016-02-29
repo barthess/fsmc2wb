@@ -102,6 +102,7 @@ architecture beh of wb_mtrx is
   signal math_mov_type : std_logic_vector (1 downto 0) := "00";
   signal math_double_constant : std_logic_vector(MUL_DW-1 downto 0);
   signal math_hw_select : std_logic_vector(1 downto 0) := "00";
+  signal math_dot_b_trn : std_logic := '0';
   signal math_m_size : std_logic_vector(4 downto 0);
   signal math_p_size : std_logic_vector(4 downto 0);
   signal math_n_size : std_logic_vector(4 downto 0);
@@ -112,6 +113,7 @@ architecture beh of wb_mtrx is
   signal crossbar_dat_b_select_wb : std_logic_vector(2 downto 0);
   signal crossbar_we_select_wb    : std_logic_vector(2 downto 0);
   signal math_hw_select_wb        : std_logic_vector(1 downto 0) := "00";
+  signal math_dot_b_trn_wb        : std_logic := '0';
   signal math_mov_type_wb         : std_logic_vector(1 downto 0) := "00";
   signal math_scale_not_mul_wb    : std_logic := '0';
   signal math_sub_not_add_wb      : std_logic := '0';
@@ -215,7 +217,8 @@ begin
     m_size_i=> math_m_size,
     p_size_i=> math_p_size,
     n_size_i=> math_n_size,
-
+    dot_tr_b_i => math_dot_b_trn,
+    
     op_mov_i => math_mov_type,
     op_mul_i => math_scale_not_mul,
     op_add_i => math_sub_not_add,
@@ -324,7 +327,8 @@ begin
           math_mov_type         <= math_mov_type_wb;
           math_scale_not_mul    <= math_scale_not_mul_wb;
           math_sub_not_add      <= math_sub_not_add_wb;
-
+          math_dot_b_trn        <= math_dot_b_trn_wb;
+          
           if data_valid_wb = '1' then
             state <= EXEC;
           end if;
@@ -374,9 +378,11 @@ begin
   control_logic : process(ctl_clk_i, rst_i)
     variable a_num, b_num, c_num : std_logic_vector(2 downto 0) := "000";
     variable dv : std_logic := '0'; -- data valid bit
+    variable tr_flag : std_logic := '0';
     variable a, b, c : integer := 0;
     variable cmd_raw : natural range 0 to 15;
     variable hw_sel_v : std_logic_vector(1 downto 0); -- same as hw_sel_i
+    constant TR_FLAG_OFFSET : integer := 13;
     constant DV_BIT : integer := 15;
   begin
     if rst_i = '1' then
@@ -408,13 +414,14 @@ begin
           b_num   := math_ctl_array(CONTROL_REG)(5  downto 3);
           c_num   := math_ctl_array(CONTROL_REG)(8  downto 6);
           cmd_raw := conv_integer(math_ctl_array(CONTROL_REG)(12 downto 9));
+          tr_flag := math_ctl_array(CONTROL_REG)(TR_FLAG_OFFSET);
           dv      := math_ctl_array(CONTROL_REG)(DV_BIT);
           
           if dv = '1' then
             math_ctl_array(CONTROL_REG)(DV_BIT) <= '0';
             wb_state <= WB_FETCH;
           end if;
-          
+
         when WB_FETCH =>
           -- select apropriate BRAMS via crossbar
           crossbar_dat_a_select_wb <= a_num;
@@ -486,7 +493,8 @@ begin
           when MATH_OP_DOT =>
             hw_sel_v := std_logic_vector(to_unsigned(MATH_HW_DOT, 2));
             math_hw_select_wb <= hw_sel_v;
-            wb_state <= WB_EXEC;   
+            math_dot_b_trn_wb <= tr_flag;
+            wb_state <= WB_EXEC;
             
           when others =>
             wb_state <= WB_IDLE;

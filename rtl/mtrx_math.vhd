@@ -36,6 +36,7 @@ Port (
   we_o    : out std_logic; -- WE for C matrix
 
   m_size_i, p_size_i, n_size_i : in std_logic_vector(MTRX_AW-1 downto 0); -- operand sizes
+  dot_tr_b_i : in std_logic;
 
   op_mov_i   : in std_logic_vector(1 downto 0); -- specify move operation
   op_mul_i   : in std_logic; -- specify Adamar multiplication or scale
@@ -419,6 +420,7 @@ begin
     m_size_i => math_m_size((MATH_HW_DOT+1)*MTRX_AW-1 downto MATH_HW_DOT*MTRX_AW),
     p_size_i => math_p_size((MATH_HW_DOT+1)*MTRX_AW-1 downto MATH_HW_DOT*MTRX_AW),
     n_size_i => math_n_size((MATH_HW_DOT+1)*MTRX_AW-1 downto MATH_HW_DOT*MTRX_AW),
+    b_tr_i   => dot_tr_b_i,
     
     -- BRAM interface
     bram_adr_a_o => math_adr_a((MATH_HW_DOT+1)*BRAM_AW-1 downto MATH_HW_DOT*BRAM_AW),

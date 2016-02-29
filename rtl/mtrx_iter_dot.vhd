@@ -35,6 +35,9 @@ entity mtrx_iter_dot is
     p_i : in std_logic_vector(WIDTH-1 downto 0);
     n_i : in std_logic_vector(WIDTH-1 downto 0);
     
+    -- transpose flag for B operand
+    tr_i : in std_logic;
+    
     -- address outputs
     a_adr_o : out std_logic_vector(WIDTH*2-1 downto 0) := (others => '1');
     b_adr_o : out std_logic_vector(WIDTH*2-1 downto 0) := (others => '1')
@@ -61,7 +64,7 @@ architecture beh of mtrx_iter_dot is
   type state_t is (IDLE, ACTIVE, HALT);
   signal state : state_t := IDLE;
   
-  signal a_adr_reg, b_adr_reg : std_logic_vector(2*WIDTH-1 downto 0) := (others => '0');
+  signal a_adr_reg, b_adr_reg, b_t_adr_reg : std_logic_vector(2*WIDTH-1 downto 0) := (others => '0');
   signal end_reg, dv_reg : std_logic := '0';
   
 begin
@@ -69,17 +72,10 @@ begin
   --
   --
   --
---  output_registering : process(clk_i) 
---  begin
---    if rising_edge(clk_i) then
---      if (rst_i = '0' and ce_i = '1') then
-        a_adr_o <= a_adr_reg;
-        b_adr_o <= b_adr_reg;
-        end_o   <= end_reg;
-        dv_o    <= dv_reg;
---      end if;
---    end if;
---  end process;
+  b_adr_o <= b_adr_reg when (tr_i = '0') else b_t_adr_reg;
+  a_adr_o <= a_adr_reg;
+  end_o   <= end_reg;
+  dv_o    <= dv_reg;
   
   --
   --
@@ -264,7 +260,34 @@ begin
     end if; -- clk
   end process;
   
-
+  --
+  --
+  --
+  b_t_generator : process(clk_i)
+    variable delay : std_logic_vector(1 downto 0) := LATENCY;
+    variable b_tmp : std_logic_vector(2*WIDTH-1 downto 0) := ZERO2;
+  begin
+    if rising_edge(clk_i) then
+      if (rst_i = '1') then
+        delay := LATENCY;
+        b_t_adr_reg <= ZERO2;
+        b_tmp := ZERO2;
+      else
+        if ce_i = '1' then
+          if delay = 0 then
+            b_t_adr_reg <= b_tmp;
+            b_tmp := b_tmp + 1;
+            if (i_incr = '1') then
+              b_tmp := ZERO2;
+            end if;
+          else
+            delay := delay - 1;
+          end if; -- delay
+        end if; -- ce
+      end if; -- rst
+    end if; -- clk
+  end process;
+  
+  
 end beh;
-
 

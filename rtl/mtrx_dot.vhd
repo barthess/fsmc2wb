@@ -35,6 +35,8 @@ Port (
   err_o  : out std_logic; -- active high 1 clock
   rdy_o  : out std_logic; -- active high 1 clock
 
+  b_tr_i : in std_logic; -- B operand is lazy transposed
+
   -- BRAM interface
   -- Note: there are no clocks for BRAMs. They are handle in higher level
   bram_adr_a_o : out std_logic_vector(2*MTRX_AW-1 downto 0);
@@ -107,9 +109,10 @@ begin
     end_o => ab_iter_end,
     dv_o  => bram_ce_ab,
     
-    m_i => mtrx_m,
-    p_i => mtrx_p,
-    n_i => mtrx_n,
+    m_i  => mtrx_m,
+    p_i  => mtrx_p,
+    n_i  => mtrx_n,
+    tr_i => b_tr_i,
     
     a_adr_o => bram_adr_a_o,
     b_adr_o => bram_adr_b_o
