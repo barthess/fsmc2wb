@@ -270,7 +270,7 @@ begin
     if rising_edge(clk_i) then
       if (rst_i = '1') then
         delay := LATENCY;
-        b_t_adr_reg <= ZERO2;
+        bt_adr_reg <= ZERO2;
         b_tmp := ZERO2;
       else
         if ce_i = '1' then

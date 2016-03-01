@@ -49,7 +49,6 @@ ARCHITECTURE behavior OF mtrx_iter_dot_tb IS
          m_i : IN  std_logic_vector(4 downto 0);
          p_i : IN  std_logic_vector(4 downto 0);
          n_i : IN  std_logic_vector(4 downto 0);
-         ta_i : in std_logic;
          tb_i : in std_logic;
          a_adr_o : OUT  std_logic_vector(9 downto 0);
          b_adr_o : OUT  std_logic_vector(9 downto 0)
@@ -64,7 +63,6 @@ ARCHITECTURE behavior OF mtrx_iter_dot_tb IS
    signal m_i : std_logic_vector(4 downto 0) := (others => '0');
    signal p_i : std_logic_vector(4 downto 0) := (others => '0');
    signal n_i : std_logic_vector(4 downto 0) := (others => '0');
-   signal ta_i : std_logic := '0';
    signal tb_i : std_logic := '0';
    
  	--Outputs
@@ -91,9 +89,8 @@ BEGIN
           m_i => m_i,
           p_i => p_i,
           n_i => n_i,
-          ta_i => ta_i,
           tb_i => tb_i,
-          
+
           a_adr_o => a_adr_o,
           b_adr_o => b_adr_o
         );
@@ -115,9 +112,9 @@ BEGIN
     if rising_edge(clk_i) then
       case state is
       when IDLE =>
-        m_i <= "11111";
-        p_i <= "11111";
-        n_i <= "11111";
+        m_i <= "00010";
+        p_i <= "00010";
+        n_i <= "00010";
         state <= PRELOAD;
         delay := 20;
         

@@ -113,7 +113,6 @@ begin
     p_i  => mtrx_p,
     n_i  => mtrx_n,
     tb_i => b_tr_i,
-    ta_i => '0',
     
     a_adr_o => bram_adr_a_o,
     b_adr_o => bram_adr_b_o

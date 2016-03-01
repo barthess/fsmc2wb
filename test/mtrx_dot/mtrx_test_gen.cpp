@@ -64,6 +64,24 @@ void matrix_multiply_fpga(size_t m, size_t p, size_t n,
 }
 
 /**
+ * @brief   matrix multiply with B lazy transposed
+ */
+void matrix_multiply_fpga_TB(size_t m, size_t p, size_t n,
+                             const double *A, const double *B, double *C) {
+  size_t i, j, k;
+  double tmp[p];
+
+  for(i=0; i<m; i++) {      //each row in A
+    for(j=0; j<n; j++) {    //each column in B
+      for(k=0; k<p; k++) {  //each element in row A & column B
+        tmp[k] = A[i*p + k] * B[j*p + k];
+      }
+      *C++ = pyramid_accumulate(tmp, p);
+    }
+  }
+}
+
+/**
  * @brief   multiply matrix A(m x p) by  B(p x n), put result in C(m x n)
  */
 template <typename T>

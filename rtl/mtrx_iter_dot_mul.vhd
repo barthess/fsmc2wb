@@ -35,9 +35,9 @@ entity mtrx_iter_dot_mul is
     p_i : in std_logic_vector(WIDTH-1 downto 0);
     n_i : in std_logic_vector(WIDTH-1 downto 0);
     
-    -- transpose flags for operands
-    ta_i : in std_logic;
+    -- transpose flags for B operand
     tb_i : in std_logic;
+    --ta_i : in std_logic;
     
     -- address outputs
     a_adr_o : out std_logic_vector(WIDTH*2-1 downto 0) := (others => '1');
@@ -51,28 +51,42 @@ end mtrx_iter_dot_mul;
 architecture beh of mtrx_iter_dot_mul is
   
   constant ZERO  : std_logic_vector(WIDTH-1 downto 0)   := (others => '0');
-  --constant ZERO  : std_logic_vector(WIDTH downto 0)   := (others => '0');
-  constant ZERO2 : std_logic_vector(2*WIDTH+1 downto 0) := (others => '0');
+  constant ZERO2 : std_logic_vector(2*WIDTH-1 downto 0) := (others => '0');
   
   signal i, j, k : std_logic_vector(WIDTH-1 downto 0);
-  signal id, jd, kd : std_logic_vector(WIDTH-1 downto 0);
+  signal id1, jd1, kd1, id2, jd2, kd2 : std_logic_vector(WIDTH-1 downto 0);
   signal m, p, n : std_logic_vector(WIDTH-1 downto 0);
   signal m1, p1, n1 : std_logic_vector(WIDTH-1 downto 0);
   signal ip1, km1, kn1, jp1 : std_logic_vector(2*WIDTH-1 downto 0);
 
   -- data valid tracker state
-  type state_t is (IDLE, ACTIVE, HALT);
+  type state_t is (IDLE, PRELOAD1, PRELOAD2, ACTIVE, HALT);
   signal state : state_t := IDLE;
   
-  signal a_adr_reg, at_adr_reg, b_adr_reg, bt_adr_reg : std_logic_vector(2*WIDTH-1 downto 0) := (others => '0');
+  signal a0,  a1,  a2,  b0,  b1,  b2  : std_logic_vector(2*WIDTH-1 downto 0) := ZERO2;
+  signal at0, at1, at2, bt0, bt1, bt2 : std_logic_vector(2*WIDTH-1 downto 0) := ZERO2;
   signal end_wire : std_logic := '0';
   signal end_reg  : std_logic := '0';
-
+  
 begin
 
-  b_adr_o <= b_adr_reg(2*WIDTH-1 downto 0) when (tb_i = '0') else bt_adr_reg(2*WIDTH-1 downto 0);
-  a_adr_o <= a_adr_reg(2*WIDTH-1 downto 0) when (ta_i = '0') else at_adr_reg(2*WIDTH-1 downto 0);
+  --a_adr_o <= a2 when (ta_i = '0') else at2;
+  --b_adr_o <= b2 when (tb_i = '0') else bt2;
+
   end_o <= end_reg;
+  
+  end_delay : entity work.delay
+  generic map (
+    LAT => 3,
+    WIDTH => 1,
+    default => '0'
+  )
+  port map (
+    clk   => clk_i,
+    ce    => ce_i,
+    di(0) => end_wire,
+    do(0) => end_reg
+  );
 
   --
   --
@@ -107,25 +121,50 @@ begin
       end if;
     end if;
   end process;
-  
+
   --
   --
   --
-  delay_proc : process(clk_i)
+  data_pipeline : process(clk_i)
   begin
     if rising_edge(clk_i) then
-      if (rst_i = '1') then
-        id <= (others => '0');
-        jd <= (others => '0');
-        kd <= (others => '0');
-      else
-        if ce_i = '1' then
-          id <= i;
-          jd <= j;
-          kd <= k;
-          end_reg <= end_wire;
-        end if; -- ce
-      end if; -- rst
+      if (rst_i = '0') and (ce_i = '1') then
+        id1 <= i;
+--        id2 <= id1;
+        jd1 <= j;
+        jd2 <= jd1;
+        kd1 <= k;
+        kd2 <= kd1;
+        
+        a0 <= i*p;
+        a1 <= a0 + id1;
+        a2 <= a1 + kd2;
+        
+        b0 <= k*n;
+        b1 <= b0 + kd1;
+        b2 <= b1 + jd2;
+
+--        at0 <= k*m;
+--        at1 <= at0 + kd1;
+--        at2 <= at1 + id2;
+
+        bt0 <= j*p;
+        bt1 <= bt0 + jd1;
+        bt2 <= bt1 + kd2;
+
+        a_adr_o <= a2;
+--        if (ta_i = '0') then
+--          a_adr_o <= a2; 
+--        else 
+--          a_adr_o <= at2;
+--        end if;
+        if (tb_i = '0') then
+          b_adr_o <= b2;
+        else 
+          b_adr_o <= bt2;
+        end if;
+
+      end if; -- rst & ce
     end if; -- clk
   end process;
 
@@ -136,41 +175,30 @@ begin
   begin
     if rising_edge(clk_i) then
       if (rst_i = '1') then
-        m1 <= m_i - "11111";
-        p1 <= p_i - "11111";
-        n1 <= n_i - "11111";
         state <= IDLE;
       else
         if ce_i = '1' then
           case state is
           when IDLE =>
-            ip1 <= i * p1;
-            km1 <= k * m1;
-            kn1 <= k * n1;
-            jp1 <= j * p1;
+            state <= PRELOAD1;
+            
+          when PRELOAD1 =>
+            state <= PRELOAD2;
+            
+          when PRELOAD2 =>
             state <= ACTIVE;
-
+            
           when ACTIVE =>
-            ip1 <= i * p1;
-            km1 <= k * m1;
-            kn1 <= k * n1;
-            jp1 <= j * p1;
-            
-            a_adr_reg  <= ip1 + kd;
-            at_adr_reg <= km1 + id;
-            b_adr_reg  <= kn1 + jd;
-            bt_adr_reg <= jp1 + kd;
-            
             dv_o <= '1';
-
-            
             if end_reg = '1' then
               dv_o <= '0';
               state <= HALT;
             end if;
+            
           when HALT =>
             state <= HALT;
           end case;
+          
         end if; -- ce
       end if; -- rst
     end if; -- clk

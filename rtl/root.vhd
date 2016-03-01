@@ -275,7 +275,9 @@ begin
         uart_ack_o      => wb_uart_ack,
         uart_adr_i      => wb_uart_adr,
         uart_dat_o      => wb_uart_dat_o,
-        uart_dat_i      => wb_uart_dat_i);            
+        uart_dat_i      => wb_uart_dat_i
+      );
+
   --
   -- connect wishbone based LED strip
   --

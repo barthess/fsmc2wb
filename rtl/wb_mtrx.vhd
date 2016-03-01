@@ -382,8 +382,6 @@ begin
     variable a, b, c : integer := 0;
     variable cmd_raw : natural range 0 to 15;
     variable hw_sel_v : std_logic_vector(1 downto 0); -- same as hw_sel_i
-    constant TR_FLAG_OFFSET : integer := 13;
-    constant DV_BIT : integer := 15;
   begin
     if rst_i = '1' then
       wb_state <= WB_IDLE;
@@ -414,11 +412,11 @@ begin
           b_num   := math_ctl_array(CONTROL_REG)(5  downto 3);
           c_num   := math_ctl_array(CONTROL_REG)(8  downto 6);
           cmd_raw := conv_integer(math_ctl_array(CONTROL_REG)(12 downto 9));
-          tr_flag := math_ctl_array(CONTROL_REG)(TR_FLAG_OFFSET);
-          dv      := math_ctl_array(CONTROL_REG)(DV_BIT);
+          tr_flag := math_ctl_array(CONTROL_REG)(CMD_BIT_B_TR);
+          dv      := math_ctl_array(CONTROL_REG)(CMD_BIT_DV);
           
           if dv = '1' then
-            math_ctl_array(CONTROL_REG)(DV_BIT) <= '0';
+            math_ctl_array(CONTROL_REG)(CMD_BIT_DV) <= '0';
             wb_state <= WB_FETCH;
           end if;
 
