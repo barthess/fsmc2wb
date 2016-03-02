@@ -98,7 +98,7 @@ begin
   --
   -- addres incrementer for input matrices
   --
-  ab_iterator : entity work.mtrx_iter_dot_mul
+  ab_iterator : entity work.mtrx_iter_dot
   generic map (
     WIDTH => 5
   )
