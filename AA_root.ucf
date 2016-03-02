@@ -4,6 +4,16 @@ NET "CLK_IN_27MHZ" LOC = AB10;
 NET "CLK_IN_27MHZ" TNM_NET = "CLK_IN_27MHZ";
 TIMESPEC "TS_CLK_IN_27MHZ" = PERIOD "CLK_IN_27MHZ" 37.037 ns HIGH 50% INPUT_JITTER 74.074ps;
 
+# ------ Placement for mtrx dot -----------------------------
+#INST "wb_mtrx/*" AREA_GROUP=mtrx_group;
+#AREA_GROUP "mtrx_group" RANGE=CLOCKREGION_X1Y1:CLOCKREGION_X1Y8;
+#AREA_GROUP "mtrx_group" RANGE=SLICE_X0Y2:SLICE_X43Y127;
+#AREA_GROUP "mtrx_group" RANGE=RAMB16_X0Y0:RAMB16_X2Y62;
+#AREA_GROUP "mtrx_group" RANGE=DSP48_X0Y0:DSP48_X1Y31;
+#AREA_GROUP "mtrx_group" GROUP=OPEN;
+#AREA_GROUP "mtrx_group" PLACE=OPEN;
+
+# ------ warning suppressors --------------------------------
 NET "DEV_NULL_BANK1" LOC = R17;
 NET "DEV_NULL_BANK1" IOSTANDARD = LVCMOS33;
 NET "DEV_NULL_BANK1" DRIVE = 2;
