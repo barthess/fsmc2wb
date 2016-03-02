@@ -123,14 +123,13 @@ begin
   end process;
 
   --
-  --
+  -- [i*p + k] => [i*(p_i + 1) + k] => [i*p_i + i + k]
   --
   data_pipeline : process(clk_i)
   begin
     if rising_edge(clk_i) then
       if (rst_i = '0') and (ce_i = '1') then
         id1 <= i;
---        id2 <= id1;
         jd1 <= j;
         jd2 <= jd1;
         kd1 <= k;
@@ -144,20 +143,12 @@ begin
         b1 <= b0 + kd1;
         b2 <= b1 + jd2;
 
---        at0 <= k*m;
---        at1 <= at0 + kd1;
---        at2 <= at1 + id2;
-
         bt0 <= j*p;
         bt1 <= bt0 + jd1;
         bt2 <= bt1 + kd2;
 
         a_adr_o <= a2;
---        if (ta_i = '0') then
---          a_adr_o <= a2; 
---        else 
---          a_adr_o <= at2;
---        end if;
+
         if (tb_i = '0') then
           b_adr_o <= b2;
         else 
