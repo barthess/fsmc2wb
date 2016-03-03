@@ -46,13 +46,11 @@ end wb_mtrx;
 architecture beh of wb_mtrx is
   
   constant BRAMs : integer := SLAVES-1;
-  
+
   -- wires for control interface connection to WB
   signal ctl_ack_o, ctl_err_o, ctl_stb_i, ctl_we_i, ctl_sel_i, ctl_clk_i : std_logic;
   signal ctl_dat_i, ctl_dat_o : std_logic_vector(WB_DW-1 downto 0);
   signal ctl_adr_i : std_logic_vector(WB_AW-1 downto 0);
-  type math_ctl_reg_t is array (0 to 7) of std_logic_vector(WB_DW-1 downto 0);
-  signal math_ctl_array : math_ctl_reg_t := (others => (others => '0'));
   constant CONTROL_REG : integer := 0;
   constant SIZES_REG   : integer := 1;
   constant RESERVED_REG: integer := 2;
@@ -61,7 +59,18 @@ architecture beh of wb_mtrx is
   constant SCALE_REG1  : integer := 5;
   constant SCALE_REG2  : integer := 6;
   constant SCALE_REG3  : integer := 7;
-
+  constant ZERO_MAP_OFFSET : integer := 8;
+  constant CTL_ARRAY_LEN : integer := ZERO_MAP_OFFSET+64;
+  type math_ctl_reg_t is array (0 to CTL_ARRAY_LEN-1) of std_logic_vector(WB_DW-1 downto 0);
+  signal math_ctl : math_ctl_reg_t := (others => (others => '0'));
+  
+  -- bitmap for zero element for faster copying from BRAM to STM32
+  type zero_map_t is array (0 to 63) of std_logic_vector(WB_DW-1 downto 0);
+  signal zero_map : zero_map_t := (others => (others => '0'));
+  signal zero_map_dat : std_logic_vector(WB_DW-1 downto 0);
+  signal zero_map_adr : std_logic_vector(5 downto 0);
+  signal zero_dv : std_logic;
+    
   -- state for math clock domain
   type state_t is (IDLE, EXEC, MATH_WB_SIGNAL);
   signal state : state_t := IDLE;
@@ -192,7 +201,6 @@ begin
   ----------------------------------------------------------------------------------
   -- Matrix math instance
   ----------------------------------------------------------------------------------
-  
   mtrx_math : entity work.mtrx_math
   generic map (
     MTRX_AW => 5,
@@ -225,6 +233,40 @@ begin
     constant_i => math_double_constant
   );
 
+  ----------------------------------------------------------------------------------
+  -- Zero mapper
+  ----------------------------------------------------------------------------------
+  zero_mapper : entity work.zero_mapper
+  generic map (
+    AW => 6,
+    WW => 4
+  )
+  port map (
+    clk_i => clk_mul_i,
+    rst_i => math_rst,
+    ce_i  => math_we,
+    dat_i => math_dat_c,
+    dat_o => zero_map_dat,
+    adr_o => zero_map_adr,
+    dv_o  => zero_dv
+  );
+  
+  zero2ctl : for n in 0 to 63 generate 
+  begin
+    math_ctl(ZERO_MAP_OFFSET + n) <= zero_map(n);
+  end generate;
+
+  zero_mapper_helper : process(clk_mul_i)
+    variable idx : natural range 0 to 63;
+  begin
+    if rising_edge(clk_mul_i) then
+      if (zero_dv = '1') then
+        idx := conv_integer(zero_map_adr);
+        zero_map(idx) <= zero_map_dat;
+      end if;
+    end if;
+  end process;
+  
   ----------------------------------------------------------------------------------
   -- Wishbone interconnect
   ----------------------------------------------------------------------------------
@@ -312,13 +354,13 @@ begin
         case state is
         -- data buffering from slow WB to fast MATH clock domain
         when IDLE =>
-          math_m_size           <= math_ctl_array(SIZES_REG)(4 downto 0);
-          math_p_size           <= math_ctl_array(SIZES_REG)(9 downto 5);
-          math_n_size           <= math_ctl_array(SIZES_REG)(14 downto 10);
-          math_double_constant  <= math_ctl_array(SCALE_REG3) &
-                                   math_ctl_array(SCALE_REG2) &
-                                   math_ctl_array(SCALE_REG1) &
-                                   math_ctl_array(SCALE_REG0);
+          math_m_size           <= math_ctl(SIZES_REG)(4 downto 0);
+          math_p_size           <= math_ctl(SIZES_REG)(9 downto 5);
+          math_n_size           <= math_ctl(SIZES_REG)(14 downto 10);
+          math_double_constant  <= math_ctl(SCALE_REG3) &
+                                   math_ctl(SCALE_REG2) &
+                                   math_ctl(SCALE_REG1) &
+                                   math_ctl(SCALE_REG0);
           math_hw_select        <= math_hw_select_wb;
           crossbar_adr_select   <= crossbar_adr_select_wb;
           crossbar_dat_a_select <= crossbar_dat_a_select_wb;
@@ -396,27 +438,31 @@ begin
         case wb_state is
         when WB_IDLE =>
           if (ctl_stb_i = '1' and ctl_sel_i = '1') then
-            if (ctl_adr_i > 7) then
+            if (ctl_adr_i > CTL_ARRAY_LEN) then
               ctl_err_o <= '1';
             else
               ctl_ack_o <= '1';
               if (ctl_we_i = '1') then
-                math_ctl_array(conv_integer(ctl_adr_i)) <= ctl_dat_i;
+                if (ctl_adr_i < ZERO_MAP_OFFSET) then
+                  math_ctl(conv_integer(ctl_adr_i(2 downto 0))) <= ctl_dat_i;
+                else
+                  ctl_err_o <= '1';
+                end if;
               else -- read request
-                ctl_dat_o <= math_ctl_array(conv_integer(ctl_adr_i));
+                ctl_dat_o <= math_ctl(conv_integer(ctl_adr_i));
               end if;
             end if;
           end if;
-          
-          a_num   := math_ctl_array(CONTROL_REG)(2  downto 0);
-          b_num   := math_ctl_array(CONTROL_REG)(5  downto 3);
-          c_num   := math_ctl_array(CONTROL_REG)(8  downto 6);
-          cmd_raw := conv_integer(math_ctl_array(CONTROL_REG)(12 downto 9));
-          tr_flag := math_ctl_array(CONTROL_REG)(CMD_BIT_B_TR);
-          dv      := math_ctl_array(CONTROL_REG)(CMD_BIT_DV);
+
+          a_num   := math_ctl(CONTROL_REG)(2  downto 0);
+          b_num   := math_ctl(CONTROL_REG)(5  downto 3);
+          c_num   := math_ctl(CONTROL_REG)(8  downto 6);
+          cmd_raw := conv_integer(math_ctl(CONTROL_REG)(12 downto 9));
+          tr_flag := math_ctl(CONTROL_REG)(CMD_BIT_B_TR);
+          dv      := math_ctl(CONTROL_REG)(CMD_BIT_DV);
           
           if dv = '1' then
-            math_ctl_array(CONTROL_REG)(CMD_BIT_DV) <= '0';
+            math_ctl(CONTROL_REG)(CMD_BIT_DV) <= '0';
             wb_state <= WB_FETCH;
           end if;
 
@@ -509,7 +555,7 @@ begin
           if (math_rdy_wb = '1') or (math_err_wb = '1') then
             if math_err_wb = '1' then
               ctl_err_o <= '1';
-              math_ctl_array(STATUS_REG) <= "00000000000000" & hw_sel_v;
+              math_ctl(STATUS_REG) <= "00000000000000" & hw_sel_v;
             end if;
             wb_state <= WB_IDLE;
           end if;
