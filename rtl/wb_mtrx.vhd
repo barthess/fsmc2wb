@@ -65,8 +65,7 @@ architecture beh of wb_mtrx is
   signal math_ctl : math_ctl_reg_t := (others => (others => '0'));
   
   -- bitmap for zero element for faster copying from BRAM to STM32
-  type zero_map_t is array (0 to 63) of std_logic_vector(WB_DW-1 downto 0);
-  signal zero_map : zero_map_t := (others => (others => '0'));
+  signal zero_map : std_logic_vector(32*32-1 downto 0);
   signal zero_map_dat : std_logic_vector(WB_DW-1 downto 0);
   signal zero_map_adr : std_logic_vector(5 downto 0);
   signal zero_dv : std_logic;
@@ -237,35 +236,18 @@ begin
   -- Zero mapper
   ----------------------------------------------------------------------------------
   zero_mapper : entity work.zero_mapper
-  generic map (
-    AW => 6,
-    WW => 4
-  )
   port map (
     clk_i => clk_mul_i,
     rst_i => math_rst,
     ce_i  => math_we,
     dat_i => math_dat_c,
-    dat_o => zero_map_dat,
-    adr_o => zero_map_adr,
-    dv_o  => zero_dv
+    dat_o => zero_map
   );
   
   zero2ctl : for n in 0 to 63 generate 
   begin
-    math_ctl(ZERO_MAP_OFFSET + n) <= zero_map(n);
+    math_ctl(ZERO_MAP_OFFSET + n) <= zero_map((n+1)*16-1 downto n*16);
   end generate;
-
-  zero_mapper_helper : process(clk_mul_i)
-    variable idx : natural range 0 to 63;
-  begin
-    if rising_edge(clk_mul_i) then
-      if (zero_dv = '1') then
-        idx := conv_integer(zero_map_adr);
-        zero_map(idx) <= zero_map_dat;
-      end if;
-    end if;
-  end process;
   
   ----------------------------------------------------------------------------------
   -- Wishbone interconnect
