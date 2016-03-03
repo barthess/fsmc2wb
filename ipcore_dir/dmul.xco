@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 14.7
-# Date: Wed Mar  2 15:55:56 2016
+# Date: Thu Mar  3 06:59:13 2016
 #
 ##############################################################
 #
@@ -53,7 +53,7 @@ CSET c_has_overflow=false
 CSET c_has_rdy=true
 CSET c_has_sclr=false
 CSET c_has_underflow=false
-CSET c_latency=18
+CSET c_latency=27
 CSET c_mult_usage=Full_Usage
 CSET c_optimization=Speed_Optimized
 CSET c_rate=1
@@ -61,7 +61,7 @@ CSET c_result_exponent_width=11
 CSET c_result_fraction_width=53
 CSET c_speed=Maximum_speed
 CSET component_name=dmul
-CSET maximum_latency=false
+CSET maximum_latency=true
 CSET operation_type=Multiply
 CSET result_precision_type=Double
 # END Parameters
@@ -69,4 +69,4 @@ CSET result_precision_type=Double
 MISC pkg_timestamp=2012-07-02T11:22:24Z
 # END Extra information
 GENERATE
-# CRC: c98ffbd2
+# CRC: ecb97243
