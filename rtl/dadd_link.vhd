@@ -64,21 +64,24 @@ architecture Behavioral of dadd_link is
   constant LOAD_B : std_logic := '1';
 begin
   
+  --
+  --
+  --
   dadd : entity work.dadd
-    port map (
-      clk     => clk_i,
-      ce      => '1',
-      a       => a_buf,
-      b       => b_buf,
-      result  => dat_o,
-      rdy     => rdy_o,
-      operation => (others => '0'),
-      operation_nd => sum_nd
-    );
+  port map (
+    clk     => clk_i,
+    ce      => '1',
+    a       => a_buf,
+    b       => b_buf,
+    result  => dat_o,
+    rdy     => rdy_o,
+    operation => (others => '0'),
+    operation_nd => sum_nd
+  );
 
-
-
-
+  --
+  --
+  --
   rst_delay : entity work.delay
   generic map (
     LAT => 1,
@@ -92,6 +95,9 @@ begin
     do(0) => rst_buf
   );
 
+  --
+  --
+  --
   cnt_delay : entity work.delay
   generic map (
     LAT => 1,
@@ -104,7 +110,10 @@ begin
     di    => cnt_i,
     do    => cnt_buf
   );
-
+  
+  --
+  --
+  --
   state_switcher : process(clk_i)
     variable cnt_latch : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
   begin
@@ -127,7 +136,9 @@ begin
     end if;
   end process;
 
-
+  --
+  --
+  --
   nd_tracker : process(clk_i)
   begin
     if rising_edge(clk_i) then
@@ -143,6 +154,9 @@ begin
     end if;
   end process;
 
+  --
+  --
+  --
   data_buffering : process(clk_i)
   begin
     if rising_edge(clk_i) then
