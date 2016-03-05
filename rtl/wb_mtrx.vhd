@@ -10,8 +10,8 @@ use work.mtrx_math_constants.all;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx primitives in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
+library UNISIM;
+use UNISIM.VComponents.all;
 
 entity wb_mtrx is
 Generic (
@@ -59,17 +59,10 @@ architecture beh of wb_mtrx is
   constant SCALE_REG1  : integer := 5;
   constant SCALE_REG2  : integer := 6;
   constant SCALE_REG3  : integer := 7;
-  constant ZERO_MAP_OFFSET : integer := 8;
-  constant CTL_ARRAY_LEN : integer := ZERO_MAP_OFFSET+64;
-  type math_ctl_reg_t is array (0 to CTL_ARRAY_LEN-1) of std_logic_vector(WB_DW-1 downto 0);
+  constant CTL_ARRAY_LEN : integer := SCALE_REG3 + 1;
+  type math_ctl_reg_t is array (0 to SCALE_REG3) of std_logic_vector(WB_DW-1 downto 0);
   signal math_ctl : math_ctl_reg_t := (others => (others => '0'));
   
-  -- bitmap for zero element for faster copying from BRAM to STM32
-  signal zero_map : std_logic_vector(32*32-1 downto 0);
-  signal zero_map_dat : std_logic_vector(WB_DW-1 downto 0);
-  signal zero_map_adr : std_logic_vector(5 downto 0);
-  signal zero_dv : std_logic;
-    
   -- state for math clock domain
   type state_t is (IDLE, EXEC, MATH_WB_SIGNAL);
   signal state : state_t := IDLE;
@@ -209,7 +202,7 @@ begin
   port map (
     clk_i => clk_mul_i,
     rst_i => math_rst,
-    sel_i => math_hw_select,
+    math_sel_i => math_hw_select,
 
     rdy_o => math_rdy,
     err_o => math_err,
@@ -232,23 +225,6 @@ begin
     constant_i => math_double_constant
   );
 
-  ----------------------------------------------------------------------------------
-  -- Zero mapper
-  ----------------------------------------------------------------------------------
-  zero_mapper : entity work.zero_mapper
-  port map (
-    clk_i => clk_mul_i,
-    rst_i => math_rst,
-    ce_i  => math_we,
-    dat_i => math_dat_c,
-    dat_o => zero_map
-  );
-  
-  zero2ctl : for n in 0 to 63 generate 
-  begin
-    math_ctl(ZERO_MAP_OFFSET + n) <= zero_map((n+1)*16-1 downto n*16);
-  end generate;
-  
   ----------------------------------------------------------------------------------
   -- Wishbone interconnect
   ----------------------------------------------------------------------------------
@@ -310,7 +286,6 @@ begin
   ----------------------------------------------------------------------------------
   -- Math control logic
   ----------------------------------------------------------------------------------
-
   math_ctl_proc : process(clk_mul_i)
     -- delay need for slow WB part able to sample ERR and RDY lines
     constant DELAY : std_logic_vector(1 downto 0) := "10";
@@ -420,16 +395,12 @@ begin
         case wb_state is
         when WB_IDLE =>
           if (ctl_stb_i = '1' and ctl_sel_i = '1') then
-            if (ctl_adr_i > CTL_ARRAY_LEN) then
+            if (ctl_adr_i >= CTL_ARRAY_LEN) then
               ctl_err_o <= '1';
             else
               ctl_ack_o <= '1';
               if (ctl_we_i = '1') then
-                if (ctl_adr_i < ZERO_MAP_OFFSET) then
-                  math_ctl(conv_integer(ctl_adr_i(2 downto 0))) <= ctl_dat_i;
-                else
-                  ctl_err_o <= '1';
-                end if;
+                math_ctl(conv_integer(ctl_adr_i)) <= ctl_dat_i;
               else -- read request
                 ctl_dat_o <= math_ctl(conv_integer(ctl_adr_i));
               end if;

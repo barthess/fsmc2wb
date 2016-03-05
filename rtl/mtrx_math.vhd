@@ -22,7 +22,7 @@ Generic (
 Port (
   clk_i : in  std_logic;
   rst_i : in  std_logic;
-  sel_i : in  std_logic_vector(1 downto 0); -- math block selector
+  math_sel_i : in  std_logic_vector(1 downto 0); -- math block selector
 
   rdy_o : out std_logic; -- data ready external interrupt. Active high 1 clock cycle
   err_o : out std_logic; -- Active high until slave resetted
@@ -147,7 +147,7 @@ begin
   )
   port map (
     clk_i => clk_i,
-    A  => sel_i,
+    A  => math_sel_i,
     do => dat_c_o,
     di => math_dat_c
   );
@@ -160,7 +160,7 @@ begin
   )
   port map (
     clk_i => clk_i,
-    A  => sel_i,
+    A  => math_sel_i,
     do => adr_a_o,
     di => math_adr_a
   );
@@ -173,7 +173,7 @@ begin
   )
   port map (
     clk_i => clk_i,
-    A  => sel_i,
+    A  => math_sel_i,
     do => adr_b_o,
     di => math_adr_b
   );
@@ -186,7 +186,7 @@ begin
   )
   port map (
     clk_i => clk_i,
-    A  => sel_i,
+    A  => math_sel_i,
     do => adr_c_o,
     di => math_adr_c
   );
@@ -199,7 +199,7 @@ begin
   )
   port map (
     clk_i => clk_i,
-    A     => sel_i,
+    A     => math_sel_i,
     do(0) => we_o,
     di    => math_we
   );
@@ -212,7 +212,7 @@ begin
   )
   port map (
     clk_i => clk_i,
-    A     => sel_i,
+    A     => math_sel_i,
     do(0) => err_o,
     di    => math_err
   );
@@ -225,7 +225,7 @@ begin
   )
   port map (
     clk_i => clk_i,
-    A     => sel_i,
+    A     => math_sel_i,
     do(0) => rdy_o,
     di    => math_rdy
   );
@@ -239,7 +239,7 @@ begin
   )
   port map (
     clk_i => clk_i,
-    A     => sel_i,
+    A     => math_sel_i,
     di(0) => rst_i,
     do    => math_rst
   );
