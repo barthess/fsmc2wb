@@ -317,7 +317,9 @@ architecture rtl of uart_16750 is
     signal iTXFIFOFull      : std_logic;                        -- TX FIFO is full
     signal iTXFIFO16Full    : std_logic;                        -- TX FIFO 16 byte mode is full
     signal iTXFIFO64Full    : std_logic;                        -- TX FIFO 64 byte mode is full
-    signal iTXFIFOUsage     : std_logic_vector(5 downto 0);     -- RX FIFO usage
+    signal iTXFIFOUsage     : std_logic_vector(5 downto 0);     -- TX FIFO usage
+    signal iTXFIFOTrigLvl   : std_logic_vector(5 downto 0);
+    signal iTXFIFOTrigger   : std_logic;
     signal iTXFIFOQ         : std_logic_vector(7 downto 0);     -- TX FIFO output
     signal iRXFIFOClear     : std_logic;                        -- Clear RX FIFO
     signal iRXFIFOWrite     : std_logic;                        -- Write to RX FIFO
@@ -329,6 +331,7 @@ architecture rtl of uart_16750 is
     signal iRXFIFOD         : std_logic_vector(10 downto 0);    -- RX FIFO input
     signal iRXFIFOQ         : std_logic_vector(10 downto 0);    -- RX FIFO output
     signal iRXFIFOUsage     : std_logic_vector(5 downto 0);     -- RX FIFO usage
+    signal iRXFIFOTrigLvl   : std_logic_vector(5 downto 0);
     signal iRXFIFOTrigger   : std_logic;                        -- FIFO trigger level reached
     signal iRXFIFO16Trigger : std_logic;                        -- FIFO 16 byte mode trigger level reached
     signal iRXFIFO64Trigger : std_logic;                        -- FIFO 64 byte mode trigger level reached
@@ -1004,7 +1007,7 @@ begin
 
 
     -- UART data output
-    UART_DOUT: process (A, iLCR_DLAB, iRBR, iDLL, iDLM, iIER, iIIR, iLCR, iMCR, iLSR, iMSR, iSCR, iTXFIFOUsage, iRXFIFOUsage)
+    UART_DOUT: process (A, iLCR_DLAB, iRBR, iDLL, iDLM, iIER, iIIR, iLCR, iMCR, iLSR, iMSR, iSCR, iTXFIFOUsage, iRXFIFOUsage, iTXFIFOTrigLvl, iRXFIFOTrigLvl)
     begin
         case A is
             when "0000"  =>  if (iLCR_DLAB = '0') then
@@ -1025,6 +1028,8 @@ begin
             when "0111"  =>  DOUT <= iSCR;
             when "1000" =>   DOUT <= "00" & iTXFIFOUsage;
             when "1001" =>   DOUT <= "00" & iRXFIFOUsage;
+            when "1010" =>   DOUT <= "00" & iTXFIFOTrigLvl;
+            when "1011" =>   DOUT <= "00" & iRXFIFOTrigLvl;
             when others  =>  DOUT <= iRBR;
         end case;
     end process;
