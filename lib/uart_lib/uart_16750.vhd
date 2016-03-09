@@ -1004,7 +1004,7 @@ begin
 
 
     -- UART data output
-    UART_DOUT: process (A, iLCR_DLAB, iRBR, iDLL, iDLM, iIER, iIIR, iLCR, iMCR, iLSR, iMSR, iSCR)
+    UART_DOUT: process (A, iLCR_DLAB, iRBR, iDLL, iDLM, iIER, iIIR, iLCR, iMCR, iLSR, iMSR, iSCR, iTXFIFOUsage, iRXFIFOUsage)
     begin
         case A is
             when "0000"  =>  if (iLCR_DLAB = '0') then
@@ -1023,6 +1023,8 @@ begin
             when "0101"  =>  DOUT <= iLSR;
             when "0110"  =>  DOUT <= iMSR;
             when "0111"  =>  DOUT <= iSCR;
+            when "1000" =>   DOUT <= "00" & iTXFIFOUsage;
+            when "1001" =>   DOUT <= "00" & iRXFIFOUsage;
             when others  =>  DOUT <= iRBR;
         end case;
     end process;
