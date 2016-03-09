@@ -42,7 +42,7 @@ entity uart_16750 is
         CS          : in std_logic;                             -- Chip select
         WR          : in std_logic;                             -- Write to UART
         RD          : in std_logic;                             -- Read from UART
-        A           : in std_logic_vector(2 downto 0);          -- Register select
+        A           : in std_logic_vector(3 downto 0);          -- Register select
         DIN         : in std_logic_vector(7 downto 0);          -- Data bus input
         DOUT        : out std_logic_vector(7 downto 0);         -- Data bus output
         DDIS        : out std_logic;                            -- Driver disable
@@ -196,7 +196,7 @@ architecture rtl of uart_16750 is
     -- Global device signals
     signal iWrite           : std_logic;                        -- Write to UART
     signal iRead            : std_logic;                        -- Read from UART
-    signal iA               : std_logic_vector(2 downto 0);     -- UART register address
+    signal iA               : std_logic_vector(3 downto 0);     -- UART register address
     signal iDIN             : std_logic_vector(7 downto 0);     -- UART data input
 
     -- UART registers read/write signals
@@ -376,18 +376,18 @@ begin
     iRead  <= '1' when CS = '1' and RD = '1' else '0';
 
     -- UART registers read/write signals
-    iRBRRead  <= '1' when iRead  = '1' and iA = "000" and iLCR_DLAB = '0' else '0';
-    iTHRWrite <= '1' when iWrite = '1' and iA = "000" and iLCR_DLAB = '0' else '0';
-    iDLLWrite <= '1' when iWrite = '1' and iA = "000" and iLCR_DLAB = '1' else '0';
-    iDLMWrite <= '1' when iWrite = '1' and iA = "001" and iLCR_DLAB = '1' else '0';
-    iIERWrite <= '1' when iWrite = '1' and iA = "001" and iLCR_DLAB = '0' else '0';
-    iIIRRead  <= '1' when iRead  = '1' and iA = "010" else '0';
-    iFCRWrite <= '1' when iWrite = '1' and iA = "010" else '0';
-    iLCRWrite <= '1' when iWrite = '1' and iA = "011" else '0';
-    iMCRWrite <= '1' when iWrite = '1' and iA = "100" else '0';
-    iLSRRead  <= '1' when iRead  = '1' and iA = "101" else '0';
-    iMSRRead  <= '1' when iRead  = '1' and iA = "110" else '0';
-    iSCRWrite <= '1' when iWrite = '1' and iA = "111" else '0';
+    iRBRRead  <= '1' when iRead  = '1' and iA = "0000" and iLCR_DLAB = '0' else '0';
+    iTHRWrite <= '1' when iWrite = '1' and iA = "0000" and iLCR_DLAB = '0' else '0';
+    iDLLWrite <= '1' when iWrite = '1' and iA = "0000" and iLCR_DLAB = '1' else '0';
+    iDLMWrite <= '1' when iWrite = '1' and iA = "0001" and iLCR_DLAB = '1' else '0';
+    iIERWrite <= '1' when iWrite = '1' and iA = "0001" and iLCR_DLAB = '0' else '0';
+    iIIRRead  <= '1' when iRead  = '1' and iA = "0010" else '0';
+    iFCRWrite <= '1' when iWrite = '1' and iA = "0010" else '0';
+    iLCRWrite <= '1' when iWrite = '1' and iA = "0011" else '0';
+    iMCRWrite <= '1' when iWrite = '1' and iA = "0100" else '0';
+    iLSRRead  <= '1' when iRead  = '1' and iA = "0101" else '0';
+    iMSRRead  <= '1' when iRead  = '1' and iA = "0110" else '0';
+    iSCRWrite <= '1' when iWrite = '1' and iA = "0111" else '0';
 
     -- Async. input synchronization
     UART_IS_SIN: slib_input_sync port map (CLK, RST, SIN,  iSINr);
@@ -1007,23 +1007,23 @@ begin
     UART_DOUT: process (A, iLCR_DLAB, iRBR, iDLL, iDLM, iIER, iIIR, iLCR, iMCR, iLSR, iMSR, iSCR)
     begin
         case A is
-            when "000"  =>  if (iLCR_DLAB = '0') then
+            when "0000"  =>  if (iLCR_DLAB = '0') then
                                 DOUT <= iRBR;
                             else
                                 DOUT <= iDLL;
                             end if;
-            when "001"  =>  if (iLCR_DLAB = '0') then
+            when "0001"  =>  if (iLCR_DLAB = '0') then
                                 DOUT <= iIER;
                             else
                                 DOUT <= iDLM;
                             end if;
-            when "010"  =>  DOUT <= iIIR;
-            when "011"  =>  DOUT <= iLCR;
-            when "100"  =>  DOUT <= iMCR;
-            when "101"  =>  DOUT <= iLSR;
-            when "110"  =>  DOUT <= iMSR;
-            when "111"  =>  DOUT <= iSCR;
-            when others =>  DOUT <= iRBR;
+            when "0010"  =>  DOUT <= iIIR;
+            when "0011"  =>  DOUT <= iLCR;
+            when "0100"  =>  DOUT <= iMCR;
+            when "0101"  =>  DOUT <= iLSR;
+            when "0110"  =>  DOUT <= iMSR;
+            when "0111"  =>  DOUT <= iSCR;
+            when others  =>  DOUT <= iRBR;
         end case;
     end process;
 

@@ -33,7 +33,7 @@ architecture rtl of wb_uart is
   signal uart_cs           : std_logic_vector(UART_CHANNELS-1 downto 0);
   signal uart_wr           : std_logic;  -- common for all uarts
   signal uart_rd           : std_logic;  -- common for all uarts
-  signal uart_addr         : std_logic_vector(2 downto 0);
+  signal uart_addr         : std_logic_vector(3 downto 0);
   signal uart_di           : std_logic_vector(7 downto 0);
   type t_uart_do is array (0 to UART_CHANNELS-1) of std_logic_vector(7 downto 0);
   signal uart_do           : t_uart_do;
@@ -49,9 +49,9 @@ architecture rtl of wb_uart is
 begin
 
   -- Address space --
-  -- bits 2:0 are UART register address
-  -- when reading IRQs register, bits 2:0 can be anything
-  -- when writing/reading resets register, bits 2:0 can be anything
+  -- bits 3:0 are UART register address
+  -- when reading IRQs register, bits 3:0 can be anything
+  -- when writing/reading resets register, bits 3:0 can be anything
   -- upper bits are for UART selection (0 to UART_CHANNELS-1)
   -- UART_CHANNELS value is used for IRQs register reading
   -- UART_CHANNELS+1 value is used for resets register writing/reading
@@ -69,10 +69,10 @@ begin
     irqs_rd    <= '0';
     resets_wr  <= '0';
     resets_rd  <= '0';
-    uart_addr  <= adr_i(2 downto 0);
+    uart_addr  <= adr_i(3 downto 0);
 
-    uart_num := to_integer(unsigned(adr_i(15 downto 3)));
-    -- bits 2:0 of adr_i are UART register address
+    uart_num := to_integer(unsigned(adr_i(15 downto 4)));
+    -- bits 3:0 of adr_i are UART register address
 
     if (sel_i = '1' and stb_i = '1') then
       if uart_num <= UART_CHANNELS-1 then    -- any UART channel
