@@ -407,6 +407,23 @@ begin
 
     iA <= A;
     iDIN <= DIN;
+
+    -- FIFO trigger levels
+    UART_TRIG_LVL: process (CLK, RST) is
+    begin
+      if RST = '1' then
+        iTXFIFOTrigLvl <= (others => '0');
+        iRXFIFOTrigLvl <= (others => '0');
+      elsif rising_edge(CLK) then
+        if iWrite = '1' then
+          if iA = "1010" then
+            iTXFIFOTrigLvl <= iDIN(5 downto 0);
+          elsif iA = "1011" then
+            iRXFIFOTrigLvl <= iDIN(5 downto 0);
+          end if;
+        end if;
+      end if;
+    end process;
     
     -- Divisor latch register
     UART_DLR: process (CLK, RST)
