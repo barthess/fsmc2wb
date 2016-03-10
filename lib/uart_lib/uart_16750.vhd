@@ -365,8 +365,7 @@ architecture rtl of uart_16750 is
     signal iRDAInterrupt    : std_logic;                        -- Receiver data available interrupt (DA or FIFO trigger level)
     signal iTimeoutCount    : unsigned(5 downto 0);             -- Character timeout counter (FIFO mode)
     signal iCharTimeout     : std_logic;                        -- Character timeout indication (FIFO mode)
-    signal iLSR_THRERE      : std_logic;                        -- LSR THRE rising edge for interrupt generation
-    signal iTHRInterrupt    : std_logic;                        -- Transmitter holding register empty interrupt
+    signal iTHRInterrupt    : std_logic;                        -- Transmitter FIFO trigger interrupt
     signal iTXEnable        : std_logic;                        -- Transmitter enable signal
     signal iRTS             : std_logic;                        -- Internal RTS signal with/without automatic flow control
 
@@ -471,21 +470,10 @@ begin
                                        IIR => iIIR(3 downto 0),
                                        INT => INT
                                       );
-    -- THR empty interrupt
-    UART_IIC_THRE_ED: slib_edge_detect port map (CLK => CLK, RST => RST, D => iLSR_THRE, RE => iLSR_THRERE);
-    UART_IIC_THREI: process (CLK, RST)
-    begin
-        if (RST = '1') then
-            iTHRInterrupt <= '0';
-        elsif (CLK'event and CLK = '1') then
-            if (iLSR_THRERE = '1' or iFCR_TXFIFOReset = '1' or (iIERWrite = '1' and iDIN(1) = '1' and iLSR_THRE = '1')) then
-                iTHRInterrupt <= '1';           -- Set on THRE, TX FIFO reset (FIFO enable) or ETBEI enable
-            elsif ((iIIRRead = '1' and iIIR(3 downto 1) = "001") or iTHRWrite = '1') then
-                iTHRInterrupt <= '0';           -- Clear on IIR read (if source of interrupt) or THR write
-            end if;
-        end if;
-    end process;
 
+    iTHRInterrupt <= '1' when (iFCR_FIFOEnable = '0' and iLSR_THRE = '1') or
+                              (iFCR_FIFOEnable = '1' and iTXFIFOTrigger = '1') else '0';
+    
     iRDAInterrupt <= '1' when (iFCR_FIFOEnable = '0' and iLSR_DR = '1') or
                               (iFCR_FIFOEnable = '1' and iRXFIFOTrigger = '1') else '0';
     iIIR_PI     <= iIIR(0);
