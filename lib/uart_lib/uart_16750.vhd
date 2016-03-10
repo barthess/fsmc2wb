@@ -32,6 +32,7 @@
 LIBRARY IEEE;
 USE IEEE.std_logic_1164.all;
 USE IEEE.numeric_std.all;
+use IEEE.std_logic_unsigned.all;
 
 -- Serial UART
 entity uart_16750 is
@@ -333,8 +334,6 @@ architecture rtl of uart_16750 is
     signal iRXFIFOUsage     : std_logic_vector(5 downto 0);     -- RX FIFO usage
     signal iRXFIFOTrigLvl   : std_logic_vector(5 downto 0);
     signal iRXFIFOTrigger   : std_logic;                        -- FIFO trigger level reached
-    signal iRXFIFO16Trigger : std_logic;                        -- FIFO 16 byte mode trigger level reached
-    signal iRXFIFO64Trigger : std_logic;                        -- FIFO 64 byte mode trigger level reached
     signal iRXFIFOPE        : std_logic;                        -- Parity error from FIFO
     signal iRXFIFOFE        : std_logic;                        -- Frame error from FIFO
     signal iRXFIFOBI        : std_logic;                        -- Break interrupt from FIFO
@@ -799,6 +798,9 @@ begin
     iTXFIFOWrite  <= '1' when ((iFCR_FIFOEnable = '0' and iTXFIFOEmpty = '1') or (iFCR_FIFOEnable = '1' and iTXFIFOFull = '0')) and iTHRWrite = '1' else '0';
     iTXFIFOClear  <= '1' when iFCR_TXFIFOReset = '1' else '0';
 
+    -- Transmitter FIFO outputs
+    iTXFIFOTrigger <= '1' when iTXFIFOUsage >= iTXFIFOTrigLvl else '0';
+
     -- Receiver FIFO
     UART_RXFF: slib_fifo generic map (WIDTH => 11, SIZE_E => 6)
                          port map (CLK      => CLK,
@@ -817,23 +819,9 @@ begin
     iRXFIFO16Full        <= iRXFIFOUsage(4);
     iRXFIFOFull          <= iRXFIFO16Full when iFCR_FIFO64E = '0' else iRXFIFO64Full;
 
-
     -- Receiver FIFO outputs
     iRBR                 <= iRXFIFOQ(7 downto 0);
-
-    -- FIFO trigger level: 1, 4, 8, 14
-    iRXFIFO16Trigger     <= '1' when (iFCR_RXTrigger = "00" and iRXFIFOEmpty = '0') or
-                                     (iFCR_RXTrigger = "01" and (iRXFIFOUsage(2) = '1' or iRXFIFOUsage(3) = '1')) or
-                                     (iFCR_RXTrigger = "10" and iRXFIFOUsage(3) = '1') or
-                                     (iFCR_RXTrigger = "11" and iRXFIFOUsage(3) = '1' and iRXFIFOUsage(2) = '1' and iRXFIFOUsage(1) = '1') or
-                                     iRXFIFO16Full = '1' else '0';
-    -- FIFO 64 trigger level: 1, 16, 32, 56
-    iRXFIFO64Trigger     <= '1' when (iFCR_RXTrigger = "00" and iRXFIFOEmpty = '0') or
-                                     (iFCR_RXTrigger = "01" and (iRXFIFOUsage(4) = '1' or iRXFIFOUsage(5) = '1')) or
-                                     (iFCR_RXTrigger = "10" and iRXFIFOUsage(5) = '1') or
-                                     (iFCR_RXTrigger = "11" and iRXFIFOUsage(5) = '1' and iRXFIFOUsage(4) = '1' and iRXFIFOUsage(3) = '1') or
-                                     iRXFIFO64Full = '1' else '0';
-    iRXFIFOTrigger       <= iRXFIFO16Trigger when iFCR_FIFO64E = '0' else iRXFIFO64Trigger;
+    iRXFIFOTrigger       <= '1' when iRXFIFOUsage >= iRXFIFOTrigLvl else '0';
 
     -- Transmitter
     UART_TX: uart_transmitter port map (CLK         => CLK,
