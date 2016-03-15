@@ -90,12 +90,16 @@ architecture rtl of wb_to_gtp is
   signal txbufstatus_out_i : std_logic_vector (7 downto 0);
 
   -- Interconnect signals                     
-  signal uart_tx_i  : std_logic_vector (15 downto 0);  -- to external devices
-  signal uart_rts_i : std_logic_vector (15 downto 0);
-  signal uart_rx_i  : std_logic_vector (15 downto 0);  -- from external devices
-  signal uart_cts_i : std_logic_vector (15 downto 0);
-  signal pwm_out_i  : std_logic_vector (15 downto 0);  -- to external devices
-  signal pwm_in_i   : std_logic_vector (15 downto 0);  -- from external devices
+  signal uart_tx_i     : std_logic_vector (15 downto 0);  -- to external devices
+  signal uart_rts_i    : std_logic_vector (15 downto 0);
+  signal uart_rx_i     : std_logic_vector (15 downto 0);  -- from external devices
+  signal uart_cts_i    : std_logic_vector (15 downto 0);
+  signal pwm_out_i     : std_logic_vector (15 downto 0);  -- to external devices
+  signal pwm_in_i      : std_logic_vector (15 downto 0);  -- from external devices
+  signal pwm_data_tx_i : std_logic_vector (15 downto 0);  -- to pwm_gen
+  signal pwm_en_tx_i   : std_logic;
+  signal pwm_data_rx_i : std_logic_vector (15 downto 0);  -- from pwm_analyzer
+  signal pwm_en_rx_i   : std_logic;
 
 begin
 
@@ -225,6 +229,17 @@ begin
       uart_rts            => uart_cts_i,
       pwm_in              => pwm_out_i,  -- inputs
       pwm_out             => pwm_in_i);  -- outputs
+
+  pwm_gen : entity work.pwm_gen
+    generic map (
+      CLKIN_FREQ => 100,                -- MHz
+      PWM_PERIOD => 20000)              -- us
+    port map (
+      clk         => txusrclk8_23,
+      rst         => rst,
+      PWM_DATA_IN => pwm_data_tx_i,
+      PWM_EN_IN   => pwm_en_tx_i,
+      PWM_OUT     => pwm_out_i);
 
   sp6_gtp_top_tile0 : entity gtp_lib.sp6_gtp_top
     port map (
