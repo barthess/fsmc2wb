@@ -137,7 +137,7 @@ begin
   wb_pwm_1 : entity work.wb_pwm
     generic map (
       PWM_CHANNELS    => 16,            -- plus 3 for odometer
-      PWM_TX_INTERVAL => 512)           -- clk_gtp_tx cycles
+      PWM_TX_INTERVAL => 1024)          -- clk_gtp_tx cycles
     port map (
       rst          => rst,
       clk_gtp_tx   => txusrclk8_23,
@@ -240,6 +240,18 @@ begin
       PWM_DATA_IN => pwm_data_tx_i,
       PWM_EN_IN   => pwm_en_tx_i,
       PWM_OUT     => pwm_out_i);
+
+  pwm_analyzer_multichannel : entity work.pwm_analyzer_multichannel
+    generic map (
+      PWM_CHANNELS      => 16,
+      PWM_SEND_INTERVAL => 1024)
+    port map (
+      clk          => rxusrclk8_2,
+      rst          => rst,
+      PWM_IN       => pwm_in_i,
+      ODO_IN       => pwm_in_i(4),
+      PWM_DATA_OUT => pwm_data_rx_i,
+      PWM_EN_OUT   => pwm_en_rx_i);
 
   sp6_gtp_top_tile0 : entity gtp_lib.sp6_gtp_top
     port map (
