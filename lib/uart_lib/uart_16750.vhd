@@ -32,6 +32,7 @@
 LIBRARY IEEE;
 USE IEEE.std_logic_1164.all;
 USE IEEE.numeric_std.all;
+use IEEE.std_logic_unsigned.all;
 
 -- Serial UART
 entity uart_16750 is
@@ -42,7 +43,7 @@ entity uart_16750 is
         CS          : in std_logic;                             -- Chip select
         WR          : in std_logic;                             -- Write to UART
         RD          : in std_logic;                             -- Read from UART
-        A           : in std_logic_vector(2 downto 0);          -- Register select
+        A           : in std_logic_vector(3 downto 0);          -- Register select
         DIN         : in std_logic_vector(7 downto 0);          -- Data bus input
         DOUT        : out std_logic_vector(7 downto 0);         -- Data bus output
         DDIS        : out std_logic;                            -- Driver disable
@@ -196,7 +197,7 @@ architecture rtl of uart_16750 is
     -- Global device signals
     signal iWrite           : std_logic;                        -- Write to UART
     signal iRead            : std_logic;                        -- Read from UART
-    signal iA               : std_logic_vector(2 downto 0);     -- UART register address
+    signal iA               : std_logic_vector(3 downto 0);     -- UART register address
     signal iDIN             : std_logic_vector(7 downto 0);     -- UART data input
 
     -- UART registers read/write signals
@@ -317,7 +318,9 @@ architecture rtl of uart_16750 is
     signal iTXFIFOFull      : std_logic;                        -- TX FIFO is full
     signal iTXFIFO16Full    : std_logic;                        -- TX FIFO 16 byte mode is full
     signal iTXFIFO64Full    : std_logic;                        -- TX FIFO 64 byte mode is full
-    signal iTXFIFOUsage     : std_logic_vector(5 downto 0);     -- RX FIFO usage
+    signal iTXFIFOUsage     : std_logic_vector(5 downto 0);     -- TX FIFO usage
+    signal iTXFIFOTrigLvl   : std_logic_vector(5 downto 0);
+    signal iTXFIFOTrigger   : std_logic;
     signal iTXFIFOQ         : std_logic_vector(7 downto 0);     -- TX FIFO output
     signal iRXFIFOClear     : std_logic;                        -- Clear RX FIFO
     signal iRXFIFOWrite     : std_logic;                        -- Write to RX FIFO
@@ -329,9 +332,8 @@ architecture rtl of uart_16750 is
     signal iRXFIFOD         : std_logic_vector(10 downto 0);    -- RX FIFO input
     signal iRXFIFOQ         : std_logic_vector(10 downto 0);    -- RX FIFO output
     signal iRXFIFOUsage     : std_logic_vector(5 downto 0);     -- RX FIFO usage
+    signal iRXFIFOTrigLvl   : std_logic_vector(5 downto 0);
     signal iRXFIFOTrigger   : std_logic;                        -- FIFO trigger level reached
-    signal iRXFIFO16Trigger : std_logic;                        -- FIFO 16 byte mode trigger level reached
-    signal iRXFIFO64Trigger : std_logic;                        -- FIFO 64 byte mode trigger level reached
     signal iRXFIFOPE        : std_logic;                        -- Parity error from FIFO
     signal iRXFIFOFE        : std_logic;                        -- Frame error from FIFO
     signal iRXFIFOBI        : std_logic;                        -- Break interrupt from FIFO
@@ -363,8 +365,7 @@ architecture rtl of uart_16750 is
     signal iRDAInterrupt    : std_logic;                        -- Receiver data available interrupt (DA or FIFO trigger level)
     signal iTimeoutCount    : unsigned(5 downto 0);             -- Character timeout counter (FIFO mode)
     signal iCharTimeout     : std_logic;                        -- Character timeout indication (FIFO mode)
-    signal iLSR_THRERE      : std_logic;                        -- LSR THRE rising edge for interrupt generation
-    signal iTHRInterrupt    : std_logic;                        -- Transmitter holding register empty interrupt
+    signal iTHRInterrupt    : std_logic;                        -- Transmitter FIFO trigger interrupt
     signal iTXEnable        : std_logic;                        -- Transmitter enable signal
     signal iRTS             : std_logic;                        -- Internal RTS signal with/without automatic flow control
 
@@ -376,18 +377,18 @@ begin
     iRead  <= '1' when CS = '1' and RD = '1' else '0';
 
     -- UART registers read/write signals
-    iRBRRead  <= '1' when iRead  = '1' and iA = "000" and iLCR_DLAB = '0' else '0';
-    iTHRWrite <= '1' when iWrite = '1' and iA = "000" and iLCR_DLAB = '0' else '0';
-    iDLLWrite <= '1' when iWrite = '1' and iA = "000" and iLCR_DLAB = '1' else '0';
-    iDLMWrite <= '1' when iWrite = '1' and iA = "001" and iLCR_DLAB = '1' else '0';
-    iIERWrite <= '1' when iWrite = '1' and iA = "001" and iLCR_DLAB = '0' else '0';
-    iIIRRead  <= '1' when iRead  = '1' and iA = "010" else '0';
-    iFCRWrite <= '1' when iWrite = '1' and iA = "010" else '0';
-    iLCRWrite <= '1' when iWrite = '1' and iA = "011" else '0';
-    iMCRWrite <= '1' when iWrite = '1' and iA = "100" else '0';
-    iLSRRead  <= '1' when iRead  = '1' and iA = "101" else '0';
-    iMSRRead  <= '1' when iRead  = '1' and iA = "110" else '0';
-    iSCRWrite <= '1' when iWrite = '1' and iA = "111" else '0';
+    iRBRRead  <= '1' when iRead  = '1' and iA = "0000" and iLCR_DLAB = '0' else '0';
+    iTHRWrite <= '1' when iWrite = '1' and iA = "0000" and iLCR_DLAB = '0' else '0';
+    iDLLWrite <= '1' when iWrite = '1' and iA = "0000" and iLCR_DLAB = '1' else '0';
+    iDLMWrite <= '1' when iWrite = '1' and iA = "0001" and iLCR_DLAB = '1' else '0';
+    iIERWrite <= '1' when iWrite = '1' and iA = "0001" and iLCR_DLAB = '0' else '0';
+    iIIRRead  <= '1' when iRead  = '1' and iA = "0010" else '0';
+    iFCRWrite <= '1' when iWrite = '1' and iA = "0010" else '0';
+    iLCRWrite <= '1' when iWrite = '1' and iA = "0011" else '0';
+    iMCRWrite <= '1' when iWrite = '1' and iA = "0100" else '0';
+    iLSRRead  <= '1' when iRead  = '1' and iA = "0101" else '0';
+    iMSRRead  <= '1' when iRead  = '1' and iA = "0110" else '0';
+    iSCRWrite <= '1' when iWrite = '1' and iA = "0111" else '0';
 
     -- Async. input synchronization
     UART_IS_SIN: slib_input_sync port map (CLK, RST, SIN,  iSINr);
@@ -404,6 +405,23 @@ begin
 
     iA <= A;
     iDIN <= DIN;
+
+    -- FIFO trigger levels
+    UART_TRIG_LVL: process (CLK, RST) is
+    begin
+      if RST = '1' then
+        iTXFIFOTrigLvl <= (others => '0');
+        iRXFIFOTrigLvl <= (others => '0');
+      elsif rising_edge(CLK) then
+        if iWrite = '1' then
+          if iA = "1010" then
+            iTXFIFOTrigLvl <= iDIN(5 downto 0);
+          elsif iA = "1011" then
+            iRXFIFOTrigLvl <= iDIN(5 downto 0);
+          end if;
+        end if;
+      end if;
+    end process;
     
     -- Divisor latch register
     UART_DLR: process (CLK, RST)
@@ -452,21 +470,10 @@ begin
                                        IIR => iIIR(3 downto 0),
                                        INT => INT
                                       );
-    -- THR empty interrupt
-    UART_IIC_THRE_ED: slib_edge_detect port map (CLK => CLK, RST => RST, D => iLSR_THRE, RE => iLSR_THRERE);
-    UART_IIC_THREI: process (CLK, RST)
-    begin
-        if (RST = '1') then
-            iTHRInterrupt <= '0';
-        elsif (CLK'event and CLK = '1') then
-            if (iLSR_THRERE = '1' or iFCR_TXFIFOReset = '1' or (iIERWrite = '1' and iDIN(1) = '1' and iLSR_THRE = '1')) then
-                iTHRInterrupt <= '1';           -- Set on THRE, TX FIFO reset (FIFO enable) or ETBEI enable
-            elsif ((iIIRRead = '1' and iIIR(3 downto 1) = "001") or iTHRWrite = '1') then
-                iTHRInterrupt <= '0';           -- Clear on IIR read (if source of interrupt) or THR write
-            end if;
-        end if;
-    end process;
 
+    iTHRInterrupt <= '1' when (iFCR_FIFOEnable = '0' and iLSR_THRE = '1') or
+                              (iFCR_FIFOEnable = '1' and iTXFIFOTrigger = '1') else '0';
+    
     iRDAInterrupt <= '1' when (iFCR_FIFOEnable = '0' and iLSR_DR = '1') or
                               (iFCR_FIFOEnable = '1' and iRXFIFOTrigger = '1') else '0';
     iIIR_PI     <= iIIR(0);
@@ -779,6 +786,9 @@ begin
     iTXFIFOWrite  <= '1' when ((iFCR_FIFOEnable = '0' and iTXFIFOEmpty = '1') or (iFCR_FIFOEnable = '1' and iTXFIFOFull = '0')) and iTHRWrite = '1' else '0';
     iTXFIFOClear  <= '1' when iFCR_TXFIFOReset = '1' else '0';
 
+    -- Transmitter FIFO outputs
+    iTXFIFOTrigger <= '1' when iTXFIFOUsage >= iTXFIFOTrigLvl else '0';
+
     -- Receiver FIFO
     UART_RXFF: slib_fifo generic map (WIDTH => 11, SIZE_E => 6)
                          port map (CLK      => CLK,
@@ -797,23 +807,9 @@ begin
     iRXFIFO16Full        <= iRXFIFOUsage(4);
     iRXFIFOFull          <= iRXFIFO16Full when iFCR_FIFO64E = '0' else iRXFIFO64Full;
 
-
     -- Receiver FIFO outputs
     iRBR                 <= iRXFIFOQ(7 downto 0);
-
-    -- FIFO trigger level: 1, 4, 8, 14
-    iRXFIFO16Trigger     <= '1' when (iFCR_RXTrigger = "00" and iRXFIFOEmpty = '0') or
-                                     (iFCR_RXTrigger = "01" and (iRXFIFOUsage(2) = '1' or iRXFIFOUsage(3) = '1')) or
-                                     (iFCR_RXTrigger = "10" and iRXFIFOUsage(3) = '1') or
-                                     (iFCR_RXTrigger = "11" and iRXFIFOUsage(3) = '1' and iRXFIFOUsage(2) = '1' and iRXFIFOUsage(1) = '1') or
-                                     iRXFIFO16Full = '1' else '0';
-    -- FIFO 64 trigger level: 1, 16, 32, 56
-    iRXFIFO64Trigger     <= '1' when (iFCR_RXTrigger = "00" and iRXFIFOEmpty = '0') or
-                                     (iFCR_RXTrigger = "01" and (iRXFIFOUsage(4) = '1' or iRXFIFOUsage(5) = '1')) or
-                                     (iFCR_RXTrigger = "10" and iRXFIFOUsage(5) = '1') or
-                                     (iFCR_RXTrigger = "11" and iRXFIFOUsage(5) = '1' and iRXFIFOUsage(4) = '1' and iRXFIFOUsage(3) = '1') or
-                                     iRXFIFO64Full = '1' else '0';
-    iRXFIFOTrigger       <= iRXFIFO16Trigger when iFCR_FIFO64E = '0' else iRXFIFO64Trigger;
+    iRXFIFOTrigger       <= '1' when iRXFIFOUsage >= iRXFIFOTrigLvl else '0';
 
     -- Transmitter
     UART_TX: uart_transmitter port map (CLK         => CLK,
@@ -1004,26 +1000,30 @@ begin
 
 
     -- UART data output
-    UART_DOUT: process (A, iLCR_DLAB, iRBR, iDLL, iDLM, iIER, iIIR, iLCR, iMCR, iLSR, iMSR, iSCR)
+    UART_DOUT: process (A, iLCR_DLAB, iRBR, iDLL, iDLM, iIER, iIIR, iLCR, iMCR, iLSR, iMSR, iSCR, iTXFIFOUsage, iRXFIFOUsage, iTXFIFOTrigLvl, iRXFIFOTrigLvl)
     begin
         case A is
-            when "000"  =>  if (iLCR_DLAB = '0') then
+            when "0000"  =>  if (iLCR_DLAB = '0') then
                                 DOUT <= iRBR;
                             else
                                 DOUT <= iDLL;
                             end if;
-            when "001"  =>  if (iLCR_DLAB = '0') then
+            when "0001"  =>  if (iLCR_DLAB = '0') then
                                 DOUT <= iIER;
                             else
                                 DOUT <= iDLM;
                             end if;
-            when "010"  =>  DOUT <= iIIR;
-            when "011"  =>  DOUT <= iLCR;
-            when "100"  =>  DOUT <= iMCR;
-            when "101"  =>  DOUT <= iLSR;
-            when "110"  =>  DOUT <= iMSR;
-            when "111"  =>  DOUT <= iSCR;
-            when others =>  DOUT <= iRBR;
+            when "0010"  =>  DOUT <= iIIR;
+            when "0011"  =>  DOUT <= iLCR;
+            when "0100"  =>  DOUT <= iMCR;
+            when "0101"  =>  DOUT <= iLSR;
+            when "0110"  =>  DOUT <= iMSR;
+            when "0111"  =>  DOUT <= iSCR;
+            when "1000" =>   DOUT <= "00" & iTXFIFOUsage;
+            when "1001" =>   DOUT <= "00" & iRXFIFOUsage;
+            when "1010" =>   DOUT <= "00" & iTXFIFOTrigLvl;
+            when "1011" =>   DOUT <= "00" & iRXFIFOTrigLvl;
+            when others  =>  DOUT <= iRBR;
         end case;
     end process;
 

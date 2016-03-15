@@ -89,15 +89,17 @@ architecture rtl of wb_to_gtp is
   signal txcharisk_in_i    : std_logic_vector (3 downto 0);
   signal txbufstatus_out_i : std_logic_vector (7 downto 0);
 
-  -- Interconnect signals
-  signal pwm_data_tx_i : std_logic_vector (15 downto 0);  -- to MSI
-  signal pwm_en_tx_i   : std_logic;                       -- to MSI
-  signal uart_tx_i     : std_logic_vector (15 downto 0);  -- to MSI
-  signal uart_rts_i    : std_logic_vector (15 downto 0);  -- to MSI
-  signal pwm_data_rx_i : std_logic_vector (15 downto 0);  -- from MSI
-  signal pwm_en_rx_i   : std_logic;                       -- from MSI
-  signal uart_rx_i     : std_logic_vector (15 downto 0);  -- from MSI
-  signal uart_cts_i    : std_logic_vector (15 downto 0);  -- from MSI
+  -- Interconnect signals                     
+  signal uart_tx_i     : std_logic_vector (15 downto 0);  -- to external devices
+  signal uart_rts_i    : std_logic_vector (15 downto 0);
+  signal uart_rx_i     : std_logic_vector (15 downto 0);  -- from external devices
+  signal uart_cts_i    : std_logic_vector (15 downto 0);
+  signal pwm_out_i     : std_logic_vector (15 downto 0);  -- to external devices
+  signal pwm_in_i      : std_logic_vector (15 downto 0);  -- from external devices
+  signal pwm_data_tx_i : std_logic_vector (15 downto 0);  -- to pwm_gen
+  signal pwm_en_tx_i   : std_logic;
+  signal pwm_data_rx_i : std_logic_vector (15 downto 0);  -- from pwm_analyzer
+  signal pwm_en_rx_i   : std_logic;
 
 begin
 
@@ -135,7 +137,7 @@ begin
   wb_pwm_1 : entity work.wb_pwm
     generic map (
       PWM_CHANNELS    => 16,            -- plus 3 for odometer
-      PWM_TX_INTERVAL => 512)           -- clk_gtp_tx cycles
+      PWM_TX_INTERVAL => 1024)          -- clk_gtp_tx cycles
     port map (
       rst          => rst,
       clk_gtp_tx   => txusrclk8_23,
@@ -189,25 +191,6 @@ begin
       UART_RX           => open,
       UART_CTS          => open);
 
-  -- RX interface gtp2 (from MSI)
-  post_rx_mnu_2 : entity work.post_rx_mnu(gtp2)
-    generic map (
-      PWM_START_CHAR => X"1C",
-      PWM_CHANNELS   => 19,             -- ch 17-19 for odometer
-      UART_CHANNELS  => 16)
-    port map (
-      clk               => rxusrclk8_2,
-      rst               => rst,
-      GTP_RXDATA        => rxdata2_out_i,
-      GTP_CHARISK       => rxcharisk_out_i(2),
-      GTP_BYTEISALIGNED => rxbyteisaligned_out_i(2),
-      USART1_RX         => open,
-      USART1_CTS        => open,
-      PWM_DATA_OUT      => pwm_data_rx_i,
-      PWM_EN_OUT        => pwm_en_rx_i,
-      UART_RX           => uart_rx_i,
-      UART_CTS          => uart_cts_i);
-
   -- TX interface gtp0 (to MORS)
   pre_tx_mnu_0 : entity work.pre_tx_mnu(gtp0)
     generic map (
@@ -227,26 +210,48 @@ begin
       GTP_TXDATA    => txdata0_in_i,
       GTP_CHARISK   => txcharisk_in_i(0));
 
-  -- TX interface gtp2 (to MSI)
-  pre_tx_mnu_2 : entity work.pre_tx_mnu(gtp2)
-    generic map (
-      COMMA_8B       => X"BC",          -- K28.5
-      PWM_START_CHAR => X"1C",          -- K28.0
-      UART_CHANNELS  => 16,
-      PWM_CHANNELS   => 16)
+  -- TX-RX interface gtp2 (MSI)
+  gtp_uartpwm : entity work.gtp_uartpwm
     port map (
-      clk           => txusrclk8_23,
-      rst           => rst,
-      USART1_TX     => '0',
-      USART1_RTS    => '0',
-      PWM_DATA_IN   => pwm_data_tx_i,
-      PWM_EN_IN     => pwm_en_tx_i,
-      UART_TX       => uart_tx_i,
-      UART_RTS      => uart_rts_i,
-      GTP_RESETDONE => resetdone_out_i(2),
-      GTP_PLLLKDET  => plllkdet_out_i(2),
-      GTP_TXDATA    => txdata2_in_i,
-      GTP_CHARISK   => txcharisk_in_i(2));
+      rst                 => rst,
+      gtp_txusrclk        => txusrclk8_23,
+      gtp_rxusrclk        => rxusrclk8_2,
+      gtp_txdata          => txdata2_in_i,
+      gtp_txcharisk       => txcharisk_in_i(2),
+      gtp_rxdata          => rxdata2_out_i,
+      gtp_rxcharisk       => rxcharisk_out_i(2),
+      gtp_resetdone       => resetdone_out_i(2),
+      gtp_plllkdet        => plllkdet_out_i(2),
+      gtp_rxbyteisaligned => rxbyteisaligned_out_i(2),
+      uart_rx             => uart_tx_i,  -- inputs
+      uart_cts            => uart_rts_i,
+      uart_tx             => uart_rx_i,  -- outputs
+      uart_rts            => uart_cts_i,
+      pwm_in              => pwm_out_i,  -- inputs
+      pwm_out             => pwm_in_i);  -- outputs
+
+  pwm_gen : entity work.pwm_gen
+    generic map (
+      CLKIN_FREQ => 100,                -- MHz
+      PWM_PERIOD => 20000)              -- us
+    port map (
+      clk         => txusrclk8_23,
+      rst         => rst,
+      PWM_DATA_IN => pwm_data_tx_i,
+      PWM_EN_IN   => pwm_en_tx_i,
+      PWM_OUT     => pwm_out_i);
+
+  pwm_analyzer_multichannel : entity work.pwm_analyzer_multichannel
+    generic map (
+      PWM_CHANNELS      => 16,
+      PWM_SEND_INTERVAL => 1024)
+    port map (
+      clk          => rxusrclk8_2,
+      rst          => rst,
+      PWM_IN       => pwm_in_i,
+      ODO_IN       => pwm_in_i(4),
+      PWM_DATA_OUT => pwm_data_rx_i,
+      PWM_EN_OUT   => pwm_en_rx_i);
 
   sp6_gtp_top_tile0 : entity gtp_lib.sp6_gtp_top
     port map (
