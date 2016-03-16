@@ -33,6 +33,8 @@ architecture rtl of wb_uart is
   signal uart_cs           : std_logic_vector(UART_CHANNELS-1 downto 0);
   signal uart_wr           : std_logic;  -- common for all uarts
   signal uart_rd           : std_logic;  -- common for all uarts
+  signal uart_rd_reg       : std_logic_vector(1 downto 0);
+  signal uart_rd_rising    : std_logic;  -- fix for 2-cycle sel_i and stb_i
   signal uart_addr         : std_logic_vector(3 downto 0);
   signal uart_di           : std_logic_vector(7 downto 0);
   type t_uart_do is array (0 to UART_CHANNELS-1) of std_logic_vector(7 downto 0);
@@ -46,6 +48,18 @@ architecture rtl of wb_uart is
   signal illegal_op        : std_logic;  -- illegal operation
   shared variable uart_num : natural;
 
+  attribute mark_debug                   : string;
+  attribute mark_debug of uart_cs        : signal is "TRUE";
+  attribute mark_debug of uart_wr        : signal is "TRUE";
+  attribute mark_debug of uart_rd_rising : signal is "TRUE";
+  attribute mark_debug of uart_addr      : signal is "TRUE";
+  attribute mark_debug of uart_di        : signal is "TRUE";
+  attribute mark_debug of uart_do        : signal is "TRUE";
+  attribute mark_debug of illegal_op     : signal is "TRUE";
+  attribute mark_debug of resets_rd      : signal is "TRUE";
+  attribute mark_debug of resets_wr      : signal is "TRUE";
+  attribute mark_debug of irqs_rd        : signal is "TRUE";
+
 begin
 
   -- Address space --
@@ -56,7 +70,8 @@ begin
   -- UART_CHANNELS value is used for IRQs register reading
   -- UART_CHANNELS+1 value is used for resets register writing/reading
 
-  uart_di <= dat_i(7 downto 0);
+  uart_di        <= dat_i(7 downto 0);
+  uart_rd_rising <= '1' when uart_rd_reg = "01" else '0';
 
   -- asynchronous generation of flags and signals for uart
   process (sel_i, stb_i, we_i, adr_i, dat_i) is
@@ -78,7 +93,7 @@ begin
       if uart_num <= UART_CHANNELS-1 then    -- any UART channel
         uart_cs(uart_num) <= '1';
         if we_i = '0' then
-          uart_rd <= '1';
+          uart_rd <= '1';               -- actual read strobe is uart_rd_rising
         else
           uart_wr <= '1';
         end if;
@@ -86,7 +101,7 @@ begin
         if we_i = '0' then
           irqs_rd <= '1';
         else
-          illegal_op <= '1';                 -- write to irqs register illegal
+          illegal_op <= '1';            -- write to irqs register illegal
         end if;
       elsif uart_num = UART_CHANNELS+1 then  -- resets register
         if we_i = '0' then
@@ -95,10 +110,10 @@ begin
           resets_wr <= '1';
         end if;
       else
-        illegal_op <= '1';                   -- illegal address
+        illegal_op <= '1';              -- illegal address
       end if;
       if dat_i(15 downto 8) /= X"00" then
-        illegal_op <= '1';                   -- illegal input data
+        illegal_op <= '1';              -- illegal input data
       end if;
     end if;
   end process;
@@ -127,6 +142,8 @@ begin
           dat_o <= (others => '0');
         end if;
       end if;
+      -- uart_rd registering
+      uart_rd_reg <= uart_rd_reg(0) & uart_rd;
     end if;
   end process;
 
@@ -138,7 +155,7 @@ begin
         BAUDCE   => '1',
         CS       => uart_cs(i),
         WR       => uart_wr,
-        RD       => uart_rd,
+        RD       => uart_rd_rising,
         A        => uart_addr,
         DIN      => uart_di,
         DOUT     => uart_do(i),
