@@ -48,18 +48,6 @@ architecture rtl of wb_uart is
   signal illegal_op        : std_logic;  -- illegal operation
   shared variable uart_num : natural;
 
-  attribute mark_debug                   : string;
-  attribute mark_debug of uart_cs        : signal is "TRUE";
-  attribute mark_debug of uart_wr        : signal is "TRUE";
-  attribute mark_debug of uart_rd_rising : signal is "TRUE";
-  attribute mark_debug of uart_addr      : signal is "TRUE";
-  attribute mark_debug of uart_di        : signal is "TRUE";
-  attribute mark_debug of uart_do        : signal is "TRUE";
-  attribute mark_debug of illegal_op     : signal is "TRUE";
-  attribute mark_debug of resets_rd      : signal is "TRUE";
-  attribute mark_debug of resets_wr      : signal is "TRUE";
-  attribute mark_debug of irqs_rd        : signal is "TRUE";
-
 begin
 
   -- Address space --

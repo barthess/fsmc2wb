@@ -369,26 +369,6 @@ architecture rtl of uart_16750 is
     signal iTXEnable        : std_logic;                        -- Transmitter enable signal
     signal iRTS             : std_logic;                        -- Internal RTS signal with/without automatic flow control
 
-    attribute mark_debug : string;
-    attribute mark_debug of iRBR : signal is "TRUE";
-    attribute mark_debug of iFCR : signal is "TRUE";
-    attribute mark_debug of iLCR : signal is "TRUE";
-    attribute mark_debug of iMCR : signal is "TRUE";
-    attribute mark_debug of iLSR : signal is "TRUE";
-    attribute mark_debug of iMSR : signal is "TRUE";
-    attribute mark_debug of iRXFIFOWrite : signal is "TRUE";
-    attribute mark_debug of iRXFIFORead : signal is "TRUE";
-    attribute mark_debug of iRXFIFOEmpty : signal is "TRUE";
-    attribute mark_debug of iRXFIFOFull : signal is "TRUE";
-    attribute mark_debug of iRXFIFOD : signal is "TRUE";
-    attribute mark_debug of iRXFIFOQ : signal is "TRUE";
-    attribute mark_debug of iRXFIFOUsage : signal is "TRUE";
-    attribute mark_debug of iRXFIFOTrigLvl : signal is "TRUE";
-    attribute mark_debug of iRXFIFOTrigger : signal is "TRUE";
-    attribute mark_debug of iRXFinished : signal is "TRUE";
-    attribute mark_debug of iRXData : signal is "TRUE";
-
-
 begin
 
     -- Global device signals
