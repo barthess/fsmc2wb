@@ -138,8 +138,6 @@ begin
           dat_o <= zeros(15 downto UART_CHANNELS) & uart_resets;
         elsif resets_wr = '1' then
           uart_resets <= dat_i(UART_CHANNELS-1 downto 0);
-        else
-          dat_o <= (others => '0');
         end if;
       end if;
       -- uart_rd registering

@@ -201,6 +201,16 @@ signal clk_locked : std_logic;
 signal clk_wb     : std_logic;
 signal clk_mul    : std_logic;
 
+attribute mark_debug : string;
+attribute mark_debug of wb_uart_sel : signal is "TRUE";
+attribute mark_debug of wb_uart_stb : signal is "TRUE";
+attribute mark_debug of wb_uart_we : signal is "TRUE";
+attribute mark_debug of wb_uart_err : signal is "TRUE";
+attribute mark_debug of wb_uart_ack : signal is "TRUE";
+attribute mark_debug of wb_uart_adr : signal is "TRUE";
+attribute mark_debug of wb_uart_dat_i : signal is "TRUE";
+attribute mark_debug of wb_uart_dat_o : signal is "TRUE";
+
 begin
 
   --
