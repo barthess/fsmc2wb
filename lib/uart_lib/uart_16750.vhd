@@ -369,7 +369,6 @@ architecture rtl of uart_16750 is
     signal iTXEnable        : std_logic;                        -- Transmitter enable signal
     signal iRTS             : std_logic;                        -- Internal RTS signal with/without automatic flow control
 
-
 begin
 
     -- Global device signals
