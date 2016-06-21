@@ -40,6 +40,9 @@ architecture beh of wb_pwm is
   signal pwm_reg_tx_gtp : t_pwm_reg_tx;  -- and gtp clock domains, they contain
   signal pwm_reg_rx_wb  : t_pwm_reg_rx;  -- 16 pwm values (+3 odometer for rx)
   signal pwm_reg_rx_gtp : t_pwm_reg_rx;
+  
+  attribute mark_debug : string;
+  attribute mark_debug of pwm_reg_rx_wb : signal is "TRUE";
 
   type t_pwm_trx_state is (idle, trx, pause);
   -- Pause state is needed because GTP tx interface is 8-bit wide

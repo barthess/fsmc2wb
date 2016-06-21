@@ -27,6 +27,10 @@ architecture rtl of pwm_analyzer_multichannel is
   type t_pwm_send_state is (idle, send, pause);
   signal pwm_send_state : t_pwm_send_state;
   signal pwm_send_cnt   : integer range 0 to PWM_SEND_INTERVAL-1;  -- pwm send counter
+  
+  attribute mark_debug : string;
+  attribute mark_debug of pwm_data_array : signal is "TRUE";
+
 
 begin
 

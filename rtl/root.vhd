@@ -51,7 +51,7 @@ entity AA_root is
     FSMC_NWE : in std_logic;
     FSMC_NCE : in std_logic;
 
-    STM_IO_MATH_RDY_OUT : out std_logic;
+    --STM_IO_MATH_RDY_OUT : out std_logic;
     STM_IO_MATH_RST_IN : in std_logic;
     STM_IO_WB_ERR_OUT : out std_logic;
     STM_IO_WB_ACK_OUT : out std_logic;
@@ -466,27 +466,27 @@ begin
   --
   -- multiplicator with integrated BRAMs
   --
-  wb_mtrx : entity work.wb_mtrx
-  generic map (
-    WB_AW => WB_AW,
-    WB_DW => FSMC_DW
-  )
-  port map (
-    rdy_o => STM_IO_MATH_RDY_OUT,
-    rst_i => STM_IO_MATH_RST_IN,
-
-    clk_wb_i  => (others => clk_wb),
-    clk_mul_i => clk_mul,
-    
-    sel_i => wire_mul2wb_sel,
-    stb_i => wire_mul2wb_stb,
-    we_i  => wire_mul2wb_we,
-    err_o => wire_mul2wb_err,
-    ack_o => wire_mul2wb_ack,
-    adr_i => wire_mul2wb_adr,
-    dat_o => wire_mul2wb_dat_o,
-    dat_i => wire_mul2wb_dat_i
-  );
+--  wb_mtrx : entity work.wb_mtrx
+--  generic map (
+--    WB_AW => WB_AW,
+--    WB_DW => FSMC_DW
+--  )
+--  port map (
+--    rdy_o => STM_IO_MATH_RDY_OUT,
+--    rst_i => STM_IO_MATH_RST_IN,
+--
+--    clk_wb_i  => (others => clk_wb),
+--    clk_mul_i => clk_mul,
+--    
+--    sel_i => wire_mul2wb_sel,
+--    stb_i => wire_mul2wb_stb,
+--    we_i  => wire_mul2wb_we,
+--    err_o => wire_mul2wb_err,
+--    ack_o => wire_mul2wb_ack,
+--    adr_i => wire_mul2wb_adr,
+--    dat_o => wire_mul2wb_dat_o,
+--    dat_i => wire_mul2wb_dat_i
+--  );
     
   -- connect debug modem
   modem_router : entity work.modem_router 
