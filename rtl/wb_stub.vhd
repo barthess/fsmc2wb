@@ -36,7 +36,7 @@ end wb_stub;
 
 architecture beh of wb_stub is
   type math_ctl_reg_t is array (0 to 2**DAT_AW-1) of std_logic_vector(DW-1 downto 0);
-  signal dat_array : math_ctl_reg_t := (others => (x"DEAD"));
+  signal dat_array : math_ctl_reg_t := (others => (x"DEADBEEF"));
 begin
   
   -- bus sampling process

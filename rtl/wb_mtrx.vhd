@@ -19,7 +19,7 @@ Generic (
   WB_DW   : positive := 16;
   MUL_AW  : positive := 10;
   MUL_DW  : positive := 64;
-  BRAM_AW : positive := 12;
+  BRAM_AW : positive := 11;
   SLAVES  : positive := 9   -- total wishbone slaves count (BRAMs + 1 control)
 );
 Port (
@@ -57,10 +57,8 @@ architecture beh of wb_mtrx is
   constant STATUS_REG  : integer := 3;
   constant SCALE_REG0  : integer := 4;
   constant SCALE_REG1  : integer := 5;
-  constant SCALE_REG2  : integer := 6;
-  constant SCALE_REG3  : integer := 7;
-  constant CTL_ARRAY_LEN : integer := SCALE_REG3 + 1;
-  type math_ctl_reg_t is array (0 to SCALE_REG3) of std_logic_vector(WB_DW-1 downto 0);
+  constant CTL_ARRAY_LEN : integer := SCALE_REG1 + 1;
+  type math_ctl_reg_t is array (0 to SCALE_REG1) of std_logic_vector(WB_DW-1 downto 0);
   signal math_ctl : math_ctl_reg_t := (others => (others => '0'));
   
   -- state for math clock domain
@@ -314,9 +312,7 @@ begin
           math_m_size           <= math_ctl(SIZES_REG)(4 downto 0);
           math_p_size           <= math_ctl(SIZES_REG)(9 downto 5);
           math_n_size           <= math_ctl(SIZES_REG)(14 downto 10);
-          math_double_constant  <= math_ctl(SCALE_REG3) &
-                                   math_ctl(SCALE_REG2) &
-                                   math_ctl(SCALE_REG1) &
+          math_double_constant  <= math_ctl(SCALE_REG1) &
                                    math_ctl(SCALE_REG0);
           math_hw_select        <= math_hw_select_wb;
           crossbar_adr_select   <= crossbar_adr_select_wb;
@@ -508,7 +504,7 @@ begin
           if (math_rdy_wb = '1') or (math_err_wb = '1') then
             if math_err_wb = '1' then
               ctl_err_o <= '1';
-              math_ctl(STATUS_REG) <= "00000000000000" & hw_sel_v;
+              math_ctl(STATUS_REG) <= "000000000000000000000000000000" & hw_sel_v;
             end if;
             wb_state <= WB_IDLE;
           end if;

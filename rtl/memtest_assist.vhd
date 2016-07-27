@@ -50,7 +50,7 @@ begin
         a_reg <= (others => '0');
         addr_cnt <= (others => '0');
         di_reg <= BRAM_DI;
-        if (di_reg = x"55AA") then
+        if (di_reg = x"55AA66BB") then
           BRAM_DBG <= '1';
         else
           BRAM_DBG <= '0';

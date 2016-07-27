@@ -27,8 +27,8 @@ use IEEE.NUMERIC_STD.ALL;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx primitives in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
+library UNISIM;
+use UNISIM.VComponents.all;
 
 -- Non standard library from synopsis (for dev_null functions)
 use ieee.std_logic_misc.all;
@@ -37,12 +37,12 @@ use ieee.std_logic_misc.all;
 entity AA_root is
   generic (
     FSMC_AW   : positive := 23;
-    FSMC_DW   : positive := 16;
+    FSMC_DW   : positive := 32;
     WB_AW     : positive := 16;
-    WBSTUBS   : positive := 3
+    WBSTUBS   : positive := 5
   );
   port ( 
-    CLK_IN_27MHZ : in std_logic;
+    FSMC_CLK_54MHZ : in std_logic;
 
     FSMC_A : in std_logic_vector ((FSMC_AW - 1) downto 0);
     FSMC_D : inout std_logic_vector ((FSMC_DW - 1) downto 0);
@@ -59,55 +59,24 @@ entity AA_root is
     STM_IO_BRAM_DBG_OUT : out std_logic;
     STM_IO_FPGA_RDY : out std_logic;
     STM_IO_MMU_ERR_OUT : out std_logic;
-    
+
     LED_LINE : out std_logic_vector (5 downto 0);
 
-    DEV_NULL_BANK1 : out std_logic; -- warning suppressor
-    DEV_NULL_BANK0 : out std_logic; -- warning suppressor
+    -- GNSS UART ports between FPGA and STM32
+    STM32_UART_TO_FPGA        : in  std_logic_vector (3 downto 0);
+    STM32_UART_FROM_FPGA      : out std_logic_vector (3 downto 0);
+    STM32_GNSS_NRST_TO_FPGA   : in  std_logic_vector (3 downto 0);
+    STM32_GNSS_PPS_FROM_FPGA  : out std_logic_vector (3 downto 0);
 
-    -- GTP ports
-    REFCLK0_N_IN : in  std_logic;
-    REFCLK0_P_IN : in  std_logic;
-    RXN_IN       : in  std_logic_vector(3 downto 0);
-    RXP_IN       : in  std_logic_vector(3 downto 0);
-    TXN_OUT      : out std_logic_vector(3 downto 0);
-    TXP_OUT      : out std_logic_vector(3 downto 0);
-
-    -- I2C ports
-    FCLK : in    std_logic;             -- 24.84 MHz
-    CSDA : inout std_logic;
-    CSCL : inout std_logic;
-
-    -- STM32 UART ports for modem (named relative to MCU)
-    STM_UART6_TX  : in  std_logic;
-    STM_UART6_RX  : out std_logic;
-    STM_UART6_CTS : out std_logic;
-    STM_UART6_RTS : in  std_logic;
-    XBEE_TX       : in  std_logic;
-    XBEE_RX       : out std_logic;
-    XBEE_CTS      : out std_logic;
-    XBEE_RTS      : in  std_logic;
-    STM_IO_MODEM_SELECT : in std_logic;
-
-    -- STM32 UART ports for GNSS receivers (named relative to MCU)
-    STM_UART2_RX  : out std_logic;
-    STM_UART2_TX  : in  std_logic;
-    Navi_RX	      : in  std_logic;
-    Navi_TX	      : out std_logic;
-    NaviNMEA_RX   : in  std_logic;
-    NaviNMEA_TX   : out std_logic;
-    UBLOX_RX      : out std_logic;
-    UBLOX_TX      : in  std_logic;
-    UBLOX_NRST    : out std_logic;
-    MOD_RX1	      : out std_logic;
-    MOD_TX1	      : in  std_logic;
-    STM_IO_GNSS_SELECT : in std_logic_vector (1 downto 0);
+    -- ports for GNSS receivers (named relative to GNSS)
+    GNSS_NRST_FROM_FPGA : out std_logic_vector (3 downto 0);
+    GNSS_UART_TO_FPGA   : in  std_logic_vector (3 downto 0);
+    GNSS_UART_FROM_FPGA : out std_logic_vector (3 downto 0);
+    GNSS_PPS_TO_FPGA    : in  std_logic_vector (3 downto 0); -- NOTE: 4 inputs
+    GNSS_PPS_FROM_FPGA  : out std_logic_vector (2 downto 0); -- NOTE: only 3 outputs needed
     
-    -- STM32 UART port for MOD telemetry
-    MNU_TX_MSI_RX : in  std_logic;
-    MNU_RX_MSI_TX : out std_logic;
-    MODTELEM_TX_MNU : in std_logic;     -- MOD TX
-    MODTELEM_RX_MNU : out std_logic     -- MOD RX
+    -- ARINC GPIO
+    ARINC_GPIO  : out std_logic_vector (31 downto 0)
 	);
 end AA_root;
 
@@ -115,7 +84,7 @@ end AA_root;
 architecture Behavioral of AA_root is
 
 -- wires for memtest
-constant MEMTEST_BRAM_AW : integer := 12;
+constant MEMTEST_BRAM_AW : integer := 11;
 signal wire_bram_a   : std_logic_vector(MEMTEST_BRAM_AW-1 downto 0); 
 signal wire_bram_di  : std_logic_vector(FSMC_DW-1 downto 0); 
 signal wire_bram_do  : std_logic_vector(FSMC_DW-1 downto 0); 
@@ -168,53 +137,36 @@ signal wb_led_adr   : std_logic_vector(WB_AW-1   downto 0);
 signal wb_led_dat_i : std_logic_vector(FSMC_DW-1 downto 0);
 signal wb_led_dat_o : std_logic_vector(FSMC_DW-1 downto 0);
 
--- wires for wishbone_to_gtp module (pwm & uart)
-signal wb_pwm_sel   : std_logic;
-signal wb_pwm_stb   : std_logic;
-signal wb_pwm_we    : std_logic;
-signal wb_pwm_err   : std_logic;
-signal wb_pwm_ack   : std_logic;
-signal wb_pwm_adr   : std_logic_vector(WB_AW-1 downto 0);
-signal wb_pwm_dat_i : std_logic_vector(FSMC_DW-1 downto 0);
-signal wb_pwm_dat_o : std_logic_vector(FSMC_DW-1 downto 0);
-
-signal wb_uart_sel   : std_logic;
-signal wb_uart_stb   : std_logic;
-signal wb_uart_we    : std_logic;
-signal wb_uart_err   : std_logic;
-signal wb_uart_ack   : std_logic;
-signal wb_uart_adr   : std_logic_vector(WB_AW-1 downto 0);
-signal wb_uart_dat_i : std_logic_vector(FSMC_DW-1 downto 0);
-signal wb_uart_dat_o : std_logic_vector(FSMC_DW-1 downto 0);
-
--- wires between modem router and GTP transceiver    
-signal mors_uart_tx  : std_logic;
-signal mors_uart_rx  : std_logic;
-signal mors_uart_rts : std_logic;
-signal mors_uart_cts : std_logic;
-
 -- clock wires
 signal clk_200mhz : std_logic;
 signal clk_150mhz : std_logic;
 signal clk_100mhz : std_logic;
+signal clk_50mhz : std_logic;
 signal clk_locked : std_logic;
 signal clk_wb     : std_logic;
 signal clk_mul    : std_logic;
 
 begin
-
+   
+--   BUFG_inst : BUFG
+--   port map (
+--      O => clk_wb, -- 1-bit output: Clock buffer output
+--      I => FSMC_CLK_54MHZ  -- 1-bit input: Clock buffer input
+--   );
+   
   --
   -- clock sources
   --
 	clk_src : entity work.clk_src 
   port map (
-		CLK_IN1  => CLK_IN_27MHZ,
+		CLK_IN1  => FSMC_CLK_54MHZ,
   	CLK_OUT1 => clk_200mhz,
 		CLK_OUT2 => clk_150mhz,
 		CLK_OUT3 => clk_100mhz,
+    CLK_OUT4 => clk_50mhz,
 		LOCKED   => clk_locked
 	);
-  clk_wb  <= clk_100mhz;
+  clk_wb  <= clk_50mhz;
   clk_mul <= clk_200mhz;
 
   --
@@ -240,43 +192,6 @@ begin
       dat_i => wb_stub_dat_i((n+1)*FSMC_DW-1 downto n*FSMC_DW)
     );
   end generate;
-
-   wb_to_gtp : entity work.wb_to_gtp
-      port map (
-        REFCLK0_N_IN    => REFCLK0_N_IN,
-        REFCLK0_P_IN    => REFCLK0_P_IN,
-        CSDA            => CSDA,
-        CSCL            => CSCL,
-        RST_IN          => '0',         -- temporary
-        FCLK            => FCLK,        -- 24.84 MHz
-        RXN_IN          => RXN_IN,
-        RXP_IN          => RXP_IN,
-        TXN_OUT         => TXN_OUT,
-        TXP_OUT         => TXP_OUT,
-        UART6_TX        => mors_uart_rx,
-        UART6_RX        => mors_uart_tx,
-        UART6_RTS       => mors_uart_cts,
-        UART6_CTS       => mors_uart_rts,
-        MODTELEM_RX_MNU => open,
-        pwm_clk_i       => clk_wb,
-        pwm_sel_i       => wb_pwm_sel,
-        pwm_stb_i       => wb_pwm_stb,
-        pwm_we_i        => wb_pwm_we,
-        pwm_err_o       => wb_pwm_err,
-        pwm_ack_o       => wb_pwm_ack,
-        pwm_adr_i       => wb_pwm_adr,
-        pwm_dat_o       => wb_pwm_dat_o,
-        pwm_dat_i       => wb_pwm_dat_i,
-        uart_clk_i      => clk_wb,
-        uart_sel_i      => wb_uart_sel,
-        uart_stb_i      => wb_uart_stb,
-        uart_we_i       => wb_uart_we,
-        uart_err_o      => wb_uart_err,
-        uart_ack_o      => wb_uart_ack,
-        uart_adr_i      => wb_uart_adr,
-        uart_dat_o      => wb_uart_dat_o,
-        uart_dat_i      => wb_uart_dat_i
-      );
 
   --
   -- connect wishbone based LED strip
@@ -333,57 +248,41 @@ begin
 --      dat_i => wb_stub_dat_o
     
     sel_o(15 downto 16-WBSTUBS)         => wb_stub_sel,
-    sel_o(12)                           => wb_uart_sel,
-    sel_o(11)                           => wb_pwm_sel,
     sel_o(10 downto 2)                  => wire_mul2wb_sel,
     sel_o(1)                            => wb_led_sel,
     sel_o(0)                            => wire_memtest_wb_sel,
     
     stb_o(15 downto 16-WBSTUBS)         => wb_stub_stb,
-    stb_o(12)                           => wb_uart_stb,
-    stb_o(11)                           => wb_pwm_stb,
     stb_o(10 downto 2)                  => wire_mul2wb_stb,
     stb_o(1)                            => wb_led_stb,
     stb_o(0)                            => wire_memtest_wb_stb,
     
     we_o(15 downto 16-WBSTUBS)          => wb_stub_we,
-    we_o(12)                            => wb_uart_we,
-    we_o(11)                            => wb_pwm_we,
     we_o(10 downto 2)                   => wire_mul2wb_we,
     we_o(1)                             => wb_led_we,
     we_o(0)                             => wire_memtest_wb_we,
     
-    adr_o(WB_AW*16-1 downto WB_AW*13)     => wb_stub_adr,
-    adr_o(WB_AW*13-1 downto WB_AW*12)     => wb_uart_adr,
-    adr_o(WB_AW*12-1 downto WB_AW*11)     => wb_pwm_adr,
+    adr_o(WB_AW*16-1 downto WB_AW*11)     => wb_stub_adr,
     adr_o(WB_AW*11-1 downto WB_AW*2)      => wire_mul2wb_adr,
     adr_o(WB_AW*2-1 downto WB_AW)         => wb_led_adr,
     adr_o(WB_AW-1   downto 0)             => wire_memtest_wb_adr,
     
-    dat_o(FSMC_DW*16-1 downto FSMC_DW*13) => wb_stub_dat_i,
-    dat_o(FSMC_DW*13-1 downto FSMC_DW*12) => wb_uart_dat_i,
-    dat_o(FSMC_DW*12-1 downto FSMC_DW*11) => wb_pwm_dat_i,
+    dat_o(FSMC_DW*16-1 downto FSMC_DW*11) => wb_stub_dat_i,
     dat_o(FSMC_DW*11-1 downto FSMC_DW*2)  => wire_mul2wb_dat_i,
     dat_o(FSMC_DW*2-1 downto FSMC_DW)     => wb_led_dat_i,
     dat_o(FSMC_DW-1   downto 0)           => wire_memtest_wb_dat_i,
     
     err_i(15 downto 16-WBSTUBS)           => wb_stub_err,
-    err_i(12)                             => wb_uart_err,
-    err_i(11)                             => wb_pwm_err,
     err_i(10 downto 2)                    => wire_mul2wb_err,
     err_i(1)                              => wb_led_err,
     err_i(0)                              => wire_memtest_wb_err,
     
     ack_i(15 downto 16-WBSTUBS)           => wb_stub_ack,
-    ack_i(12)                             => wb_uart_ack,
-    ack_i(11)                             => wb_pwm_ack,
     ack_i(10 downto 2)                    => wire_mul2wb_ack,
     ack_i(1)                              => wb_led_ack,
     ack_i(0)                              => wire_memtest_wb_ack,
     
-    dat_i(FSMC_DW*16-1 downto FSMC_DW*13) => wb_stub_dat_o,
-    dat_i(FSMC_DW*13-1 downto FSMC_DW*12) => wb_uart_dat_o,
-    dat_i(FSMC_DW*12-1 downto FSMC_DW*11) => wb_pwm_dat_o,
+    dat_i(FSMC_DW*16-1 downto FSMC_DW*11) => wb_stub_dat_o,
     dat_i(FSMC_DW*11-1 downto FSMC_DW*2)  => wire_mul2wb_dat_o,
     dat_i(FSMC_DW*2-1 downto FSMC_DW)     => wb_led_dat_o,
     dat_i(FSMC_DW-1   downto 0)           => wire_memtest_wb_dat_o
@@ -488,61 +387,25 @@ begin
     dat_i => wire_mul2wb_dat_i
   );
     
-  -- connect debug modem
-  modem_router : entity work.modem_router 
-  port map (
-    STM_DI  => STM_UART6_TX,
-    STM_DO  => STM_UART6_RX,
-    STM_CSI => STM_UART6_RTS,
-    STM_CSO => STM_UART6_CTS,
-    
-    DI(0)  => XBEE_TX,
-    DI(1)  => mors_uart_tx,
-    DO(0)  => XBEE_RX,
-    DO(1)  => mors_uart_rx,
-    CSI(0) => XBEE_RTS,
-    CSI(1) => mors_uart_rts,
-    CSO(0) => XBEE_CTS,
-    CSO(1) => mors_uart_cts,
-    
-    sel => STM_IO_MODEM_SELECT
-  );
-
-  -- connect GNSS router
-  gnss_router : entity work.gnss_router 
-  port map (
-    sel => STM_IO_GNSS_SELECT,
-
-    from_gnss(0) => Navi_RX,
-    from_gnss(1) => NaviNMEA_RX,
-    from_gnss(2) => UBLOX_TX,
-    from_gnss(3) => MOD_TX1,
-
-    to_gnss(0) => Navi_TX,
-    to_gnss(1) => NaviNMEA_TX,
-    to_gnss(2) => UBLOX_RX,
-    to_gnss(3) => MOD_RX1,
-
-    to_stm    => STM_UART2_RX,
-    from_stm  => STM_UART2_TX,
-
-    ubx_nrst  => UBLOX_NRST
-  );
-
-  -- connect MOD telemetry
-  MODTELEM_RX_MNU <= MNU_TX_MSI_RX;
-  MNU_RX_MSI_TX <= MODTELEM_TX_MNU;
-
   --
 	-- raize ready flag for STM32
   --
 	STM_IO_FPGA_RDY <= clk_locked;
-
+  
+  GNSS_UART_FROM_FPGA       <= STM32_UART_TO_FPGA;
+  STM32_UART_FROM_FPGA      <= GNSS_UART_TO_FPGA;
+  GNSS_NRST_FROM_FPGA       <= STM32_GNSS_NRST_TO_FPGA;
+  STM32_GNSS_PPS_FROM_FPGA  <= GNSS_PPS_TO_FPGA;
+  GNSS_PPS_FROM_FPGA        <= (others => '0');
+  
+  -- ARINC GPIO
+  ARINC_GPIO <= (others => '0');
+  
   --
   -- warning suppressors and other trash
   --
-  DEV_NULL_BANK0 <= '1';--FSMC_NBL(0) or FSMC_NBL(1);
-  DEV_NULL_BANK1 <= '1';
+--  DEV_NULL_BANK0 <= '1';--FSMC_NBL(0) or FSMC_NBL(1);
+--  DEV_NULL_BANK1 <= '1';
 
 end Behavioral;
 
