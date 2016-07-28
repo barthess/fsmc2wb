@@ -36,7 +36,7 @@ use ieee.std_logic_misc.all;
 
 entity AA_root is
   generic (
-    FSMC_AW   : positive := 23;
+    FSMC_AW   : positive := 20;
     FSMC_DW   : positive := 32;
     WB_AW     : positive := 16;
     WBSTUBS   : positive := 5
@@ -46,7 +46,7 @@ entity AA_root is
 
     FSMC_A : in std_logic_vector ((FSMC_AW - 1) downto 0);
     FSMC_D : inout std_logic_vector ((FSMC_DW - 1) downto 0);
-    --FSMC_NBL : in std_logic_vector (1 downto 0);
+    FSMC_NBL : in std_logic_vector (1 downto 0);
     FSMC_NOE : in std_logic;
     FSMC_NWE : in std_logic;
     FSMC_NCE : in std_logic;
@@ -60,7 +60,7 @@ entity AA_root is
     STM_IO_FPGA_RDY : out std_logic;
     STM_IO_MMU_ERR_OUT : out std_logic;
 
-    LED_LINE : out std_logic_vector (5 downto 0);
+    LED_LINE : out std_logic_vector (7 downto 0);
 
     -- GNSS UART ports between FPGA and STM32
     STM32_UART_TO_FPGA        : in  std_logic_vector (3 downto 0);
@@ -148,25 +148,24 @@ signal clk_mul    : std_logic;
 
 begin
    
---   BUFG_inst : BUFG
---   port map (
---      O => clk_wb, -- 1-bit output: Clock buffer output
---      I => FSMC_CLK_54MHZ  -- 1-bit input: Clock buffer input
---   );
+   BUFG_inst : BUFG
+   port map (
+      O => clk_wb, -- 1-bit output: Clock buffer output
+      I => FSMC_CLK_54MHZ  -- 1-bit input: Clock buffer input
+   );
    
   --
   -- clock sources
   --
 	clk_src : entity work.clk_src 
   port map (
-		CLK_IN1  => FSMC_CLK_54MHZ,
+    --CLK_IN1  => FSMC_CLK_54MHZ,
+		CLK_IN1  => clk_wb,
   	CLK_OUT1 => clk_200mhz,
-		CLK_OUT2 => clk_150mhz,
-		CLK_OUT3 => clk_100mhz,
-    CLK_OUT4 => clk_50mhz,
+		CLK_OUT2 => clk_100mhz,
 		LOCKED   => clk_locked
 	);
-  clk_wb  <= clk_50mhz;
+  --clk_wb  <= FSMC_CLK_54MHZ;
   clk_mul <= clk_200mhz;
 
   --
@@ -199,7 +198,8 @@ begin
   wb_led : entity work.wb_led
   generic map (
     AW => WB_AW,
-    DW => FSMC_DW
+    DW => FSMC_DW,
+    LED_NUM => 8
   )
   port map (
     led   => LED_LINE,

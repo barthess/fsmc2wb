@@ -15,10 +15,11 @@ use IEEE.NUMERIC_STD.ALL;
 entity wb_led is
   Generic (
     AW : positive := 16; -- address width
-    DW : positive := 16 -- data width
+    DW : positive := 16; -- data width
+    LED_NUM : positive := 8
   );
   Port (
-    led   : out std_logic_vector(5 downto 0);
+    led   : out std_logic_vector(LED_NUM-1 downto 0);
 
     clk_i : in  std_logic;
     sel_i : in  std_logic;
@@ -38,7 +39,7 @@ end wb_led;
 
 architecture beh of wb_led is
 
-  signal led_reg : std_logic_vector(5 downto 0);
+  signal led_reg : std_logic_vector(LED_NUM-1 downto 0);
   signal err_dat : std_logic;
   signal err_adr : std_logic;
 
@@ -52,14 +53,14 @@ begin
     if rising_edge(clk_i) then
       ack_o <= '0';
       if (stb_i = '1' and sel_i = '1') then
-        dat_o(5 downto 0) <= led_reg;
+        dat_o(LED_NUM-1 downto 0) <= led_reg;
         if (adr_i = 0) then
           ack_o <= '1';
           if (we_i = '1') then
-            led_reg <= dat_i(5 downto 0);
+            led_reg <= dat_i(LED_NUM-1 downto 0);
           else
-            dat_o(DW-1 downto 6) <= (others => '0');
-            dat_o(5 downto 0) <= led_reg;
+            dat_o(DW-1 downto LED_NUM) <= (others => '0');
+            dat_o(LED_NUM-1 downto 0) <= led_reg;
           end if;
         else
           dat_o <= (others => '1');
@@ -71,7 +72,7 @@ begin
   -- data check
   process(clk_i) begin
     if rising_edge(clk_i) then
-      if (sel_i = '1' and stb_i = '1' and adr_i > 0 and we_i = '1' and dat_i(DW-1 downto 6) > 0) then
+      if (sel_i = '1' and stb_i = '1' and adr_i > 0 and we_i = '1' and dat_i(DW-1 downto LED_NUM) > 0) then
         err_dat <= '1';
       else
         err_dat <= '0';
