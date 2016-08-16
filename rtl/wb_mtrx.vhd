@@ -19,7 +19,8 @@ entity wb_mtrx is
     WB_DW   : positive := 32;
     MUL_AW  : positive := 10;
     MUL_DW  : positive := 64;
-    SLAVES  : positive := 9  -- total wishbone slaves count (BRAMs + 1 control)
+    SLAVES  : positive := 9;  -- total wishbone slaves count (BRAMs + 1 control)
+    BRAM_NW : positive := 4
     );
   port (
     rdy_o : out std_logic;  -- data ready external interrupt. Active high when IDLE
@@ -76,10 +77,10 @@ architecture beh of wb_mtrx is
   signal wire_bram2mul_we    : std_logic_vector(BRAMs-1 downto 0);
   signal wire_bram2mul_en    : std_logic_vector(BRAMs-1 downto 0);
 
-  signal crossbar_dat_a_select     : std_logic_vector(2 downto 0);
-  signal crossbar_dat_b_select     : std_logic_vector(2 downto 0);
-  signal crossbar_dat_select_stack : std_logic_vector(5 downto 0);
-  signal crossbar_we_select        : std_logic_vector(2 downto 0);
+  signal crossbar_dat_a_select     : std_logic_vector(BRAM_NW-1 downto 0);
+  signal crossbar_dat_b_select     : std_logic_vector(BRAM_NW-1 downto 0);
+  signal crossbar_dat_select_stack : std_logic_vector(BRAM_NW*2-1 downto 0);
+  signal crossbar_we_select        : std_logic_vector(BRAM_NW-1 downto 0);
   signal crossbar_adr_select       : std_logic_vector(2*BRAMS-1 downto 0) := (others => '1');
   signal crossbar_adr_stack        : std_logic_vector(4*MUL_AW-1 downto 0);
 
@@ -99,9 +100,9 @@ architecture beh of wb_mtrx is
 
   -- signals for clock domain crossing (Wishbone -> Math)
   signal crossbar_adr_select_wb   : std_logic_vector(2*BRAMS-1 downto 0) := (others => '1');
-  signal crossbar_dat_a_select_wb : std_logic_vector(2 downto 0);
-  signal crossbar_dat_b_select_wb : std_logic_vector(2 downto 0);
-  signal crossbar_we_select_wb    : std_logic_vector(2 downto 0);
+  signal crossbar_dat_a_select_wb : std_logic_vector(BRAM_NW-1 downto 0);
+  signal crossbar_dat_b_select_wb : std_logic_vector(BRAM_NW-1 downto 0);
+  signal crossbar_we_select_wb    : std_logic_vector(BRAM_NW-1 downto 0);
   signal math_hw_select_wb        : std_logic_vector(1 downto 0)         := "00";
   signal math_dot_b_trn_wb        : std_logic                            := '0';
   signal math_mov_type_wb         : std_logic_vector(1 downto 0)         := "00";
@@ -137,7 +138,7 @@ begin
   -- Route WE line
   we_router : entity work.demuxer_reg(io)
     generic map (
-      AW      => 3,                     -- address width (select bits count)
+      AW      => BRAM_NW,               -- address width (select bits count)
       DW      => 1,                     -- data width 
       default => '0'
       )
@@ -167,9 +168,9 @@ begin
   crossbar_dat_select_stack <= crossbar_dat_b_select & crossbar_dat_a_select;
   dat_ab_router : entity work.bus_matrix_reg(io)
     generic map (
-      AW   => 3,                        -- address width in bits
+      AW   => BRAM_NW,                  -- address width in bits
       ocnt => 2,                        -- output ports count
-      DW   => 64                        -- data bus width 
+      DW   => MUL_DW                    -- data bus width 
       )
     port map (
       clk_i             => clk_mul_i,
@@ -257,10 +258,10 @@ begin
         math_n_size           <= (others => '1');
         math_double_constant  <= (others => '0');
         math_hw_select        <= (others => '0');
-        crossbar_adr_select   <= "1111111111100100";
+        crossbar_adr_select   <= "11111111111111111111111111100100";
         crossbar_dat_a_select <= (others => '0');
-        crossbar_dat_b_select <= "001";
-        crossbar_we_select    <= "010";
+        crossbar_dat_b_select <= "0001";
+        crossbar_we_select    <= "0010";
         math_mov_type         <= (others => '0');
         math_scale_not_mul    <= '0';
         math_sub_not_add      <= '0';
@@ -329,7 +330,7 @@ begin
 
 
   control_logic : process(ctl_clk_i, rst_i)
-    variable a_num, b_num, c_num : std_logic_vector(2 downto 0) := "000";
+    variable a_num, b_num, c_num : std_logic_vector(BRAM_NW-1 downto 0) := "0000";
     variable dv                  : std_logic                    := '0';  -- data valid bit
     variable tr_flag             : std_logic                    := '0';
     variable a, b, c             : integer                      := 0;
@@ -354,10 +355,10 @@ begin
               end if;
             end if;
 
-            a_num   := math_ctl(CONTROL_REG)(2 downto 0);
-            b_num   := math_ctl(CONTROL_REG)(5 downto 3);
-            c_num   := math_ctl(CONTROL_REG)(8 downto 6);
-            cmd_raw := conv_integer(math_ctl(CONTROL_REG)(12 downto 9));
+            a_num   := math_ctl(CONTROL_REG)(BRAM_NW-1 downto 0);
+            b_num   := math_ctl(CONTROL_REG)(BRAM_NW*2-1 downto BRAM_NW);
+            c_num   := math_ctl(CONTROL_REG)(BRAM_NW*3-1 downto BRAM_NW*2);
+            cmd_raw := conv_integer(math_ctl(CONTROL_REG)(BRAM_NW*3+3 downto BRAM_NW*3));
             tr_flag := math_ctl(CONTROL_REG)(CMD_BIT_B_TR);
             dv      := math_ctl(CONTROL_REG)(CMD_BIT_DV);
 

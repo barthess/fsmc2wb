@@ -31,9 +31,9 @@ package mtrx_math_constants is
   constant MOV_OP_SET : std_logic_vector (1 downto 0) := "11";
 
   -- bit positions in control word
-  constant CMD_BIT_B_TR   : natural := 13;
-  constant CMD_BIT_RESVD  : natural := 14;
-  constant CMD_BIT_DV     : natural := 15;
+  constant CMD_BIT_B_TR   : natural := 29;
+  constant CMD_BIT_RESVD  : natural := 30;
+  constant CMD_BIT_DV     : natural := 31;
 
 end mtrx_math_constants;
 

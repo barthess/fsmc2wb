@@ -21,7 +21,7 @@ entity AA_root is
     FSMC_AW   : positive := 20;
     FSMC_DW   : positive := 32;
     BRAM_A_AW : positive := 11;
-    SLAVES    : positive := 9           -- 8 BRAMs + ctl regs
+    SLAVES    : positive := 17           -- 16 BRAMs + ctl regs
     );
   port (
     FSMC_CLK_54MHZ : in std_logic;
