@@ -19,24 +19,30 @@ module fmc2bram
    input 		  fmc_ne,
 
    output [BRAM_AW-1:0]   bram_a,
-   output [DW-1:0] 	  bram_do,
+   output reg [DW-1:0] 	  bram_do,
    input [BRAMS*DW-1:0]   bram_di,
    output reg [BRAMS-1:0] bram_en,
    output reg [0:0] 	  bram_we
    );
 
-  localparam s_idle=0, s_nop=1, s_w_we=2, s_adr_inc=3;
-  reg [1:0] 		  state;
+  localparam s_idle=0, s_nop=1, s_w_lat=2, s_w_we=3, s_adr_inc=4;
+  reg [2:0] 		  state = s_idle;
   reg 			  write; //read or write
 
   reg [BRAM_AW-1:0] 	  a_cnt;
   wire [$clog2(BRAMS)-1:0] bram_idx;
+  reg [DW-1:0] 		   fmc_d_out_reg;
 
   assign bram_idx = fmc_a[FMC_AW-1 : FMC_AW-$clog2(BRAMS)];
-  assign fmc_d = (!fmc_ne && !fmc_noe) ? bram_di[DW*(bram_idx+1)-1 -: DW] : 'bz;
+  assign fmc_d = (!fmc_ne && !fmc_noe) ? fmc_d_out_reg : 'bz;
   assign bram_a = a_cnt;
-  assign bram_do = fmc_d;
+  
 
+  always @(posedge fmc_clk) begin // registers for read and write
+    fmc_d_out_reg <= bram_di[DW*(bram_idx+1)-1 -: DW];
+    bram_do <= fmc_d;
+  end
+  
 
   always @(posedge fmc_clk) begin
     if (rst) begin
@@ -62,7 +68,9 @@ module fmc2bram
 	      mmu_int <= 1;
 	  end
 
-	s_nop: state <= write ? s_w_we : s_adr_inc;
+	s_nop: state <= write ? s_w_lat : s_adr_inc;
+
+	s_w_lat: state <= s_w_we; // compensate for fmc_d registering
 
 	s_w_we: begin
 	  bram_we <= 1;
@@ -78,6 +86,9 @@ module fmc2bram
 	    bram_we <= 0;
 	  end
 	end
+
+	default: state <= s_idle;
+	
       endcase
     end   
   end // always @ (posedge fmc_clk)
