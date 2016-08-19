@@ -21,44 +21,70 @@ entity AA_root is
     FSMC_AW   : positive := 20;
     FSMC_DW   : positive := 32;
     BRAM_A_AW : positive := 11;
-    SLAVES    : positive := 17           -- 16 BRAMs + ctl regs
+    SLAVES    : positive := 17          -- 16 BRAMs + ctl regs
     );
   port (
-    FSMC_CLK_54MHZ : in std_logic;
 
-    FSMC_A   : in    std_logic_vector ((FSMC_AW - 1) downto 0);
-    FSMC_D   : inout std_logic_vector ((FSMC_DW - 1) downto 0);
-    FSMC_NBL : in    std_logic_vector (1 downto 0);
-    FSMC_NOE : in    std_logic;
-    FSMC_NWE : in    std_logic;
-    FSMC_NCE : in    std_logic;
+    FSMC_CLK_54MHZ : in    std_logic;
+    FSMC_A         : in    std_logic_vector ((FSMC_AW - 1) downto 0);
+    FSMC_D         : inout std_logic_vector ((FSMC_DW - 1) downto 0);
+    FSMC_NOE       : in    std_logic;
+    FSMC_NWE       : in    std_logic;
+    FSMC_NCE       : in    std_logic;
+    --FSMC_NBL : in    std_logic_vector (1 downto 0);
 
-    STM_IO_MATH_RDY_OUT   : out std_logic;
-    STM_IO_MATH_RST_IN    : in  std_logic;
-    STM_IO_WB_ERR_OUT     : out std_logic;
-    STM_IO_WB_ACK_OUT     : out std_logic;
-    STM_IO_BRAM_AUTO_FILL : in  std_logic;
-    STM_IO_BRAM_DBG_OUT   : out std_logic;
-    STM_IO_FPGA_RDY       : out std_logic;
-    STM_IO_MMU_ERR_OUT    : out std_logic;
+    -- Control
+    F_MATH_RDY_S  : out std_logic;
+    F_FPGA_RDY_S  : out std_logic;
+    F_MMU_ERR_S   : out std_logic;
+    F_MATH_ERR_S  : out std_logic;
+    F_ACK_S       : out std_logic;
+    F_DBG_S       : out std_logic;
+    S_MATH_RST_F  : in  std_logic;
+    S_BRAM_FILL_F : in  std_logic;
 
-    LED_LINE : out std_logic_vector (7 downto 0);
+    LED : out std_logic_vector (7 downto 0);
 
-    -- GNSS UART ports between FPGA and STM32
-    STM32_UART_TO_FPGA       : in  std_logic_vector (3 downto 0);
-    STM32_UART_FROM_FPGA     : out std_logic_vector (3 downto 0);
-    STM32_GNSS_NRST_TO_FPGA  : in  std_logic_vector (3 downto 0);
-    STM32_GNSS_PPS_FROM_FPGA : out std_logic_vector (3 downto 0);
+    -- STM <-> FPGA
+    S_TX_F  : in  std_logic_vector (5 downto 2);
+    F_S_RX  : out std_logic_vector (5 downto 2);
+    S_RST_F : in  std_logic_vector (3 downto 0);
+    F_PPS_S : out std_logic_vector (3 downto 0);
 
-    -- ports for GNSS receivers (named relative to GNSS)
-    GNSS_NRST_FROM_FPGA : out std_logic_vector (3 downto 0);
-    GNSS_UART_TO_FPGA   : in  std_logic_vector (3 downto 0);
-    GNSS_UART_FROM_FPGA : out std_logic_vector (3 downto 0);
-    GNSS_PPS_TO_FPGA    : in  std_logic_vector (3 downto 0);  -- NOTE: 4 inputs
-    GNSS_PPS_FROM_FPGA  : out std_logic_vector (2 downto 0);  -- NOTE: only 3 outputs needed
+    -- GNSS <-> FPGA
+    G1_TX_F    : in  std_logic_vector (2 downto 0);
+    F_G1_RX    : out std_logic_vector (2 downto 0);
+    G1_PPS_F   : in  std_logic;
+    F_RST_G1   : out std_logic;
+    G1_INT_B_F : in  std_logic;
+    G1_PV_F    : in  std_logic;
+    F_G1_EV    : out std_logic;
+    G1_VARF_F  : in  std_logic;
 
-    -- ARINC GPIO
-    ARINC_GPIO : out std_logic_vector (31 downto 0)
+    G2_TX_F    : in  std_logic_vector (2 downto 0);
+    F_G2_RX    : out std_logic_vector (2 downto 0);
+    G2_PPS_F   : in  std_logic;
+    F_RST_G2   : out std_logic;
+    G2_INT_B_F : in  std_logic;
+    G2_PV_F    : in  std_logic;
+    F_G2_EV    : out std_logic;
+    G2_VARF_F  : in  std_logic;
+
+    G3_TX_F    : in  std_logic_vector (2 downto 0);
+    F_G3_RX    : out std_logic_vector (2 downto 0);
+    G3_PPS_F   : in  std_logic;
+    F_RST_G3   : out std_logic;
+    G3_INT_B_F : in  std_logic;
+    G3_PV_F    : in  std_logic;
+    F_G3_EV    : out std_logic;
+    G3_VARF_F  : in  std_logic;
+
+    -- ARINC
+    AR_IO : out std_logic_vector (31 downto 0);
+
+    -- PPS out
+    F_PPSp_O : out std_logic;
+    F_PPSn_O : out std_logic
     );
 end AA_root;
 
@@ -112,7 +138,7 @@ begin
       CTL_REGS => 6)
     port map (
       rst     => not clk_locked,
-      mmu_int => STM_IO_MMU_ERR_OUT,
+      mmu_int => F_MMU_ERR_S,
       fmc_clk => clk_wb,
       fmc_a   => FSMC_A,
       fmc_d   => FSMC_D,
@@ -135,8 +161,8 @@ begin
       SLAVES => SLAVES
       )
     port map (
-      rdy_o => STM_IO_MATH_RDY_OUT,
-      rst_i => STM_IO_MATH_RST_IN,
+      rdy_o => F_MATH_RDY_S,
+      rst_i => S_MATH_RST_F,
 
       clk_wb_i  => (others => clk_wb),
       clk_mul_i => clk_mul,
@@ -149,24 +175,21 @@ begin
       );
 
   --
-  -- raize ready flag for STM32
+  -- raise ready flag for STM32
   --
-  STM_IO_FPGA_RDY <= clk_locked;
-
-  GNSS_UART_FROM_FPGA      <= STM32_UART_TO_FPGA;
-  STM32_UART_FROM_FPGA     <= GNSS_UART_TO_FPGA;
-  GNSS_NRST_FROM_FPGA      <= STM32_GNSS_NRST_TO_FPGA;
-  STM32_GNSS_PPS_FROM_FPGA <= GNSS_PPS_TO_FPGA;
-  GNSS_PPS_FROM_FPGA       <= (others => '0');
+  F_FPGA_RDY_S <= clk_locked;
 
   -- ARINC GPIO
-  ARINC_GPIO <= (others => '0');
+  AR_IO <= (others => '0');
 
-  --
-  -- warning suppressors and other trash
-  --
---  DEV_NULL_BANK0 <= '1';--FSMC_NBL(0) or FSMC_NBL(1);
---  DEV_NULL_BANK1 <= '1';
+  OBUFDS_PPS : OBUFDS
+    generic map (
+      IOSTANDARD => "LVDS_33")
+    port map (
+      O  => F_PPSp_O,
+      OB => F_PPSn_O,
+      I  => '1'
+      );
 
 end Behavioral;
 
