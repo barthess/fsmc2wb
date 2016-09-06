@@ -15,13 +15,15 @@ use UNISIM.VComponents.all;
 -- Non standard library from synopsis (for dev_null functions)
 use ieee.std_logic_misc.all;
 
+use work.mtrx_math_constants.all;
+
 
 entity AA_root is
   generic (
     FSMC_AW   : positive := 20;
     FSMC_DW   : positive := 32;
     BRAM_A_AW : positive := 11;
-    SLAVES    : positive := 17          -- 16 BRAMs + ctl regs
+    BRAMS     : positive := 16
     );
   port (
 
@@ -100,13 +102,14 @@ architecture Behavioral of AA_root is
   signal clk_wb     : std_logic;
   signal clk_mul    : std_logic;
 
-  -- wires between fsmc2bram and wb_mtrx
-  signal bram_a          : std_logic_vector (BRAM_A_AW-1 downto 0);
-  signal fsmc_do_bram_di : std_logic_vector (FSMC_DW-1 downto 0);
-  signal bram_do_fsmc_di : std_logic_vector (SLAVES*FSMC_DW-1 downto 0);
-  signal bram_en         : std_logic_vector (SLAVES-1 downto 0);
-  signal bram_we         : std_logic_vector (0 downto 0);
+  -- wires for BRAMs, ctl_regs, memtest, LEDs
+  signal slave_a          : std_logic_vector (BRAM_A_AW-1 downto 0);
+  signal fsmc_do_slave_di : std_logic_vector (FSMC_DW-1 downto 0);
+  signal slave_do_fsmc_di : std_logic_vector ((SL_LED+1)*FSMC_DW-1 downto 0);
+  signal slave_en         : std_logic_vector (SL_LED downto 0);
+  signal slave_we         : std_logic_vector (0 downto 0);
 
+  signal led_reg : std_logic_vector (7 downto 0);
 
 begin
 
@@ -129,27 +132,27 @@ begin
 
 
   -- bridge
-  fsmc2bram : entity work.fmc2bram
+  fsmc2slaves : entity work.fmc2slaves
     generic map (
       FMC_AW   => FSMC_AW,
       BRAM_AW  => BRAM_A_AW,
       DW       => FSMC_DW,
-      BRAMS    => SLAVES,
+      BRAMS    => BRAMS,
       CTL_REGS => 6)
     port map (
-      rst     => not clk_locked,
-      mmu_int => F_MMU_ERR_S,
-      fmc_clk => clk_wb,
-      fmc_a   => FSMC_A,
-      fmc_d   => FSMC_D,
-      fmc_noe => FSMC_NOE,
-      fmc_nwe => FSMC_NWE,
-      fmc_ne  => FSMC_NCE,
-      bram_a  => bram_a,
-      bram_do => fsmc_do_bram_di,
-      bram_di => bram_do_fsmc_di,
-      bram_en => bram_en,
-      bram_we => bram_we);
+      rst      => not clk_locked,
+      mmu_int  => F_MMU_ERR_S,
+      fmc_clk  => clk_wb,
+      fmc_a    => FSMC_A,
+      fmc_d    => FSMC_D,
+      fmc_noe  => FSMC_NOE,
+      fmc_nwe  => FSMC_NWE,
+      fmc_ne   => FSMC_NCE,
+      slave_a  => slave_a,
+      slave_do => fsmc_do_slave_di,
+      slave_di => slave_do_fsmc_di,
+      slave_en => slave_en,
+      slave_we => slave_we);
 
 
   --
@@ -158,7 +161,7 @@ begin
   wb_mtrx : entity work.wb_mtrx
     generic map (
       WB_DW  => FSMC_DW,
-      SLAVES => SLAVES
+      SLAVES => BRAMS+1                 -- brams + ctl_regs
       )
     port map (
       rdy_o => F_MATH_RDY_S,
@@ -167,12 +170,28 @@ begin
       clk_wb_i  => (others => clk_wb),
       clk_mul_i => clk_mul,
 
-      bram_a  => bram_a,
-      bram_di => fsmc_do_bram_di,
-      bram_do => bram_do_fsmc_di,
-      bram_en => bram_en,
-      bram_we => bram_we
+      bram_a  => slave_a,
+      bram_di => fsmc_do_slave_di,
+      bram_do => slave_do_fsmc_di ((SL_MATH_CTL+1)*FSMC_DW-1 downto 0),
+      bram_en => slave_en (SL_MATH_CTL downto 0),
+      bram_we => slave_we
       );
+
+
+  LED <= led_reg;
+
+  led_proc : process (clk_wb) is
+  begin
+    if rising_edge(clk_wb) then
+      if (slave_en(SL_LED) = '1' and slave_a = "00000000000") then
+        if (slave_we = "1") then
+          led_reg <= fsmc_do_slave_di (7 downto 0);
+        else
+          slave_do_fsmc_di ((SL_LED+1)*FSMC_DW-1 downto SL_LED*FSMC_DW) <= X"000000" & led_reg;
+        end if;
+      end if;
+    end if;
+  end process;
 
   --
   -- raise ready flag for STM32

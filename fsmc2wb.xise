@@ -411,8 +411,8 @@
       <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="121"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="2"/>
     </file>
-    <file xil_pn:name="rtl/fmc2bram.v" xil_pn:type="FILE_VERILOG">
-      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="148"/>
+    <file xil_pn:name="rtl/fmc2slaves.v" xil_pn:type="FILE_VERILOG">
+      <association xil_pn:name="BehavioralSimulation" xil_pn:seqID="163"/>
       <association xil_pn:name="Implementation" xil_pn:seqID="27"/>
     </file>
     <file xil_pn:name="ipcore_dir/clk_src.xise" xil_pn:type="FILE_COREGENISE">
