@@ -109,6 +109,12 @@ architecture Behavioral of AA_root is
   signal slave_en         : std_logic_vector (SL_LED downto 0);
   signal slave_we         : std_logic_vector (0 downto 0);
 
+  signal memtest_bram_a  : std_logic_vector (BRAM_A_AW-1 downto 0);
+  signal memtest_bram_di : std_logic_vector (FSMC_DW-1 downto 0);  -- memory in
+  signal memtest_bram_do : std_logic_vector (FSMC_DW-1 downto 0);  -- memory out
+  signal memtest_bram_en : std_logic;
+  signal memtest_bram_we : std_logic_vector (0 downto 0);
+
   signal led_reg : std_logic_vector (7 downto 0);
 
 begin
@@ -176,6 +182,47 @@ begin
       bram_en => slave_en (SL_MATH_CTL downto 0),
       bram_we => slave_we
       );
+
+
+
+  bram_memtest : entity work.bram_memtest
+    port map (
+      -- port A to fsmc2slaves
+      addra => slave_a,
+      dina  => fsmc_do_slave_di,
+      douta => slave_do_fsmc_di ((SL_MEMTEST+1)*FSMC_DW-1 downto SL_MEMTEST*FSMC_DW),
+      wea   => slave_we,
+      ena   => slave_en(SL_MEMTEST),
+      clka  => clk_wb,
+
+      -- port B to memtest assistant
+      addrb => memtest_bram_a,
+      dinb  => memtest_bram_di,
+      doutb => memtest_bram_do,
+      enb   => memtest_bram_en,
+      web   => memtest_bram_we,
+      clkb  => clk_wb
+      );
+
+  memtest_assist : entity work.memtest_assist
+    generic map (
+      AW => BRAM_A_AW,
+      DW => FSMC_DW
+      )
+    port map (
+      clk_i => clk_wb,
+
+      BRAM_FILL => S_BRAM_FILL_F,
+      BRAM_DBG  => F_DBG_S,
+
+      BRAM_CLK => open,
+      BRAM_A   => memtest_bram_a,
+      BRAM_DI  => memtest_bram_do,      -- memory out
+      BRAM_DO  => memtest_bram_di,      -- memory in
+      BRAM_EN  => memtest_bram_en,
+      BRAM_WE  => memtest_bram_we
+      );
+
 
 
   LED <= led_reg;
