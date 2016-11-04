@@ -52,7 +52,8 @@ entity AA_root is
     F_S_RX  : out std_logic_vector (5 downto 2);
     S_RST_F : in  std_logic_vector (3 downto 0);
     F_PPS_S : out std_logic_vector (3 downto 0);
-
+    STM_DEV_NULL : out std_logic;
+    
     -- GNSS <-> FPGA
     G1_TX_F    : in  std_logic_vector (2 downto 0);
     F_G1_RX    : out std_logic_vector (2 downto 0);
@@ -62,7 +63,8 @@ entity AA_root is
     G1_PV_F    : in  std_logic;
     F_G1_EV    : out std_logic;
     G1_VARF_F  : in  std_logic;
-
+    G1_DEV_NULL: out std_logic;
+    
     G2_TX_F    : in  std_logic_vector (2 downto 0);
     F_G2_RX    : out std_logic_vector (2 downto 0);
     G2_PPS_F   : in  std_logic;
@@ -71,7 +73,8 @@ entity AA_root is
     G2_PV_F    : in  std_logic;
     F_G2_EV    : out std_logic;
     G2_VARF_F  : in  std_logic;
-
+    G2_DEV_NULL: out std_logic;
+    
     G3_TX_F    : in  std_logic_vector (2 downto 0);
     F_G3_RX    : out std_logic_vector (2 downto 0);
     G3_PPS_F   : in  std_logic;
@@ -80,13 +83,14 @@ entity AA_root is
     G3_PV_F    : in  std_logic;
     F_G3_EV    : out std_logic;
     G3_VARF_F  : in  std_logic;
-
+    G3_DEV_NULL: out std_logic;
+    
     -- ARINC
     AR_IO : out std_logic_vector (31 downto 0);
+    AR_THREE_STATE : out std_logic_vector(9 downto 1);
 
     -- PPS out
-    F_PPSp_O : out std_logic;
-    F_PPSn_O : out std_logic
+    F_PPSp_O : out std_logic
     );
 end AA_root;
 
@@ -247,15 +251,61 @@ begin
 
   -- ARINC GPIO
   AR_IO <= (others => '0');
+  AR_THREE_STATE <= (others => '0');
+  
+  --
+  -- PPS map from GNSS to STM32
+  --
+  F_PPS_S(0) <= G1_PPS_F;
+  F_PPS_S(1) <= G2_PPS_F;
+  F_PPS_S(2) <= G3_PPS_F;
+  F_PPS_S(3) <= '0';
 
-  OBUFDS_PPS : OBUFDS
-    generic map (
-      IOSTANDARD => "LVDS_33")
-    port map (
-      O  => F_PPSp_O,
-      OB => F_PPSn_O,
-      I  => '1'
-      );
+  --
+  -- from GNSS to ARINC
+  --
+  F_PPSp_O <= G3_PPS_F;
+  
+  --
+  -- Resets from STM32 to GNSS
+  --
+  F_RST_G1 <= S_RST_F(0);
+  F_RST_G2 <= S_RST_F(1);
+  F_RST_G3 <= S_RST_F(2);
+  STM_DEV_NULL <= S_RST_F(3);
+  
+  --
+  -- UARTS from GNSS to STM32
+  --
+  F_G1_RX(0) <= S_TX_F(2);
+  F_G2_RX(0) <= S_TX_F(3);
+  F_G3_RX(0) <= S_TX_F(4);
+  F_G3_RX(2) <= S_TX_F(5); -- reserved UART
+  F_S_RX(2) <= G1_TX_F(0);
+  F_S_RX(3) <= G2_TX_F(0);
+  F_S_RX(4) <= G3_TX_F(0);
+  F_S_RX(5) <= G3_TX_F(2); -- reserved UART
 
+  --
+  -- recycle bin
+  --
+  G1_DEV_NULL <= G1_VARF_F or G1_PV_F or G1_INT_B_F or G1_TX_F(1) or G1_TX_F(2);
+  G2_DEV_NULL <= G2_VARF_F or G2_PV_F or G2_INT_B_F or G2_TX_F(1) or G2_TX_F(2);
+  G3_DEV_NULL <= G3_VARF_F or G3_PV_F or G3_INT_B_F or G3_TX_F(1);-- or G3_TX_F(2);
+  
+  F_G1_EV <= '1';
+  F_G2_EV <= '1';
+  F_G3_EV <= '1';
+
+  F_G1_RX(1) <= '1';
+  F_G1_RX(2) <= '1';
+  F_G2_RX(1) <= '1';
+  F_G2_RX(2) <= '1';
+  F_G3_RX(1) <= '1';
+  --F_G3_RX(2) <= '1';
+  
+  F_MATH_ERR_S <= '1';
+  F_ACK_S <= '1';
+  
 end Behavioral;
 
