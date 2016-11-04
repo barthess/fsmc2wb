@@ -33,7 +33,6 @@ entity AA_root is
     FSMC_NOE       : in    std_logic;
     FSMC_NWE       : in    std_logic;
     FSMC_NCE       : in    std_logic;
-    --FSMC_NBL : in    std_logic_vector (1 downto 0);
 
     -- Control
     F_MATH_RDY_S  : out std_logic;
@@ -97,7 +96,7 @@ end AA_root;
 
 architecture Behavioral of AA_root is
 
--- clock wires
+  -- clock wires
   signal clk_200mhz : std_logic;
   signal clk_150mhz : std_logic;
   signal clk_100mhz : std_logic;
