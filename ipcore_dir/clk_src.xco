@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 14.7
-# Date: Thu Nov  3 14:27:49 2016
+# Date: Tue Nov  8 13:58:51 2016
 #
 ##############################################################
 #
@@ -194,7 +194,7 @@ CSET override_dcm=false
 CSET override_dcm_clkgen=false
 CSET override_mmcm=false
 CSET override_pll=false
-CSET platform=lin
+CSET platform=lin64
 CSET pll_bandwidth=OPTIMIZED
 CSET pll_clk_feedback=CLKFBOUT
 CSET pll_clkfbout_mult=8
@@ -243,7 +243,7 @@ CSET ss_mod_freq=250
 CSET ss_mode=CENTER_HIGH
 CSET status_port=STATUS
 CSET summary_strings=empty
-CSET use_clk_valid=false
+CSET use_clk_valid=true
 CSET use_clkfb_stopped=false
 CSET use_dyn_phase_shift=false
 CSET use_dyn_reconfig=false
@@ -251,13 +251,13 @@ CSET use_freeze=false
 CSET use_freq_synth=true
 CSET use_inclk_stopped=false
 CSET use_inclk_switchover=false
-CSET use_locked=true
+CSET use_locked=false
 CSET use_max_i_jitter=false
 CSET use_min_o_jitter=false
 CSET use_min_power=true
 CSET use_phase_alignment=false
 CSET use_power_down=false
-CSET use_reset=false
+CSET use_reset=true
 CSET use_spread_spectrum=false
 CSET use_spread_spectrum_1=false
 CSET use_status=false
@@ -266,4 +266,4 @@ CSET use_status=false
 MISC pkg_timestamp=2012-05-10T12:44:55Z
 # END Extra information
 GENERATE
-# CRC: b16fa0cd
+# CRC: a3507195
