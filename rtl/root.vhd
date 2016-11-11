@@ -142,42 +142,51 @@ begin
   --
   -- clock sources
   --
-  clk_src : entity work.clk_src
-    port map (
-      CLK_IN1   => clk_fsmc,
-      CLK_OUT1  => clk_200mhz,
-      CLK_VALID => clk_valid,
-      RESET     => S_MATH_RST_F
-      );
-  clk_mtrx <= clk_200mhz;
+--  clk_src : entity work.clk_src
+--    port map (
+--      CLK_IN1   => clk_fsmc,
+--      CLK_OUT1  => clk_200mhz,
+--      CLK_VALID => clk_valid,
+--      RESET     => S_MATH_RST_F
+--      );
+--  clk_mtrx <= clk_200mhz;
   
+  LED_G(0) <= FSMC_CLK_54MHZ;
+  LED_G(1) <= FSMC_NWE;
+  LED_G(2) <= FSMC_NOE;
+  LED_G(3) <= FSMC_NCE;
   
+  LED_R(3) <= FSMC_A(0);
+  LED_R(2) <= FSMC_A(1);
+  LED_R(1) <= FSMC_D(0);
+  LED_R(0) <= FSMC_D(16);
   
-  LED_G <= std_logic_vector(to_unsigned(led_green_reg, 4));
-  led_green_proc : process (clk_fsmc) is
-  begin
-    if rising_edge(clk_fsmc) then
-      led_green_counter <= led_green_counter + 1;
-      if led_green_counter = led_green_divider then
-        led_green_counter <= 0;
-        led_green_reg <= led_green_reg + 1;
-      end if;
-    end if;
-  end process;
+--LED_G <= std_logic_vector(to_unsigned(led_green_reg, 4));
+--  led_green_proc : process (clk_fsmc) is
+--  begin
+--    if rising_edge(clk_fsmc) then
+--      led_green_counter <= led_green_counter + 1;
+--      if led_green_counter = led_green_divider then
+--        led_green_counter <= 0;
+--        led_green_reg <= led_green_reg + 1;
+--      end if;
+--    end if;
+--  end process;
+--
 
 
+--  LED_R <= std_logic_vector(to_unsigned(led_red_reg, 4));
+--  led_red_proc : process (clk_mtrx) is
+--  begin
+--    if rising_edge(clk_mtrx) then
+--      led_red_counter <= led_red_counter + 1;
+--      if led_red_counter = led_red_divider then
+--        led_red_counter <= 0;
+--        led_red_reg <= led_red_reg + 1;
+--      end if;
+--    end if;
+--  end process;
 
-  LED_R <= std_logic_vector(to_unsigned(led_red_reg, 4));
-  led_red_proc : process (clk_mtrx) is
-  begin
-    if rising_edge(clk_mtrx) then
-      led_red_counter <= led_red_counter + 1;
-      if led_red_counter = led_red_divider then
-        led_red_counter <= 0;
-        led_red_reg <= led_red_reg + 1;
-      end if;
-    end if;
-  end process;
 
 
   F_MATH_RDY_S <= '1';

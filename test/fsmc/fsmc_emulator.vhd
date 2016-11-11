@@ -41,13 +41,13 @@ ENTITY fsmc_emulator IS
     AW_FSMC : positive := 20;
     DW : positive := 32;
     AW_SLAVE : positive := 15;
-    LSB_UNUSED : positive := 2;
     
-    HCLK_DIV : positive := 1;        -- 0 is forbidden
+    HCLK_DIV : positive := 1;        -- clock divider as defined in ST's datasheet
     ADHOLD_LEN : positive := 1;
-    DATLAT_LEN : positive := 1;
+    DATLAT_LEN : positive := 2;
+    IDLE_LEN : positive := 1;
     BUSTURN_LEN : positive := 1;
-    BURST_LEN : positive := 4;
+    TRN_LEN : positive := 8;
     hclk_period : time := 4.63 ns    -- STM32 internal clock (known as HCLK)
     );
 
@@ -93,9 +93,6 @@ ARCHITECTURE behavior OF fsmc_emulator IS
   signal bram_we : std_logic_vector(0 downto 0);
   signal bram_clk : std_logic;
 
-  -- Clock period definitions
-  --constant hclk_period : time := 4.63 ns;
-
   -- FSMC simulation definitions
   signal write_burst : integer := 0;
   signal read_burst : integer := 0;
@@ -105,12 +102,14 @@ ARCHITECTURE behavior OF fsmc_emulator IS
   signal hclk : std_logic := '0';
   type clkdiv_state_t is (HIGH, LOW);
   signal clkdiv_state : clkdiv_state_t := LOW;
-
+  signal rnw : std_logic := '0'; -- read not write
+  signal rnw_latch : std_logic := '0'; -- read not write
+  signal dv  : std_logic := '0'; -- data valid
+  
   signal fsmc_ce : std_logic := '0';
   signal state_rst : std_logic := '0';  
   type state_t is (IDLE, ADHOLD, DATLAT, WRITE, READ, BUSTURN);
   signal state : state_t := IDLE;
-  signal read_not_write : std_logic := '1';
   
   signal addr_cnt : std_logic_vector(AW_FSMC-1 downto 0) := (others => '0');
   signal data_reg : std_logic_vector(DW-1 downto 0) := (others => '0');
@@ -134,24 +133,25 @@ BEGIN
   --
   reset_process : process
   begin
-    wait for hclk_period * 4 + hclk_period/2;
+    wait for hclk_period * 8;
     rst <= '0';
-    wait for hclk_period * 100;
+    rnw <= '0';
+    
+    wait for hclk_period * (HCLK_DIV + 1);
+    dv <= '1';
+    
+    wait for hclk_period;
+    dv <= '0';
+    rnw <= '1';
+    
+    wait until state = IDLE;
+    wait for hclk_period*10;
+    dv <= '1';
+    wait until state = ADHOLD;
+    dv <= '0';
+
+    wait for hclk_period * 10;
     wait;
-  end process;
-  
-  --
-  -- clock enable generator
-  --
-  fsmc_ce_process : process(fsmc_clk)
-  begin
-    if rising_edge(fsmc_clk) then
-      if rst = '1' then
-        fsmc_ce <= '0';
-      else
-        fsmc_ce <= '1';
-      end if; -- rst
-    end if; -- clk
   end process;
   
   --
@@ -193,20 +193,26 @@ BEGIN
   --
   --
   --
-  state_process : process(hclk)
+  state_process : process(hclk, fsmc_clk)
     variable waitcnt : integer := 0;
   begin
     if rising_edge(hclk) then
       if rst = '1' then
         state <= IDLE;
+        waitcnt := 1;
       else 
         case state is
+        
         when IDLE =>
-          waitcnt := ADHOLD_LEN * (HCLK_DIV + 1);
-          if fsmc_ce = '1' then
+          if dv = '1' then
+            rnw_latch <= rnw;
+            waitcnt := ADHOLD_LEN * (HCLK_DIV + 1);
+            if rnw = '1' then
+              waitcnt := waitcnt + HCLK_DIV * 2;
+            end if;
             state <= ADHOLD;
           end if;
-          
+
         when ADHOLD =>
           waitcnt := waitcnt - 1;
           if waitcnt = 0 then
@@ -217,12 +223,14 @@ BEGIN
         when DATLAT =>
           waitcnt := waitcnt - 1;
           if waitcnt = 0 then
-            if read_not_write = '0' then
+            if rnw_latch = '0' then
               state <= WRITE;
+              waitcnt := TRN_LEN * (HCLK_DIV + 1);
             else
               state <= READ;
+              -- there is 1 additional clock comparing to WRITE
+              waitcnt := (TRN_LEN + 1)  * (HCLK_DIV + 1);
             end if;
-            waitcnt := BURST_LEN * (HCLK_DIV + 1);
           end if;
           
         when WRITE =>
@@ -238,24 +246,22 @@ BEGIN
             state <= BUSTURN;
             waitcnt := BUSTURN_LEN * (HCLK_DIV + 1);
           end if;
-          
+
         when BUSTURN =>
           waitcnt := waitcnt - 1;
           if waitcnt = 0 then
-            if fsmc_ce = '1' then
-              waitcnt := ADHOLD_LEN * (HCLK_DIV + 1);
-              state <= ADHOLD;
-            else
-              state <= IDLE;
-            end if;
+            waitcnt := IDLE_LEN * (HCLK_DIV + 1);
+            state <= IDLE;
           end if;
           
         end case;
       end if; -- rst
     end if; -- clk
   end process;
-
- 
+  
+  
+  
+  
   --
   -- Stimulus process
   --
@@ -274,21 +280,20 @@ BEGIN
       NCE <= '1';
       NWE <= '1';
       NOE <= '1';
-      
+
     when ADHOLD =>
       readline(f, ln);
       read(ln, adr_read);
 
-      --A <= addr_cnt;
       A <= conv_std_logic_vector(adr_read, AW_FSMC);
       addr_cnt <= addr_cnt + 2;
       NCE <= '0';
-      if read_not_write = '0' then
+      if rnw_latch = '0' then
         NWE <= '0';
       end if;
 
     when DATLAT =>
-      if read_not_write = '1' then
+      if rnw_latch = '1' then
         NOE <= '0';
       end if;
 
