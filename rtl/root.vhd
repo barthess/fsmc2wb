@@ -1,4 +1,3 @@
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 --use IEEE.STD_LOGIC_UNSIGNED.ALL;
@@ -27,7 +26,7 @@ entity AA_root is
     );
   port (
 
-    FSMC_CLK_54MHZ : in    std_logic;
+    FSMC_CLK       : in    std_logic;
     FSMC_A         : in    std_logic_vector ((FSMC_AW - 1) downto 0);
     FSMC_D         : inout std_logic_vector ((FSMC_DW - 1) downto 0);
     FSMC_NOE       : in    std_logic;
@@ -136,7 +135,7 @@ begin
   BUFG_inst : BUFG
     port map (
       O => clk_fsmc,
-      I => FSMC_CLK_54MHZ
+      I => FSMC_CLK
       );
   
   --
@@ -150,8 +149,9 @@ begin
 --      RESET     => S_MATH_RST_F
 --      );
 --  clk_mtrx <= clk_200mhz;
+  clk_valid <= '1';
   
-  LED_G(0) <= FSMC_CLK_54MHZ;
+  LED_G(0) <= FSMC_CLK;
   LED_G(1) <= FSMC_NWE;
   LED_G(2) <= FSMC_NOE;
   LED_G(3) <= FSMC_NCE;
@@ -212,12 +212,10 @@ begin
     generic map (
       AW_FSMC => FSMC_AW,
       DW => FSMC_DW,
-      AW_SLAVE => 15,
-      LSB_UNUSED => 2
+      AW_SLAVE => 15
     )
     port map (
       clk => clk_fsmc,
-      mmu_err => F_MMU_ERR_S,
       
       A   => FSMC_A,
       D   => FSMC_D,
@@ -233,7 +231,7 @@ begin
       bram_clk => wire_bram_clk
     );
 
-
+  F_MMU_ERR_S <= '0';
 
 
 

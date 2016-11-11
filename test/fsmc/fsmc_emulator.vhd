@@ -50,6 +50,14 @@ ENTITY fsmc_emulator IS
     TRN_LEN : positive := 8;
     hclk_period : time := 4.63 ns    -- STM32 internal clock (known as HCLK)
     );
+  Port (
+    clk : out std_logic := '0';
+    A   : out std_logic_vector(AW_FSMC-1 downto 0);
+    NWE : out std_logic;
+    NOE : out std_logic;
+    NCE : out std_logic;
+    D   : inout std_logic_vector(DW-1 downto 0)
+  );
 
   -- helper function to get constant for high state of clock
   function GET_HIGH return natural is
@@ -73,25 +81,6 @@ END fsmc_emulator;
 --
 --
 ARCHITECTURE behavior OF fsmc_emulator IS 
-    
-  --Inputs
-  signal fsmc_clk : std_logic := '0';
-  signal A : std_logic_vector(AW_FSMC-1 downto 0) := (others => '0');
-  signal NWE : std_logic := '1';
-  signal NOE : std_logic := '1';
-  signal NCE : std_logic := '1';
-  signal bram_di : std_logic_vector(DW-1 downto 0) := (others => '0');
-
-  --BiDirs
-  signal D : std_logic_vector(DW-1 downto 0);
-
-  --Outputs
-  signal mmu_err : std_logic;
-  signal bram_a : std_logic_vector(AW_SLAVE-1 downto 0);
-  signal bram_do : std_logic_vector(DW-1 downto 0);
-  signal bram_ce : std_logic;
-  signal bram_we : std_logic_vector(0 downto 0);
-  signal bram_clk : std_logic;
 
   -- FSMC simulation definitions
   signal write_burst : integer := 0;
@@ -100,6 +89,7 @@ ARCHITECTURE behavior OF fsmc_emulator IS
   
   signal rst : std_logic := '1';
   signal hclk : std_logic := '0';
+  signal fsmc_clk : std_logic := '0';
   type clkdiv_state_t is (HIGH, LOW);
   signal clkdiv_state : clkdiv_state_t := LOW;
   signal rnw : std_logic := '0'; -- read not write
@@ -117,7 +107,8 @@ ARCHITECTURE behavior OF fsmc_emulator IS
   
 BEGIN
   
-  D <= data_reg when (NCE = '0' and NWE = '0') else (others => 'Z');
+  D <= data_reg when (state = WRITE) else (others => 'Z');
+  clk <= fsmc_clk;
   
   --
   -- HCLK process
