@@ -51,7 +51,8 @@ entity AA_root is
     F_S_RX  : out std_logic_vector (5 downto 2);
     S_RST_F : in  std_logic_vector (3 downto 0);
     F_PPS_S : out std_logic_vector (3 downto 0);
-    STM_DEV_NULL : out std_logic;
+    STM_DEV_NULL1 : out std_logic;
+    STM_DEV_NULL2 : out std_logic_vector (0 downto 0);
     
     -- GNSS <-> FPGA
     G1_TX_F    : in  std_logic_vector (2 downto 0);
@@ -116,7 +117,7 @@ architecture Behavioral of AA_root is
   signal memtest_bram_we : std_logic_vector (0 downto 0);
 
   -- wires for memspace to fsmc
-  signal wire_bram_a   : std_logic_vector (14 downto 0); 
+  signal wire_bram_a   : std_logic_vector (15 downto 0); 
   signal wire_bram_di  : std_logic_vector (FSMC_DW-1 downto 0); 
   signal wire_bram_do  : std_logic_vector (FSMC_DW-1 downto 0); 
   signal wire_bram_ce  : std_logic; 
@@ -132,26 +133,25 @@ architecture Behavioral of AA_root is
   
 begin
 
-  BUFG_inst : BUFG
-    port map (
-      O => clk_fsmc,
-      I => FSMC_CLK
-      );
+--  BUFG_inst : BUFG
+--    port map (
+--      O => clk_fsmc,
+--      I => FSMC_CLK
+--      );
   
   --
   -- clock sources
   --
---  clk_src : entity work.clk_src
---    port map (
---      CLK_IN1   => clk_fsmc,
---      CLK_OUT1  => clk_200mhz,
---      CLK_VALID => clk_valid,
---      RESET     => S_MATH_RST_F
---      );
---  clk_mtrx <= clk_200mhz;
-  clk_valid <= '1';
+  clk_src : entity work.clk_src
+    port map (
+      CLK_IN1   => FSMC_CLK,
+      CLK_OUT1  => clk_200mhz,
+      CLK_VALID => clk_valid,
+      RESET     => S_MATH_RST_F
+      );
+  clk_mtrx <= clk_200mhz;
   
-  LED_G(0) <= FSMC_CLK;
+  LED_G(0) <= '1';--clk_fsmc;
   LED_G(1) <= FSMC_NWE;
   LED_G(2) <= FSMC_NOE;
   LED_G(3) <= FSMC_NCE;
@@ -175,17 +175,17 @@ begin
 --
 
 
---  LED_R <= std_logic_vector(to_unsigned(led_red_reg, 4));
---  led_red_proc : process (clk_mtrx) is
---  begin
---    if rising_edge(clk_mtrx) then
---      led_red_counter <= led_red_counter + 1;
---      if led_red_counter = led_red_divider then
---        led_red_counter <= 0;
---        led_red_reg <= led_red_reg + 1;
---      end if;
---    end if;
---  end process;
+  STM_DEV_NULL2 <= std_logic_vector(to_unsigned(led_red_reg, 1));
+  led_red_proc : process (clk_mtrx) is
+  begin
+    if rising_edge(clk_mtrx) then
+      led_red_counter <= led_red_counter + 1;
+      if led_red_counter = led_red_divider then
+        led_red_counter <= 0;
+        led_red_reg <= led_red_reg + 1;
+      end if;
+    end if;
+  end process;
 
 
 
@@ -212,10 +212,11 @@ begin
     generic map (
       AW_FSMC => FSMC_AW,
       DW => FSMC_DW,
-      AW_SLAVE => 15
+      AW_SLAVE => 16
     )
     port map (
-      clk => clk_fsmc,
+      --clk => clk_fsmc,
+      clk => FSMC_CLK,
       
       A   => FSMC_A,
       D   => FSMC_D,
@@ -368,7 +369,7 @@ begin
   F_RST_G1 <= S_RST_F(0);
   F_RST_G2 <= S_RST_F(1);
   F_RST_G3 <= S_RST_F(2);
-  STM_DEV_NULL <= S_RST_F(3) or S_BRAM_FILL_F;
+  STM_DEV_NULL1 <= S_RST_F(3) or S_BRAM_FILL_F;
   
   --
   -- UARTS from GNSS to STM32
