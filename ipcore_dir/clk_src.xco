@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 14.7
-# Date: Tue Nov  8 13:58:51 2016
+# Date: Sat Nov 12 16:21:43 2016
 #
 ##############################################################
 #
@@ -64,10 +64,10 @@ CSET clkfb_out_n_port=CLKFB_OUT_N
 CSET clkfb_out_p_port=CLKFB_OUT_P
 CSET clkfb_out_port=CLKFB_OUT
 CSET clkfb_stopped_port=CLKFB_STOPPED
-CSET clkin1_jitter_ps=185.18
-CSET clkin1_ui_jitter=0.01
-CSET clkin2_jitter_ps=100.0
-CSET clkin2_ui_jitter=0.010
+CSET clkin1_jitter_ps=89.9999999999
+CSET clkin1_ui_jitter=90
+CSET clkin2_jitter_ps=108.003024085
+CSET clkin2_ui_jitter=100.000
 CSET clkout1_drives=BUFG
 CSET clkout1_requested_duty_cycle=50.0
 CSET clkout1_requested_out_freq=216
@@ -106,7 +106,7 @@ CSET clock_mgr_type=AUTO
 CSET component_name=clk_src
 CSET daddr_port=DADDR
 CSET dclk_port=DCLK
-CSET dcm_clk_feedback=NONE
+CSET dcm_clk_feedback=1X
 CSET dcm_clk_out1_port=CLKFX
 CSET dcm_clk_out2_port=CLKFX
 CSET dcm_clk_out3_port=CLK0
@@ -115,7 +115,7 @@ CSET dcm_clk_out5_port=CLK0
 CSET dcm_clk_out6_port=CLKFX
 CSET dcm_clkdv_divide=2.0
 CSET dcm_clkfx_divide=1
-CSET dcm_clkfx_multiply=4
+CSET dcm_clkfx_multiply=3
 CSET dcm_clkgen_clk_out1_port=CLKFX
 CSET dcm_clkgen_clk_out2_port=CLKFX
 CSET dcm_clkgen_clk_out3_port=CLKFX
@@ -128,7 +128,7 @@ CSET dcm_clkgen_notes=None
 CSET dcm_clkgen_spread_spectrum=NONE
 CSET dcm_clkgen_startup_wait=false
 CSET dcm_clkin_divide_by_2=false
-CSET dcm_clkin_period=18.518
+CSET dcm_clkin_period=13.888
 CSET dcm_clkout_phase_shift=NONE
 CSET dcm_deskew_adjust=SYSTEM_SYNCHRONOUS
 CSET dcm_notes=None
@@ -144,7 +144,7 @@ CSET feedback_source=FDBK_AUTO
 CSET in_freq_units=Units_MHz
 CSET in_jitter_units=Units_UI
 CSET input_clk_stopped_port=INPUT_CLK_STOPPED
-CSET jitter_options=UI
+CSET jitter_options=PS
 CSET jitter_sel=No_Jitter
 CSET locked_port=LOCKED
 CSET mmcm_bandwidth=OPTIMIZED
@@ -218,13 +218,13 @@ CSET pll_clkout4_phase=0.000
 CSET pll_clkout5_divide=10
 CSET pll_clkout5_duty_cycle=0.500
 CSET pll_clkout5_phase=0.000
-CSET pll_compensation=INTERNAL
+CSET pll_compensation=SYSTEM_SYNCHRONOUS
 CSET pll_divclk_divide=1
 CSET pll_notes=None
 CSET pll_ref_jitter=0.010
 CSET power_down_port=POWER_DOWN
-CSET prim_in_freq=54
-CSET prim_in_jitter=0.01
+CSET prim_in_freq=72
+CSET prim_in_jitter=0.00648041474654
 CSET prim_source=No_buffer
 CSET primary_port=CLK_IN1
 CSET primitive=MMCM
@@ -236,7 +236,7 @@ CSET psincdec_port=PSINCDEC
 CSET relative_inclk=REL_PRIMARY
 CSET reset_port=RESET
 CSET secondary_in_freq=100.000
-CSET secondary_in_jitter=0.010
+CSET secondary_in_jitter=0.0108003024085
 CSET secondary_port=CLK_IN2
 CSET secondary_source=Single_ended_clock_capable_pin
 CSET ss_mod_freq=250
@@ -255,7 +255,7 @@ CSET use_locked=false
 CSET use_max_i_jitter=false
 CSET use_min_o_jitter=false
 CSET use_min_power=true
-CSET use_phase_alignment=false
+CSET use_phase_alignment=true
 CSET use_power_down=false
 CSET use_reset=true
 CSET use_spread_spectrum=false
@@ -266,4 +266,4 @@ CSET use_status=false
 MISC pkg_timestamp=2012-05-10T12:44:55Z
 # END Extra information
 GENERATE
-# CRC: a3507195
+# CRC: 61ac211a

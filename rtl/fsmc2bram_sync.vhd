@@ -62,10 +62,12 @@ end fsmc2bram_sync;
 
 architecture beh of fsmc2bram_sync is
 
-  type state_t is (IDLE, ADSET, WRITE, READ);
+  type state_t is (IDLE, ADSET, RECEIVE, TRANSMIT);
   signal state : state_t := IDLE;
   signal a_cnt : std_logic_vector(AW_SLAVE-1 downto 0) := (others => '0');
-
+  signal data_reg_fsmc2bram : std_logic_vector(DW-1 downto 0) := (others => '0');
+  signal data_reg_bram2fsmc : std_logic_vector(DW-1 downto 0) := (others => '0'); 
+  
 begin
 
   -- connect permanent signals
@@ -73,17 +75,19 @@ begin
   bram_a   <= a_cnt;
   
   -- coonect 3-state data bus
-  D <= bram_di when (NCE = '0' and NOE = '0') else (others => 'Z');
-  bram_do <= D;
-  bram_we <= "1" when (state = WRITE) else "0";
-  bram_ce <= '1' when (state = WRITE or state = READ) else '0';
+  --D <= bram_di when (NCE = '0' and NOE = '0') else (others => 'Z');
+  --bram_do <= D;
+  D <= data_reg_bram2fsmc when (NCE = '0' and NOE = '0') else (others => 'Z');
+  bram_do <= data_reg_fsmc2bram;
+  bram_we <= "1" when (state = RECEIVE) else "0";
+  bram_ce <= '1' when (state = RECEIVE or state = TRANSMIT) else '0';
   
   --
   --
   --
   fsmc_state_process : process(clk) is
     variable latcnt : std_logic_vector(1 downto 0) := (others => '0');
-    variable rcycle : boolean := false;
+    variable tx_cycle : boolean := false;
   begin
     if rising_edge(clk) then
       if NCE = '1' then
@@ -95,28 +99,30 @@ begin
           a_cnt <= A(AW_SLAVE-1 downto 0);
           if (NWE = '0') then
             latcnt := "10";
-            rcycle := false;
+            tx_cycle := false;
           else
             latcnt := "11";
-            rcycle := true;
+            tx_cycle := true;
           end if;
           state <= ADSET;
 
         when ADSET =>
           latcnt := latcnt - 1;
           if (latcnt = "000") then
-            if rcycle then
-              state <= READ;
+            if tx_cycle then
+              state <= TRANSMIT;
             else
-              state <= WRITE;
+              state <= RECEIVE;
             end if;
           end if;
           
-        when READ =>
+        when TRANSMIT =>
           a_cnt <= a_cnt + 1;
+          data_reg_bram2fsmc <= bram_di;
           
-        when WRITE =>
+        when RECEIVE =>
           a_cnt <= a_cnt + 1;
+          data_reg_fsmc2bram <= D;
 
         end case;
       end if; -- NCE
