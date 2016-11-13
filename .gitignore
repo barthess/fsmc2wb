@@ -25,8 +25,10 @@ sch2HdlBatchFile
 *.html
 *.ini
 *.jhd
+*.lck
 *.lock
 *.log
+*.lpc
 *.lso
 *.ncd
 *.ngc
@@ -46,6 +48,7 @@ sch2HdlBatchFile
 *.psr
 *.ptwx
 *.pwr
+*.rpt
 *.schlog
 *.sig
 *.spl

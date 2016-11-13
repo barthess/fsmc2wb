@@ -217,6 +217,7 @@ begin
     port map (
       --clk => clk_fsmc,
       clk => FSMC_CLK,
+      mmu_int => F_MMU_ERR_S,
       
       A   => FSMC_A,
       D   => FSMC_D,
@@ -232,7 +233,6 @@ begin
       bram_clk => wire_bram_clk
     );
 
-  F_MMU_ERR_S <= '0';
 
 
 
