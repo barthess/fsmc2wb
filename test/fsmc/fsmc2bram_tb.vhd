@@ -70,7 +70,7 @@ BEGIN
     wea   => bram_we,
     clka  => bram_clk);
 
-  fsmc_emulator : entity work.fsmc_emulator 
+  fsmc_emu_inst : entity work.fsmc_emu
   port map (
     clk => clk,
     A => A,

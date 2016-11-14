@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="/home/barthess/projects/xilinx/fsmc2wb/fsmc_emu_isim_beh.wdb" id="1" type="auto">
+         <top_modules>
+            <top_module name="fsmc_emu" />
+            <top_module name="numeric_std" />
+            <top_module name="std_logic_1164" />
+            <top_module name="std_logic_textio" />
+            <top_module name="textio" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="7" />
+   <wvobject fp_name="/fsmc_emu/hclk" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">hclk</obj_property>
+      <obj_property name="ObjectShortName">hclk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc_emu/fsmc_clk" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">fsmc_clk</obj_property>
+      <obj_property name="ObjectShortName">fsmc_clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc_emu/nwe" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">nwe</obj_property>
+      <obj_property name="ObjectShortName">nwe</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc_emu/noe" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">noe</obj_property>
+      <obj_property name="ObjectShortName">noe</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc_emu/nce" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">nce</obj_property>
+      <obj_property name="ObjectShortName">nce</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc_emu/a" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">a[19:0]</obj_property>
+      <obj_property name="ObjectShortName">a[19:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/fsmc_emu/d" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">d[31:0]</obj_property>
+      <obj_property name="ObjectShortName">d[31:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+</wave_config>
