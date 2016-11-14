@@ -37,7 +37,7 @@ ENTITY fsmc2bram IS
 Generic (
   AW_FSMC : positive := 20;
   DW : positive := 32;
-  AW_SLAVE : positive := 15
+  AW_SLAVE : positive := 16
   );
 END fsmc2bram;
  
@@ -57,7 +57,6 @@ ARCHITECTURE behavior OF fsmc2bram IS
  	--Outputs
    signal bram_a : std_logic_vector(AW_SLAVE-1 downto 0);
    signal bram_do : std_logic_vector(DW-1 downto 0);
-   signal bram_ce : std_logic;
    signal bram_we : std_logic_vector(0 downto 0);
    signal bram_clk : std_logic;
  
@@ -69,7 +68,6 @@ BEGIN
     dina  => bram_di,
     douta => bram_do,
     wea   => bram_we,
-    ena   => bram_ce,
     clka  => bram_clk
   );
 
@@ -87,7 +85,7 @@ BEGIN
 	-- Instantiate the Unit Under Test (UUT)
   uut : entity work.fsmc2bram_sync
   generic map (
-    AW_FSMC => AW_FSMC,
+    AW => AW_FSMC,
     DW => DW,
     AW_SLAVE => AW_SLAVE
   )
@@ -103,7 +101,6 @@ BEGIN
     bram_a   => bram_a,
     bram_di  => bram_do,
     bram_do  => bram_di,
-    bram_ce  => bram_ce,
     bram_we  => bram_we,
     bram_clk => bram_clk
     );

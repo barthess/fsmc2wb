@@ -277,7 +277,6 @@ BEGIN
       read(ln, adr_read);
 
       A <= conv_std_logic_vector(adr_read, AW_FSMC);
-      addr_cnt <= addr_cnt + 2;
       NCE <= '0';
       if rnw_latch = '0' then
         NWE <= '0';

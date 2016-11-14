@@ -6,6 +6,7 @@ planAhead_run*/
 .Xil/
 xst/
 xlnx_auto*/
+core
 sch2HdlBatchFile
 *.bgn
 *.bit

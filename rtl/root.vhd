@@ -133,11 +133,11 @@ architecture Behavioral of AA_root is
   
 begin
 
---  BUFG_inst : BUFG
---    port map (
---      O => clk_fsmc,
---      I => FSMC_CLK
---      );
+  BUFG_inst : BUFG
+    port map (
+      O => clk_fsmc,
+      I => FSMC_CLK
+      );
   
   --
   -- clock sources
@@ -151,7 +151,7 @@ begin
       );
   clk_mtrx <= clk_200mhz;
   
-  LED_G(0) <= '1';--clk_fsmc;
+  LED_G(0) <= FSMC_CLK;
   LED_G(1) <= FSMC_NWE;
   LED_G(2) <= FSMC_NOE;
   LED_G(3) <= FSMC_NCE;
@@ -203,20 +203,19 @@ begin
       dina  => wire_bram_di,
       douta => wire_bram_do,
       wea   => wire_bram_we,
-      ena   => wire_bram_ce,
       clka  => wire_bram_clk
       );
 
 
   fsmc2bram : entity work.fsmc2bram_sync 
     generic map (
-      AW_FSMC => FSMC_AW,
+      AW => FSMC_AW,
       DW => FSMC_DW,
       AW_SLAVE => 16
     )
     port map (
-      --clk => clk_fsmc,
-      clk => FSMC_CLK,
+      clk => clk_fsmc,
+      --clk => FSMC_CLK,
       mmu_int => F_MMU_ERR_S,
       
       A   => FSMC_A,
@@ -228,7 +227,6 @@ begin
       bram_a   => wire_bram_a,
       bram_di  => wire_bram_do,
       bram_do  => wire_bram_di,
-      bram_ce  => wire_bram_ce,
       bram_we  => wire_bram_we,
       bram_clk => wire_bram_clk
     );
