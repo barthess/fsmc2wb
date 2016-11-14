@@ -33,19 +33,19 @@ LIBRARY work;
 -- arithmetic functions with Signed or Unsigned values
 --USE ieee.numeric_std.ALL;
  
-ENTITY fsmc2bram IS
+ENTITY fsmc2bram_tb IS
 Generic (
-  AW_FSMC : positive := 20;
+  AW : positive := 20;
   DW : positive := 32;
   AW_SLAVE : positive := 16
   );
-END fsmc2bram;
+END fsmc2bram_tb;
  
-ARCHITECTURE behavior OF fsmc2bram IS 
+ARCHITECTURE behavior OF fsmc2bram_tb IS 
 
    --Inputs
    signal clk : std_logic := '0';
-   signal A : std_logic_vector(AW_FSMC-1 downto 0) := (others => '0');
+   signal A : std_logic_vector(AW-1 downto 0) := (others => '0');
    signal NWE : std_logic := '0';
    signal NOE : std_logic := '0';
    signal NCE : std_logic := '0';
@@ -62,14 +62,13 @@ ARCHITECTURE behavior OF fsmc2bram IS
  
 BEGIN
  
-  bram_memtest_imp : entity work.bram_memtest
+  bram_memtest_inst : entity work.bram_memtest
   port map (
     addra => bram_a,
     dina  => bram_di,
     douta => bram_do,
     wea   => bram_we,
-    clka  => bram_clk
-  );
+    clka  => bram_clk);
 
   fsmc_emulator : entity work.fsmc_emulator 
   port map (
@@ -78,17 +77,15 @@ BEGIN
     D => D,
     NWE => NWE,
     NOE => NOE,
-    NCE => NCE
-  );
+    NCE => NCE);
  
  
 	-- Instantiate the Unit Under Test (UUT)
-  uut : entity work.fsmc2bram_sync
+  uut : entity work.fsmc2bram
   generic map (
-    AW => AW_FSMC,
+    AW => AW,
     DW => DW,
-    AW_SLAVE => AW_SLAVE
-  )
+    AW_SLAVE => AW_SLAVE)
   PORT MAP (
     clk => clk,
 
@@ -102,7 +99,6 @@ BEGIN
     bram_di  => bram_do,
     bram_do  => bram_di,
     bram_we  => bram_we,
-    bram_clk => bram_clk
-    );
+    bram_clk => bram_clk);
 
 END;
