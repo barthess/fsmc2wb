@@ -133,24 +133,26 @@ architecture Behavioral of AA_root is
   
 begin
 
-  BUFG_inst : BUFG
-    port map (
-      O => clk_fsmc,
-      I => FSMC_CLK
-      );
-  
   --
   -- clock sources
   --
+  BUFG_inst : BUFG
+    port map (
+      O => clk_fsmc,
+      I => FSMC_CLK);
+  
   clk_src : entity work.clk_src
     port map (
       CLK_IN1   => FSMC_CLK,
       CLK_OUT1  => clk_200mhz,
       CLK_VALID => clk_valid,
-      RESET     => S_MATH_RST_F
-      );
+      RESET     => S_MATH_RST_F);
+
   clk_mtrx <= clk_200mhz;
-  
+
+  --
+  -- debug FSMC connections for logic analizer
+  --
   LED_G(0) <= FSMC_CLK;
   LED_G(1) <= FSMC_NWE;
   LED_G(2) <= FSMC_NOE;
@@ -197,22 +199,20 @@ begin
 
 
 
-  bram_memtest : entity work.bram_memtest
+  bram_memtest_inst : entity work.bram_memtest
     port map (
       addra => wire_bram_a,
       dina  => wire_bram_di,
       douta => wire_bram_do,
       wea   => wire_bram_we,
-      clka  => wire_bram_clk
-      );
+      clka  => wire_bram_clk);
 
 
-  fsmc2bram : entity work.fsmc2bram_sync 
+  fsmc2bram_inst : entity work.fsmc2bram 
     generic map (
       AW => FSMC_AW,
       DW => FSMC_DW,
-      AW_SLAVE => 16
-    )
+      AW_SLAVE => 16)
     port map (
       clk => clk_fsmc,
       --clk => FSMC_CLK,
@@ -228,8 +228,7 @@ begin
       bram_di  => wire_bram_do,
       bram_do  => wire_bram_di,
       bram_we  => wire_bram_we,
-      bram_clk => wire_bram_clk
-    );
+      bram_clk => wire_bram_clk);
 
 
 

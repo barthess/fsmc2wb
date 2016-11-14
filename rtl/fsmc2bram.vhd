@@ -30,7 +30,7 @@ use IEEE.NUMERIC_STD.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity fsmc2bram_sync is
+entity fsmc2bram is
   Generic (
     AW : positive;          -- total FSMC address width
     DW : positive;          -- data witdth
@@ -53,13 +53,13 @@ entity fsmc2bram_sync is
     bram_clk : out std_logic
   );
   
-end fsmc2bram_sync;
+end fsmc2bram;
 
 
 
 -----------------------------------------------------------------------------
 
-architecture beh of fsmc2bram_sync is
+architecture beh of fsmc2bram is
 
   type state_t is (IDLE, ADSET, RECEIVE, TRANSMIT);
   signal state : state_t := IDLE;
@@ -86,7 +86,7 @@ begin
   --
   --
   --
-  port_registering : process(clk) is
+  port_registering_proc : process(clk) is
   begin
     if rising_edge(clk) then
       dreg_bram2fsmc <= bram_di;
@@ -100,7 +100,7 @@ begin
   --
   --
   --
-  mmu_process : process(clk) is
+  mmu_proc : process(clk) is
   begin
     if rising_edge(clk) then
       if (ncereg = '0') then
@@ -114,7 +114,7 @@ begin
   --
   --
   --
-  we_proc : process(clk) is
+  we_delay_proc : process(clk) is
     constant welat : unsigned(1 downto 0) := "11";
     variable wecnt : unsigned(1 downto 0) := welat;
   begin
@@ -134,7 +134,7 @@ begin
   --
   --
   --
-  fsmc_state_process : process(clk) is
+  fsmc_state_proc : process(clk) is
     variable latcnt : unsigned(0 downto 0) := (others => '0');
     variable oe_cycle : boolean := false;
   begin
