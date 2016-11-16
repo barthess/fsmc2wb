@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 14.7
-# Date: Tue Nov 15 10:02:54 2016
+# Date: Wed Nov 16 13:33:40 2016
 #
 ##############################################################
 #
@@ -74,7 +74,7 @@ CSET clkout1_requested_out_freq=216
 CSET clkout1_requested_phase=0.000
 CSET clkout2_drives=No_buffer
 CSET clkout2_requested_duty_cycle=50.0
-CSET clkout2_requested_out_freq=108
+CSET clkout2_requested_out_freq=54
 CSET clkout2_requested_phase=0.000
 CSET clkout2_used=false
 CSET clkout3_drives=BUFG
@@ -106,7 +106,7 @@ CSET clock_mgr_type=AUTO
 CSET component_name=clk_src
 CSET daddr_port=DADDR
 CSET dclk_port=DCLK
-CSET dcm_clk_feedback=1X
+CSET dcm_clk_feedback=NONE
 CSET dcm_clk_out1_port=CLKFX
 CSET dcm_clk_out2_port=CLKFX
 CSET dcm_clk_out3_port=CLK0
@@ -197,10 +197,10 @@ CSET override_pll=false
 CSET platform=lin64
 CSET pll_bandwidth=OPTIMIZED
 CSET pll_clk_feedback=CLKFBOUT
-CSET pll_clkfbout_mult=8
+CSET pll_clkfbout_mult=15
 CSET pll_clkfbout_phase=0.000
 CSET pll_clkin_period=18.518
-CSET pll_clkout0_divide=2
+CSET pll_clkout0_divide=128
 CSET pll_clkout0_duty_cycle=0.500
 CSET pll_clkout0_phase=0.000
 CSET pll_clkout1_divide=4
@@ -218,10 +218,10 @@ CSET pll_clkout4_phase=0.000
 CSET pll_clkout5_divide=10
 CSET pll_clkout5_duty_cycle=0.500
 CSET pll_clkout5_phase=0.000
-CSET pll_compensation=SYSTEM_SYNCHRONOUS
-CSET pll_divclk_divide=1
+CSET pll_compensation=INTERNAL
+CSET pll_divclk_divide=2
 CSET pll_notes=None
-CSET pll_ref_jitter=0.010
+CSET pll_ref_jitter=0.005
 CSET power_down_port=POWER_DOWN
 CSET prim_in_freq=54
 CSET prim_in_jitter=0.00486013608381
@@ -254,8 +254,8 @@ CSET use_inclk_switchover=false
 CSET use_locked=false
 CSET use_max_i_jitter=false
 CSET use_min_o_jitter=false
-CSET use_min_power=true
-CSET use_phase_alignment=true
+CSET use_min_power=false
+CSET use_phase_alignment=false
 CSET use_power_down=false
 CSET use_reset=true
 CSET use_spread_spectrum=false
@@ -266,4 +266,4 @@ CSET use_status=false
 MISC pkg_timestamp=2012-05-10T12:44:55Z
 # END Extra information
 GENERATE
-# CRC: f7f7abc6
+# CRC: a8950a40

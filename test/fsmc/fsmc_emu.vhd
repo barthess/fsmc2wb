@@ -29,9 +29,6 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 use ieee.std_logic_textio.all;
 use std.textio.all;
-
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
 USE ieee.numeric_std.ALL;
  
 ENTITY fsmc_emu IS
@@ -40,32 +37,38 @@ ENTITY fsmc_emu IS
     DW : positive := 32;
     AW_SLAVE : positive := 15;
     
-    HCLK_DIV : positive := 1;        -- clock divider as defined in ST's datasheet
+    -- STM32 internal clock (known as AHB HCLK)  
+    HCLK_PERIOD : time := 4.63 ns; 
+    -- Clock divider for HCLK. In STM32 (val-1). Min=2.
+    HCLK_DIV : positive := 2;
+    -- Data latancy cicles. In STM32 (val-2). Min=2.
     DATLAT_LEN : positive := 3;
+    -- Idle (NCE, NOW, NWE high) cycles after read or write.
     BUSTURN_W_LEN : positive := 2;
     BUSTURN_R_LEN : positive := 5;
-    BURST : positive := 4;
-    hclk_period : time := 4.63 ns    -- STM32 internal clock (known as HCLK)
+    -- STM32 inserts useles active cycles after data read.
+    READ_COOLDOWN : positive := 2
     );
   Port (
     clk : out std_logic := '0';
     A   : out std_logic_vector(AW-1 downto 0);
+    D   : inout std_logic_vector(DW-1 downto 0);
+    -- actually they are out but for read back purpose changed to inout
     NWE : inout std_logic := '1';
     NOE : inout std_logic := '1';
-    NCE : inout std_logic := '1';
-    D   : inout std_logic_vector(DW-1 downto 0)
+    NCE : inout std_logic := '1'
   );
 
   -- helper function to get constant for high state of clock
   function GET_HIGH return natural is
   begin
-    return (HCLK_DIV - 1) / 2;
+    return (HCLK_DIV - 2) / 2;
   end GET_HIGH;
   
   -- helper function to get constant for low state of clock
   function GET_LOW return natural is
   begin
-    if HCLK_DIV rem 2 = 0 then
+    if (HCLK_DIV - 1) rem 2 = 0 then
       return GET_HIGH + 1;
     else
       return GET_HIGH;
@@ -79,11 +82,6 @@ END fsmc_emu;
 --
 ARCHITECTURE behavior OF fsmc_emu IS 
 
-  -- FSMC simulation definitions
-  signal write_burst : integer := 0;
-  signal read_burst : integer := 0;
-  signal burst_cnt : integer := 0;
-  
   signal rst : std_logic := '1';
   signal hclk : std_logic := '0';
   signal fsmc_clk : std_logic := '0';
@@ -112,7 +110,7 @@ BEGIN
   hclk_process : process
   begin
     hclk <= not hclk;
-    wait for hclk_period/2;
+    wait for HCLK_PERIOD/2;
   end process;
 
   --
@@ -154,8 +152,9 @@ BEGIN
   --
   --
   stimuli_process : process
+    constant BURST : positive := 4;
   begin
-    wait for hclk_period * 8;
+    wait for HCLK_PERIOD * 8;
     rst <= '0';
     
     -- write loop
@@ -172,8 +171,8 @@ BEGIN
       
       for i in 0 to DATLAT_LEN-1 loop
         wait until falling_edge(fsmc_clk);
+        A <= (others => 'U');
       end loop;
-      A <= (others => 'U');
       
       for i in 0 to BURST-1 loop
         wait until falling_edge(fsmc_clk);
@@ -200,9 +199,9 @@ BEGIN
       
       for i in 0 to 1 loop
         wait until falling_edge(fsmc_clk);
+        A <= (others => 'U');
       end loop;
       NOE <= '0';
-      A <= (others => 'U');
 
       for i in 0 to DATLAT_LEN-1 loop
         wait until falling_edge(fsmc_clk);
@@ -213,13 +212,17 @@ BEGIN
         dat_reg <= D;
       end loop;
       
+      for i in 0 to READ_COOLDOWN-1 loop
+        wait until rising_edge(fsmc_clk);
+      end loop;
+      
       wait until rising_edge(fsmc_clk);
       wait until rising_edge(hclk);
       NCE <= '1';
       NOE <= '1';
     end loop;
     
-    wait for hclk_period * 100;
+    wait for HCLK_PERIOD * 100;
     wait;
   end process;
 

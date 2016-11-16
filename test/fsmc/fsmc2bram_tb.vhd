@@ -37,68 +37,75 @@ ENTITY fsmc2bram_tb IS
 Generic (
   AW : positive := 20;
   DW : positive := 32;
-  AW_SLAVE : positive := 13
+  AW_SLAVE : positive := 12
   );
 END fsmc2bram_tb;
  
 ARCHITECTURE behavior OF fsmc2bram_tb IS 
 
-   --Inputs
-   signal clk : std_logic := '0';
-   signal A : std_logic_vector(AW-1 downto 0) := (others => '0');
-   signal NWE : std_logic := '0';
-   signal NOE : std_logic := '0';
-   signal NCE : std_logic := '0';
-   signal bram_di : std_logic_vector(DW-1 downto 0) := (others => '0');
+  --Inputs
+  signal clk_tb : std_logic := '0';
+  signal A_tb : std_logic_vector(AW-1 downto 0) := (others => '0');
+  signal NWE_tb : std_logic := '0';
+  signal NOE_tb : std_logic := '0';
+  signal NCE_tb : std_logic := '0';
+  signal bram_di_tb : std_logic_vector(DW-1 downto 0) := (others => '0');
 
-	--BiDirs
-   signal D : std_logic_vector(DW-1 downto 0);
+  --BiDirs
+  signal D_tb : std_logic_vector(DW-1 downto 0);
 
- 	--Outputs
-   signal bram_a : std_logic_vector(AW_SLAVE-1 downto 0);
-   signal bram_do : std_logic_vector(DW-1 downto 0);
-   signal bram_we : std_logic_vector(0 downto 0);
-   signal bram_clk : std_logic;
+  --Outputs
+  signal bram_a_tb : std_logic_vector(AW_SLAVE-1 downto 0);
+  signal bram_do_tb : std_logic_vector(DW-1 downto 0);
+  signal bram_we_tb : std_logic_vector(0 downto 0);
+  signal bram_clk_tb : std_logic;
  
 BEGIN
  
+  -- BRAM instance
   bram_memtest_inst : entity work.bram_memtest
   port map (
-    addra => bram_a,
-    dina  => bram_di,
-    douta => bram_do,
-    wea   => bram_we,
-    clka  => bram_clk);
+    addra => bram_a_tb,
+    dina  => bram_di_tb,
+    douta => bram_do_tb,
+    wea   => bram_we_tb,
+    clka  => bram_clk_tb);
 
+  -- FSMC emulator
   fsmc_emu_inst : entity work.fsmc_emu
+  generic map (
+    AW => AW,
+    DW => DW,
+    AW_SLAVE => AW_SLAVE,
+    HCLK_DIV => 2)
   port map (
-    clk => clk,
-    A => A,
-    D => D,
-    NWE => NWE,
-    NOE => NOE,
-    NCE => NCE);
- 
+    clk => clk_tb,
+    A => A_tb,
+    D => D_tb,
+    NWE => NWE_tb,
+    NOE => NOE_tb,
+    NCE => NCE_tb);
  
 	-- Instantiate the Unit Under Test (UUT)
   uut : entity work.fsmc2bram
   generic map (
     AW => AW,
     DW => DW,
-    AW_SLAVE => AW_SLAVE)
+    AW_SLAVE => AW_SLAVE,
+    DATLAT_LEN => 3)
   PORT MAP (
-    clk => clk,
+    clk => clk_tb,
 
-    A => A,
-    D => D,
-    NWE => NWE,
-    NOE => NOE,
-    NCE => NCE,
+    A => A_tb,
+    D => D_tb,
+    NWE => NWE_tb,
+    NOE => NOE_tb,
+    NCE => NCE_tb,
 
-    bram_a   => bram_a,
-    bram_di  => bram_do,
-    bram_do  => bram_di,
-    bram_we  => bram_we,
-    bram_clk => bram_clk);
+    bram_a   => bram_a_tb,
+    bram_di  => bram_do_tb,
+    bram_do  => bram_di_tb,
+    bram_we  => bram_we_tb,
+    bram_clk => bram_clk_tb);
 
 END;

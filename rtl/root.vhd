@@ -21,7 +21,7 @@ entity AA_root is
   generic (
     FSMC_AW       : positive := 20;
     FSMC_DW       : positive := 32;
-    BRAM_A_AW     : positive := 11;
+    BRAM_A_AW     : positive := 16;
     BRAMS         : positive := 16
     );
   port (
@@ -117,7 +117,7 @@ architecture Behavioral of AA_root is
   signal memtest_bram_we : std_logic_vector (0 downto 0);
 
   -- wires for memspace to fsmc
-  signal wire_bram_a   : std_logic_vector (12 downto 0); 
+  signal wire_bram_a   : std_logic_vector (BRAM_A_AW-1 downto 0); 
   signal wire_bram_di  : std_logic_vector (FSMC_DW-1 downto 0); 
   signal wire_bram_do  : std_logic_vector (FSMC_DW-1 downto 0); 
   signal wire_bram_ce  : std_logic; 
@@ -212,7 +212,8 @@ begin
     generic map (
       AW => FSMC_AW,
       DW => FSMC_DW,
-      AW_SLAVE => 13)
+      AW_SLAVE => BRAM_A_AW,
+      DATLAT_LEN => 4)
     port map (
       clk => clk_fsmc,
       mmu_int => F_MMU_ERR_S,

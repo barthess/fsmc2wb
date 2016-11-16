@@ -17,61 +17,55 @@
          </top_modules>
       </db_ref>
    </db_ref_list>
-   <WVObjectSize size="12" />
-   <wvobject fp_name="/fsmc2bram_tb/clk" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">clk</obj_property>
-      <obj_property name="ObjectShortName">clk</obj_property>
+   <WVObjectSize size="11" />
+   <wvobject fp_name="/fsmc2bram_tb/clk_tb" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_tb</obj_property>
+      <obj_property name="ObjectShortName">clk_tb</obj_property>
    </wvobject>
-   <wvobject fp_name="/fsmc2bram_tb/a" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">a[19:0]</obj_property>
-      <obj_property name="ObjectShortName">a[19:0]</obj_property>
+   <wvobject fp_name="/fsmc2bram_tb/a_tb" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">a_tb[19:0]</obj_property>
+      <obj_property name="ObjectShortName">a_tb[19:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/fsmc2bram_tb/nwe" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">nwe</obj_property>
-      <obj_property name="ObjectShortName">nwe</obj_property>
+   <wvobject fp_name="/fsmc2bram_tb/nwe_tb" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">nwe_tb</obj_property>
+      <obj_property name="ObjectShortName">nwe_tb</obj_property>
    </wvobject>
-   <wvobject fp_name="/fsmc2bram_tb/noe" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">noe</obj_property>
-      <obj_property name="ObjectShortName">noe</obj_property>
+   <wvobject fp_name="/fsmc2bram_tb/noe_tb" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">noe_tb</obj_property>
+      <obj_property name="ObjectShortName">noe_tb</obj_property>
    </wvobject>
-   <wvobject fp_name="/fsmc2bram_tb/nce" type="logic" db_ref_id="1">
-      <obj_property name="ElementShortName">nce</obj_property>
-      <obj_property name="ObjectShortName">nce</obj_property>
+   <wvobject fp_name="/fsmc2bram_tb/nce_tb" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">nce_tb</obj_property>
+      <obj_property name="ObjectShortName">nce_tb</obj_property>
    </wvobject>
-   <wvobject fp_name="/fsmc2bram_tb/d" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">d[31:0]</obj_property>
-      <obj_property name="ObjectShortName">d[31:0]</obj_property>
+   <wvobject fp_name="/fsmc2bram_tb/d_tb" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">d_tb[31:0]</obj_property>
+      <obj_property name="ObjectShortName">d_tb[31:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/fsmc2bram_tb/bram_a" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">bram_a[12:0]</obj_property>
-      <obj_property name="ObjectShortName">bram_a[12:0]</obj_property>
+   <wvobject fp_name="/fsmc2bram_tb/bram_a_tb" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">bram_a_tb[11:0]</obj_property>
+      <obj_property name="ObjectShortName">bram_a_tb[11:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/fsmc2bram_tb/bram_do" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">bram_do[31:0]</obj_property>
-      <obj_property name="ObjectShortName">bram_do[31:0]</obj_property>
+   <wvobject fp_name="/fsmc2bram_tb/bram_di_tb" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">bram_di_tb[31:0]</obj_property>
+      <obj_property name="ObjectShortName">bram_di_tb[31:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/fsmc2bram_tb/uut/bram_di" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">bram_di[31:0]</obj_property>
-      <obj_property name="ObjectShortName">bram_di[31:0]</obj_property>
+   <wvobject fp_name="/fsmc2bram_tb/bram_do_tb" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">bram_do_tb[31:0]</obj_property>
+      <obj_property name="ObjectShortName">bram_do_tb[31:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/fsmc2bram_tb/bram_we" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">bram_we[0:0]</obj_property>
-      <obj_property name="ObjectShortName">bram_we[0:0]</obj_property>
+   <wvobject fp_name="/fsmc2bram_tb/bram_we_tb" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">bram_we_tb[0:0]</obj_property>
+      <obj_property name="ObjectShortName">bram_we_tb[0:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/fsmc2bram_tb/uut/acnt" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">acnt[12:0]</obj_property>
-      <obj_property name="ObjectShortName">acnt[12:0]</obj_property>
-      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
-   </wvobject>
-   <wvobject fp_name="/fsmc2bram_tb/uut/areg" type="array" db_ref_id="1">
-      <obj_property name="ElementShortName">areg[19:0]</obj_property>
-      <obj_property name="ObjectShortName">areg[19:0]</obj_property>
-      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   <wvobject fp_name="/fsmc2bram_tb/uut/state" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">state</obj_property>
+      <obj_property name="ObjectShortName">state</obj_property>
    </wvobject>
 </wave_config>
