@@ -64,7 +64,7 @@ architecture beh of fsmc2bram is
   type state_t is (IDLE, ADSET, RECEIVE, TRANSMIT);
   signal state : state_t := IDLE;
   
-  signal acnt : unsigned(AW_SLAVE-1 downto 0);
+  signal acnt : unsigned(AW_SLAVE-1 downto 0) := (others => 'U');
   signal areg : std_logic_vector(AW-1 downto 0);
   signal nwereg : std_logic := '1'; 
   signal ncereg : std_logic := '1';
@@ -115,8 +115,8 @@ begin
   --
   --
   we_delay_proc : process(clk) is
-    constant welat : unsigned(1 downto 0) := "11";
-    variable wecnt : unsigned(1 downto 0) := welat;
+    constant welat : unsigned(2 downto 0) := "101";
+    variable wecnt : unsigned(2 downto 0) := welat;
   begin
     if rising_edge(clk) then
       if ncereg = '0' and nwereg = '0' then
@@ -135,7 +135,7 @@ begin
   --
   --
   fsmc_state_proc : process(clk) is
-    variable latcnt : unsigned(0 downto 0) := (others => '0');
+    variable latcnt : unsigned(1 downto 0) := (others => '0');
     variable oe_cycle : boolean := false;
   begin
     if rising_edge(clk) then
@@ -147,13 +147,13 @@ begin
         when IDLE =>
           acnt <= unsigned(areg(AW_SLAVE-1 downto 0));
           if (nwereg = '0') then
-            latcnt := "1";
+            latcnt := "10";
             oe_cycle := false;
             state <= ADSET;
           else
-            latcnt := "0";
+            latcnt := "00";
             oe_cycle := true;
-            if (latcnt = "0") then
+            if (latcnt = "00") then
               state <= RECEIVE;
             else
               state <= ADSET;

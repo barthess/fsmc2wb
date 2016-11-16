@@ -37,7 +37,7 @@ ENTITY fsmc2bram_tb IS
 Generic (
   AW : positive := 20;
   DW : positive := 32;
-  AW_SLAVE : positive := 16
+  AW_SLAVE : positive := 13
   );
 END fsmc2bram_tb;
  

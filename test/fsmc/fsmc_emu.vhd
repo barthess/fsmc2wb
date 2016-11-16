@@ -41,10 +41,10 @@ ENTITY fsmc_emu IS
     AW_SLAVE : positive := 15;
     
     HCLK_DIV : positive := 1;        -- clock divider as defined in ST's datasheet
-    DATLAT_LEN : positive := 2;
+    DATLAT_LEN : positive := 3;
     BUSTURN_W_LEN : positive := 2;
     BUSTURN_R_LEN : positive := 5;
-    BURST : positive := 8;
+    BURST : positive := 4;
     hclk_period : time := 4.63 ns    -- STM32 internal clock (known as HCLK)
     );
   Port (
