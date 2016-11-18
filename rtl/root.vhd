@@ -396,10 +396,10 @@ begin
   F_G2_RX(1) <= '1';
   F_G2_RX(2) <= '1';
   F_G3_RX(1) <= '1';
-  --F_G3_RX(2) <= '1';
   
   F_MATH_ERR_S <= '1';
   F_ACK_S <= '1';
+
   
 end Behavioral;
 
